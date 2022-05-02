@@ -1,7 +1,3 @@
-/* client.h - LociTerm client side protocols */
-/* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: client.h,v 1.2 2022/05/02 03:18:36 malakai Exp $ */
-
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
  * This file is part of LociTerm - Last Outpost Client Implementation Terminal
@@ -20,35 +16,3 @@
  * along with LociTerm.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LO_CLIENT_H
-#define LO_CLIENT_H
-
-/* global #defines */
-
-// to web client message
-#define OUTPUT '0'
-#define SET_WINDOW_TITLE '1'
-#define SET_PREFERENCES '2'
-
-// from web client message
-#define INPUT '0'
-#define RESIZE_TERMINAL '1'
-#define PAUSE '2'
-#define RESUME '3'
-#define JSON_DATA '{'
-
-/* structs and typedefs */
-
-
-/* exported global variable declarations */
-
-/* exported function declarations */
-
-void loci_client_write(proxy_conn_t *pc, char *in, size_t len);
-
-int callback_loci_client(
-	struct lws *wsi, enum lws_callback_reasons reason,
-	void *user, void *in, size_t len
-);
-
-#endif /* LO_CLIENT_H */

@@ -1,6 +1,6 @@
 See: https://www.codeinwp.com/blog/webpack-tutorial-for-beginners/
 
-Commands I've run so far.
+Commands I've run so far for initial setup...
 
 npm init -y
 # --save-dev means the package wont be in the final dist

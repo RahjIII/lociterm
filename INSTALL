@@ -1,0 +1,7 @@
+Requires libglib2.0-dev, ctags, openssl, libwebsockets4.4.0, npm
+
+To build type `make`.
+
+Doesn't have an install script yet.
+Edit the locid.conf config file per the comments.
+
