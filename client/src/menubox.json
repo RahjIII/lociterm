@@ -1,0 +1,98 @@
+	[
+		{
+			"name": "Main Menu",
+			"mhstart": "menu_top",
+			"class": "ansi10",
+			"svgid": "command"
+		},
+		{
+			"name": "North",
+			"mhsend": "north\n",
+			"class": "ansi0",
+			"svgid": "chevron-top"
+		},
+		{
+			"name": "Up",
+			"mhsend": "up\n",
+			"class": "ansi0",
+			"svgid": "arrow-thick-top"
+		},
+		{
+			"name": "Client Settings",
+			"mhstart": "menu_client",
+			"class": "ghost",
+			"svgid": "cog"
+		},
+		{
+			"name": "West",
+			"mhsend": "west\n",
+			"class": "ansi0",
+			"svgid": "chevron-left"
+		},
+		{
+			"name": "Map",
+			"mhsend": "map\n",
+			"class": "ansi4",
+			"svgid": "compass"
+		},
+		{
+			"name": "East",
+			"mhsend": "east\n",
+			"class": "ansi0",
+			"svgid": "chevron-right"
+		},
+		{
+			"name": "Chat",
+			"mhstart": "menu_chat",
+			"class": "ansi5",
+			"svgid": "comment-square"
+		},
+		{
+			"name": "Down",
+			"mhsend": "down\n",
+			"class": "ansi0",
+			"svgid": "arrow-thick-bottom"
+		},
+		{
+			"name": "South",
+			"mhsend": "south\n",
+			"class": "ansi0",
+			"svgid": "chevron-bottom"
+		},
+		{
+			"name": "Look",
+			"mhstart": "menu_look",
+			"class": "ansi14",
+			"svgid": "eye"
+		},
+		{
+			"name": "Badge",
+			"mhstart": "menu_badge",
+			"class": "ansi11",
+			"svgid": "badge"
+		},
+		{
+			"name": "Kill",
+			"mhstart": "menu_kill",
+			"class": "ansi1",
+			"svgid": "fire"
+		},
+		{
+			"name": "Hotkey",
+			"mhstart": "menu_hotkey",
+			"class": "ansi12",
+			"svgid": "flash"
+		},
+		{
+			"name": "Cure",
+			"mhstart": "menu_cure",
+			"class": "ansi9",
+			"svgid": "heart"
+		},
+		{
+			"name": "Loot",
+			"mhstart": "menu_loot",
+			"class": "ansi2",
+			"svgid": "share-boxed"
+		}
+	]
