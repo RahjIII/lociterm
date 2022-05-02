@@ -1,0 +1,42 @@
+See: https://www.codeinwp.com/blog/webpack-tutorial-for-beginners/
+
+Commands I've run so far.
+
+npm init -y
+# --save-dev means the package wont be in the final dist
+npm install webpack webpack-cli --save-dev
+npm install html-webpack-plugin --save-dev
+npm install webpack-dev-server --save-dev
+npm install --save-dev style-loader css-loader
+
+# --save means the package WILL be in the final dist
+npm install xterm -save
+npm install xterm-addon-web-links -save
+npm install xterm-addon-fit -save
+npm install xterm-addon-attach -save
+
+# I created webpak.config.js by hand from an example.
+vi webpack.config.js
+
+# where webpack puts the final product by default
+mkdir dist
+
+# default webpack location for the source code you write
+mkdir src
+
+# I created src/index.js with vi and edited it.
+vi src/index.js
+
+# I created src/index.html with vi and edited it.
+
+# This runs webpack with the defaults
+npx webpack
+
+#updated package.json with some build targets so now these work
+npm run dev
+npm run build 
+
+# added some config to webpack.config.js and package.json to enable a live dev
+# server
+npm run dev
+

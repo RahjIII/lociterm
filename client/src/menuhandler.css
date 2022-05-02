@@ -1,0 +1,161 @@
+.menuhandler div {
+	/* if you want all of the menu elements to stand out... */
+	background: rgba(255,0,0,0.5);
+}
+
+#menubox {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 4;
+	margin: 1em;
+	border-radius: 2mm;
+	visibility: visible;
+}
+
+.menugrid {
+    display: grid;
+    grid-template-rows: repeat(4,1fr);
+    grid-template-columns: repeat(4,1fr);
+    grid-gap: 1mm;
+}
+
+.menugrid *:hover{
+    background: rgba(64,64,64,0.5);
+}
+
+.menugrid *:active{
+    background: rgba(128,128,128,0.5);
+}
+
+
+
+#menubox .ansi0               {                            }
+#menubox .ansi1               { fill:            #fd233e; }
+#menubox .ansi2               { fill:            #1cbd30; }
+#menubox .ansi3               { fill:            #b4a543; }
+#menubox .ansi4               { fill:            #7575ff; }
+#menubox .ansi5               { fill:            #ea5685; }
+#menubox .ansi6               { fill:            #28cdcd; }
+#menubox .ansi7               { fill:            #e4e4e4; }
+#menubox .ansi8               { fill:            #FFFFFF; }
+#menubox .ansi9               { fill:            #ff566e; }
+#menubox .ansi10              { fill:            #5cff71; }
+#menubox .ansi11              { fill:            #ffffb4; }
+#menubox .ansi12              { fill:            #4ea0e4; }
+#menubox .ansi13              { fill:            #ff95db; }
+#menubox .ansi14              { fill:            #87e4e4; }
+#menubox .ansi15              { fill:            #FFFFFF; }
+#menubox .ghost               { fill:            #333333; opacity: 0.85; }
+
+.menu {
+	/* text="#443311" bgcolor="#688F9E" link="#cc2600" vlink="#aa2600" alink="#ffb76c" */
+	/* border: solid #404040; */
+	/* color: #443311; */
+	/* background: rgba(255,0,0,0.5); */
+}
+
+
+.menu button {
+	background: inherit;
+	border: inherit;
+	color: inherit;
+	display: block;
+	width: 100%;
+}
+
+
+.menubar {
+	top: 1em;
+	right: 1em;
+	float: right;
+	clear: none;
+	/* width: 100%; */
+	overflow: visible;
+	position: fixed;
+	z-index: 10;
+	visibility: hidden;
+}
+
+.menubar button {
+	display: inline;
+	width: initial;
+	padding: 1em;
+}
+
+
+.menuside {
+	float: right;
+	clear: none;
+	min-width: 30mm;
+	/* height: 100%; */
+	border-width: 4px;
+	position: fixed;
+	display: block;
+	visibility: hidden;
+	right: -20%;
+	transition: all 0.15s ease-in-out;
+	z-index: 10;
+	bottom: 0;
+	font-size: initial;
+}
+
+.menuside button {
+	display: block;
+	width: 100%;
+	margin: 1em auto;
+	border-width: 1px 0px 1px 0px;
+	padding: 1em;
+	margin: 0em;
+}
+
+.menuside button:hover {
+	color: #ffb76c;
+}
+
+.menuside div {
+	color:	white;
+	background: rgba(64,64,64,0.5);
+	border-radius: 2.0mm;
+	min-height:	6.0mm;
+	padding: 2.0mm;
+	margin: 0.5mm;
+}
+
+.menuside div:hover{
+	background: rgba(64,64,64,0.75);
+}
+
+.menuside div:active{
+	background: rgba(64,64,64,1.0);
+}
+
+.menuside .open {
+	color: white;
+}
+
+.menuside .send {
+	font-weight: bold;
+	color: yellow;
+	text-transform: capitalize;
+}
+
+.menuicon {
+	display: inline-block;
+	margin: 2.0mm;
+	width: 6.0mm;
+	height: 6.0mm;
+	fill: white;
+}
+
+
+#blahloginbox {
+	background: rgba(64,64,64,0.5);
+	position: absolute;
+	margin: 1em;
+	padding: 1em;
+	border-color: grey;
+	border-radius: 2mm;
+	visibility: hidden;
+	transition: all 0.15s ease-in-out;
+}

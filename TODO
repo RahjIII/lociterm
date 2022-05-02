@@ -1,0 +1,43 @@
+* clean up file headers for initial checkin.
+
+* add in 'the usual' license credits and readme's
+
+* Get it into cvs.
+
+* add a "tar up the distro" method to top level make
+
+* Get the terminal types and mtts values to be selectable from the config file.
+
+* Get the connection endpoint to be selectable from the config file.
+
+* Get https: and wss: working!
+
+* Optional- telnet-ssl on the game side, selectabel from config?
+
++ Create a top level makefile to build a packageable dist of client and server.
+
+* Get the intial styling of the client worked out better.
+
+* Get the old login window working.
+
+* 	configurable client element and text sizes.
+
+*	configurable client themes/colors
+
+*	client option for keep keyboard open
+
+*	get it working through apache ws proxy.
+
+
+
++ Get NEW-ENVIRON working to support MNES standard variables
+	report IPADDRESS
+	CHARSET
+	CLIENT_NAME
+	CLIENT_VERSION
+	MTTS
+	TERMINAL_TYPE
+
+- Check on charset support.? Naw fuckit.  LO handles the env var correctly.
+- Check on eor support. meh not really needed for LO.
+

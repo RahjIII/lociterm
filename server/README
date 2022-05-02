@@ -1,0 +1,19 @@
+To build the loci demon - 
+cd src; make
+
+the binary will be in src/locid
+
+------ requirements --------
+  --- libwebsocket ---
+Requires libwebsocket to be built and installed locally.
+
+  --- libtelnet (kinda) ---
+This code includes libtelnet from https://github.com/seanmiddleditch/libtelnet
+because the libtelnet that is packaged with debian from
+http://github.com/elanthis/libtelnet is stuck on version 0.21 and it is buggy.
+
+The seanmiddleditch version won't compile as a library, so rather than manually
+update the deb package version with the two files from Sean's repo, I just
+include those two files locally here and skip the lib.
+
+  --- glib-2.0 ---
