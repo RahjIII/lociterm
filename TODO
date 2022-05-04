@@ -1,28 +1,45 @@
 ------- TODO TODO TODO TODO --------------
 
-* add a "tar up the distro" method to top level make
+* C locally saved (on browser) prefs
 
-* Get the terminal types and mtts values to be selectable from the config file.
+* C Get the old login window working.
 
-* Get the connection endpoint to be selectable from the config file.
+* C make the "about" menu item show credits.
 
-* Get https: and wss: working!
+* C adjust the lociterm applytheme to be able to re-style the normal css stuff.
 
-* Optional- telnet-ssl on the game side, selectabel from config?
+* C configurable client element and text sizes.
 
-* Get the intial styling of the client worked out better.
+* M add a "tar up the distro" method to top level make?
 
-* Get the old login window working.
+* M add a better "install me" option to make
 
-* configurable client element and text sizes.
+* S systemd/sysv launcher script?
 
-* configurable client themes/colors
+* S drop perms after launch?
 
-* client option for keep keyboard open
+* S Get the terminal types and mtts values to be selectable from the config file.
 
-* get it working through apache ws proxy.
+* S Get the connection endpoint to be selectable from the config file.
+
+* S Get https: and wss: working!
+
+* S Optional- telnet-ssl on the game side, selectable from config?
+
+* C client option for keep keyboard open
+
+* S get it working through apache ws proxy.
+
+* S fix the locid_log function to work better at showing the connection the messages are for.
 
 ------------- DONE! -----------------
+* configurable client themes/colors into menuside code too.
+
++ configurable client themes/colors 
+
++ Figure out the "rendering before fonts loaded" thing.
+
++ Get the intial styling of the client worked out better.
 
 + Create a top level makefile to build a packageable dist of client and server.
 

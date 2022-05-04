@@ -1,6 +1,6 @@
 .menuhandler div {
 	/* if you want all of the menu elements to stand out... */
-	background: rgba(255,0,0,0.5);
+	/* background: rgba(255,0,0,0.5); */
 }
 
 #menubox {
@@ -11,6 +11,16 @@
 	margin: 1em;
 	border-radius: 2mm;
 	visibility: visible;
+	opacity: 0.40;
+	transition: opacity 2s ease-in-out;
+}
+
+#menubox:hover {
+	opacity: 1.0;
+}
+
+#menubox:active {
+	opacity: 1.0;
 }
 
 .menugrid {
@@ -46,7 +56,7 @@
 #menubox .ansi13              { fill:            #ff95db; }
 #menubox .ansi14              { fill:            #87e4e4; }
 #menubox .ansi15              { fill:            #FFFFFF; }
-#menubox .ghost               { fill:            #333333; opacity: 0.85; }
+#menubox .ghost               { fill:            #888888; }
 
 .menu {
 	/* text="#443311" bgcolor="#688F9E" link="#cc2600" vlink="#aa2600" alink="#ffb76c" */
@@ -115,7 +125,7 @@
 
 .menuside div {
 	color:	white;
-	background: rgba(64,64,64,0.5);
+	background: hsla(0,0%,25%,0.80);
 	border-radius: 2.0mm;
 	min-height:	6.0mm;
 	padding: 2.0mm;
@@ -123,15 +133,16 @@
 }
 
 .menuside div:hover{
-	background: rgba(64,64,64,0.75);
+	background: hsla(0,0%,35%,0.80);
 }
 
 .menuside div:active{
-	background: rgba(64,64,64,1.0);
+	background: hsla(0,0%,45%,0.80);
 }
 
 .menuside .open {
 	color: white;
+	text-transform: capitalize;
 }
 
 .menuside .send {
@@ -140,11 +151,16 @@
 	text-transform: capitalize;
 }
 
+.menuside .client {
+	color: #4ea0e4;
+	text-transform: capitalize;
+}
+
 .menuicon {
 	display: inline-block;
 	margin: 2.0mm;
-	width: 6.0mm;
-	height: 6.0mm;
+	width: 8.0mm;
+	height: 8.0mm;
 	fill: white;
 }
 

@@ -1,13 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Emoji&family=Noto+Sans&family=Noto+Sans+Symbols&display=block');
+
 @font-face {
   font-family: LOFont;
-  /*  src: url(DejaVuSansMono.ttf) format("truetype"); */
-}
-@font-face {
-  font-family: LOFont;
-  /* src: url(DejaVuSansMonoBold.ttf) format("truetype"); */
-  font-weight: bold;
+  src: url(./fonts/DejaVuSansMono.ttf) format("truetype");
 }
 
+@font-face {
+  font-family: Glass;
+  src: url(./fonts/Glass_TTY_VT220.ttf) format("truetype");
+}
 
 #input {
   autocapitalize: false;
@@ -20,9 +21,10 @@
 }
 
 body, #imebox  { 
-  font-family:          LOFont, monospace;
+  font-family: LOFont, Glass, monospace;
   font-size: initial; /* so there is a fallback in case vw doesn't work right. */
   margin: 0px;
+  /* background: rgba(128,0,0,1); */
 }
 
 #imebox {
@@ -82,8 +84,9 @@ body, #imebox  {
 	height: 100%;
 	position: absolute;
 	border:	10px;
+	display: flex;
 }
 
 #terminal .terminal-container {
-	background-color: #00FF00;
+	/* background-color: #00FF00; */
 }

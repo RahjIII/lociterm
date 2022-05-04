@@ -713,18 +713,11 @@
 		]
 	},
 	{
-		"id": "menu_settings",
-		"item" : [
-			{
-				"open": "menu_settings"
-			}
-		]
-	},
-	{
 		"id": "menu_client",
 		"item" : [
 			{
-				"open": "menu_settings"
+				"label": "Themes",
+				"open": "menu_themes_dynamic"
 			}
 		]
 	}

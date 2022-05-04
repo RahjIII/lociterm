@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.2 2022/05/02 03:18:36 malakai Exp $
+// $Id: menuhandler.js,v 1.3 2022/05/04 03:59:58 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -27,11 +27,13 @@ import Icons from './icons.svg';
 
 class MenuHandler {
 
-	constructor(divid,paste_hook,focus_hook) {
+	constructor(divid,paste_hook,focus_hook,theme_hook,lociThemes) {
 		this.mydiv = document.getElementById('menuhandler');
 		this.paste_hook = paste_hook;
 		this.focus_hook = focus_hook;
+		this.theme_hook = theme_hook;
 		this.openwindow = [];
+		this.lociThemes = lociThemes;
 
 		this.mydiv.classList.add('menuhandler');
 		this.mydiv.appendChild(this.create_menubox());
@@ -205,7 +207,40 @@ class MenuHandler {
 
 			bar.appendChild(c);
 		}
+
+		bar.appendChild(this.create_menuside_themes(this.lociThemes));
 		return(bar);
+	}
+
+	create_menuside_theme_button(locitheme) {
+		let s = document.createElement('div');
+
+		// assign the right onclick function to the div..
+		s.classList.add('client');
+		if ( locitheme.label != undefined ) {
+			s.innerText = locitheme.label;
+		} else {
+			s.innerText = locitheme.name;
+		}
+		s.onclick = () => {
+			this.theme_hook(locitheme);
+			this.done();
+		}
+		return(s);
+	}
+
+	create_menuside_themes(locithemes,menu_id="menu_themes_dynamic") {
+
+		let m = document.createElement('div');
+		m.id=menu_id;
+		m.classList.add('menu');
+		m.classList.add('menuside');
+
+		for(let i=0; i<locithemes.length; i++) {
+			m.appendChild(this.create_menuside_theme_button(locithemes[i]));
+		}
+			
+		return(m);
 	}
 
 }

@@ -1,0 +1,84 @@
+[
+	{
+		"name": "LOinaBox",
+		"xtermoptions": {
+			"bellStyle": "sound",
+			"fontSize": "16",
+			"fontFamily": "LOFont,courier,Noto Emoji",
+			"cursorBlink": true,
+			"screenReaderMode": false,
+			"scrollback": 1000,
+			"theme": {
+				"black": "#eeeeee",
+				"red": "#fd233e",
+				"green": "#1cbd30",
+				"yellow": "#b4a543",
+				"blue": "#7575ff",
+				"magenta": "#ea5685",
+				"cyan": "#28cdcd",
+				"white": "#e4e4e4",
+
+				"brightBlack": "#7a7a7a",
+				"brightRed": "#ff566e",
+				"brightGreen": "#5cff71",
+				"brightYellow": "#ffffb4",
+				"brightBlue": "#4ea0e4",
+				"brightMagenta": "#ff95db",
+				"brightCyan": "#87e4e4",
+				"brightWhite": "#ffffff"
+			}
+		}
+	},
+	{
+		"name": "LociTerm",
+		"xtermoptions": {
+			"fontSize": 16,
+			"fontFamily": "courier, monospace",
+			"bellStyle": "sound",
+			"cursorBlink": true,
+			"screenReaderMode": false,
+			"scrollback": 1000,
+			"theme": {
+			}
+		}
+	},
+	{
+		"name": "Green",
+		"xtermoptions": {
+			"bellStyle": "sound",
+			"fontFamily": "Glass, LOFont, Noto Emoji",
+			"fontSize": 18,
+			"cursorBlink": true,
+			"screenReaderMode": false,
+			"scrollback": 1000,
+			"theme": {
+				"foreground": "#2de55b",
+				"background": "black",
+				"cursor": "#33ff66",
+				"cursorAccent": "#24b548" ,
+				"selection": "#33ff66",
+
+				"black": "#2fee5f",
+				"red": "#0f4c1e",
+				"green": "#1d953b",
+				"yellow": "#24b548",
+				"blue": "#0e4a1d",
+				"magenta": "#105421",
+				"cyan": "#1c8f39",
+				"white": "#2de55b",
+
+				"brightBlack": "#33ff66",
+				"brightRed": "#146428",
+				"brightGreen": "#1d953b",
+				"brightYellow": "#29cd52",
+				"brightBlue": "#166e2c",
+				"brightMagenta": "#15692a",
+				"brightCyan": "#23b247",
+				"brightWhite": "#33ff66"
+			}
+		}
+	}
+]
+
+
+

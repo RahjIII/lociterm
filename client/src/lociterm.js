@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.2 2022/05/02 03:18:36 malakai Exp $
+// $Id: lociterm.js,v 1.3 2022/05/04 03:59:58 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -42,12 +42,15 @@ const Command = {
 
 class LociTerm {
 
-	constructor(mydiv,props={}) {
-	
+	constructor(mydiv,theme={}) {
+
 		// set variables.
-		this.props = props;
 		this.mydiv = mydiv;
-		this.terminal = new Terminal();
+		if(theme.xtermoptions != undefined) {
+			this.terminal = new Terminal(theme.xtermoptions);
+		} else {
+			this.terminal = new Terminal();
+		}
 		this.fitAddon = new FitAddon();
 		this.textEncoder = new TextEncoder();
 		this.textDecoder = new TextDecoder();
@@ -62,23 +65,21 @@ class LociTerm {
 		this.terminal.onData((e) => this.onTerminalData(e) );
 		this.terminal.onBinary((e) => this.onBinaryData(e) );
 
+		window.addEventListener('resize', (e) => this.onWindowResize(e) );
 		this.terminal.open(mydiv);
 		this.fitAddon.fit();
-		window.addEventListener('resize', (e) => this.onWindowResize(e) );
-
-		this.terminal.write('Hello there! webpack loci.\r\n');
 	}
 
 	// call this as an event listener handler
 	onWindowResize() {
-		// the point of this foolisheness is to limit the resize updates to
-		// a more resonable rate.
+		this.fitAddon.fit();
+		// the point of this foolisheness is to limit the resize updates being
+		// sent across the network to a more resonable rate.
 		clearTimeout(this.resizeTimeout); 
 		this.resizeTimeout = setTimeout(() => this.doWindowResize() , 200.0); 
 	}
 
 	doWindowResize() {
-		this.fitAddon.fit();
 		this.sendMsg(Command.RESIZE_TERMINAL,`${this.terminal.cols} ${this.terminal.rows}`);
 	}
 
@@ -87,6 +88,10 @@ class LociTerm {
 	}
 
 	sendMsg(cmd,data) {
+		if(this.socket == undefined) {
+			// never even connected yet..
+			return;
+		}
 		if(this.socket.readyState == 1) {  // OPEN
 			this.socket.send( this.textEncoder.encode(cmd + data) );
 		} else if(this.socket.readyState == 3) {  // CLOSED
@@ -112,7 +117,6 @@ class LociTerm {
 		this.url = url;
 		this.terminal.write(`\r\nTrying ${url}... `);
 		this.socket = new WebSocket(this.url, ['loci-client']);
-		// this.socket = new WebSocket(this.url);
 		this.socket.binaryType = 'arraybuffer';
 		this.socket.onopen = (e) => this.onSocketOpen(e);
 		this.socket.onmessage = (e) => this.onSocketData(e);
@@ -151,6 +155,19 @@ class LociTerm {
 		this.terminal.write(`\r\nWebSocket error ${e.currentTarget.readyState}.\r\n`);
 		console.log("Socket Error." + e);
 	}
+
+	applyTheme(theme) {
+
+		// Apply the xtermjs specific theme items.
+		this.terminal.options = Object.assign(theme.xtermoptions);
+		this.fitAddon.fit();
+		this.doWindowResize();
+	}
+
+	debug() {
+		debugger
+	}
+
 
 }
 

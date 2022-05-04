@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.2 2022/05/02 03:18:36 malakai Exp $ */
+/* $Id: telnet.c,v 1.3 2022/05/04 03:59:58 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -156,6 +156,7 @@ void loci_telnet_send_naws(telnet_t *telnet, int width, int height) {
 	telnet_send(telnet,encoding,sizeof(encoding));
 	telnet_finish_sb(telnet);
 	locid_log("sent naws (%dx%d)",width,height);
+	lwsl_user("sent naws (%dx%d)",width,height);
 }
 
 void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_data) {
