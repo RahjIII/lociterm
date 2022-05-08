@@ -1,8 +1,8 @@
-# $Id: makefile,v 1.2 2022/05/02 03:18:36 malakai Exp $
+# $Id: makefile,v 1.3 2022/05/08 18:30:10 malakai Exp $
 #
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.2 2022/05/02 03:18:36 malakai Exp $
+# $Id: makefile,v 1.3 2022/05/08 18:30:10 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -44,7 +44,7 @@ server : $(RUN)
 .PHONY : client 
 client : $(RUN)
 	cd $(CLIENTDIR); npm run build
-	cp $(CLIENTDIR)/dist/* $(RUN)/var/www/loci
+	cp -r $(CLIENTDIR)/dist/* $(RUN)/var/www/loci
 
 # Create run directory...
 $(RUN) : 

@@ -136,7 +136,7 @@
 				"send": "history damage\n"
 			},
 			{
-				"label": "last"
+				"send": "last\n"
 			}
 		]
 	},
@@ -715,6 +715,14 @@
 	{
 		"id": "menu_client",
 		"item" : [
+			{
+				"label": "Login",
+				"open": "menu_loginbox"
+			},
+			{
+				"label": "Settings",
+				"open": "menu_settings"
+			},
 			{
 				"label": "Themes",
 				"open": "menu_themes_dynamic"

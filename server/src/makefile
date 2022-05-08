@@ -1,6 +1,6 @@
 # makefile - LociTerm locid server
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.2 2022/05/02 03:18:36 malakai Exp $
+# $Id: makefile,v 1.3 2022/05/08 18:30:10 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -73,7 +73,7 @@ RUN = .
 
 # #### Recipies Start Here ####
 
-$(info ---------- START OF LAST-OUTPOST COMPILATION -----------)
+$(info ---------- START OF LOCID COMPILATION -----------)
 all : $(BUILD) run tags
 
 # Copying the binaries...

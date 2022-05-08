@@ -1,6 +1,6 @@
 /* locilws.h - LociTerm libwebsocket handlers */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: locilws.h,v 1.2 2022/05/02 03:18:36 malakai Exp $ */
+/* $Id: locilws.h,v 1.3 2022/05/08 18:30:10 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -30,7 +30,8 @@
 
 /* one of these created for each pending message that is to be forwarded */
 typedef struct proxy_conn {
-	
+
+	int id;
 	/* client side elements */
 	struct lws *wsi_client;
 	GQueue *client_q;

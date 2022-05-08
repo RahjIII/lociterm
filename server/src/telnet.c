@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.3 2022/05/04 03:59:58 malakai Exp $ */
+/* $Id: telnet.c,v 1.4 2022/05/08 18:30:10 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -134,7 +134,7 @@ void loci_environment_free(proxy_conn_t *f) {
 
 void loci_send_env_var(struct telnet_environ_t *env, telnet_t *telnet) {
 
-	locid_log("ENV send: %s = %s",env->var,env->value);
+	lwsl_user("ENV send: %s = %s",env->var,env->value);
 
 	telnet_begin_newenviron(telnet,TELNET_ENVIRON_IS);
 	telnet_newenviron_value(telnet,env->type,env->var);
@@ -155,7 +155,6 @@ void loci_telnet_send_naws(telnet_t *telnet, int width, int height) {
 	telnet_begin_sb(telnet,TELNET_TELOPT_NAWS);
 	telnet_send(telnet,encoding,sizeof(encoding));
 	telnet_finish_sb(telnet);
-	locid_log("sent naws (%dx%d)",width,height);
 	lwsl_user("sent naws (%dx%d)",width,height);
 }
 
@@ -171,39 +170,39 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		loci_game_write(pc,event->data.buffer,event->data.size);
 		break;
 	case TELNET_EV_ERROR:
-		locid_log("TELNET error: %s", event->error.msg);
+		lwsl_err("TELNET error: %s", event->error.msg);
 		break;
 	case TELNET_EV_WARNING:
-		locid_log("TELNET warning: %s", event->error.msg);
+		lwsl_warn("TELNET warning: %s", event->error.msg);
 		break;
 	case TELNET_EV_WILL:
-		locid_log("TELNET TELNET_EV_WILL: %d", event->neg.telopt);
+		lwsl_user("TELNET TELNET_EV_WILL: %d", event->neg.telopt);
 		break;
 	case TELNET_EV_DO:
 		switch(event->neg.telopt) {
 		case TELNET_TELOPT_NAWS:
-			locid_log("TELNET TELNET_EV_DO TELNET_TELOPT_NAWS");
+			lwsl_user("TELNET TELNET_EV_DO TELNET_TELOPT_NAWS");
 			loci_telnet_send_naws(pc->game_telnet, pc->width, pc->height);
 			break;
 		case TELNET_TELOPT_NEW_ENVIRON:
-			locid_log("TELNET TELNET_EV_DO TELNET_TELOPT_NEW_ENVIRON");
+			lwsl_user("TELNET TELNET_EV_DO TELNET_TELOPT_NEW_ENVIRON");
 			break;
 		case TELNET_TELOPT_TTYPE:
-			locid_log("TELNET TELNET_EV_DO TELNET_TELOPT_TTYPE");
+			lwsl_user("TELNET TELNET_EV_DO TELNET_TELOPT_TTYPE");
 			break;
 		default:
-			locid_log("TELNET TELNET_EV_DO: unhandled %d", event->neg.telopt);
+			lwsl_user("TELNET TELNET_EV_DO: unhandled %d", event->neg.telopt);
 			break;
 		}
 		break;
 	case TELNET_EV_DONT:
 		switch(event->neg.telopt) {
 		case TELNET_TELOPT_TTYPE:
-			locid_log("TELNET TELNET_EV_DONT TELNET_TELOPT_TTYPE");
+			lwsl_user("TELNET TELNET_EV_DONT TELNET_TELOPT_TTYPE");
 			pc->ttype_state = 0;
 			break;
 		default:
-			locid_log("TELNET TELNET_EV_DONT: unhandled %d", event->neg.telopt);
+			lwsl_user("TELNET TELNET_EV_DONT: unhandled %d", event->neg.telopt);
 			break;
 		}
 	case TELNET_EV_SUBNEGOTIATION:
@@ -213,7 +212,7 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 			/* ignore, handled by its own ev type. */
 			break;
 		default:
-			locid_log("TELNET TELNET_EV_SUBNEGOTIATION: %d", event->sub.telopt);
+			lwsl_user("TELNET TELNET_EV_SUBNEGOTIATION: %d", event->sub.telopt);
 			break;
 		}
 		break;
@@ -223,18 +222,17 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		}
 		break;
 	case TELNET_EV_ENVIRON:
-		locid_log("TELNET TELNET_EV_ENVIRON: (%d requests) (cmd %d)", event->environ.size, event->environ.cmd);
+		lwsl_user("TELNET TELNET_EV_ENVIRON: (%ld requests) (cmd %d)", event->environ.size, event->environ.cmd);
 		if(event->environ.cmd == TELNET_ENVIRON_SEND) {
 			if(event->environ.size == 0) {
 				/* send 'em all */
-				locid_log("Send all env vars.");
+				lwsl_user("Send all env vars.");
 				g_list_foreach(pc->environment,(GFunc)loci_send_env_var,pc->game_telnet);
-				//loci_send_env_var(pc->environment->data,pc->game_telnet);
 			}
 		}
 		break;
 	default:
-		locid_log("TELNET unhandled: %d", event->type);
+		lwsl_user("TELNET unhandled: %d", event->type);
 		break;
 	}
 }

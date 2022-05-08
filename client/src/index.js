@@ -1,6 +1,6 @@
 // index.js - LociTerm entry js
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: index.js,v 1.3 2022/05/04 03:59:58 malakai Exp $
+// $Id: index.js,v 1.4 2022/05/08 18:30:10 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -20,8 +20,9 @@
 // along with LociTerm.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-import './styles.css';
+// import './xterm.css';
 import 'xterm/css/xterm.css';
+import './styles.css';
 
 import './menuhandler.css';
 import { MenuHandler } from './menuhandler.js';
@@ -37,6 +38,15 @@ async function lociTermBegin() {
 
 	// let defaultTheme = {};  works too.
 	let defaultTheme = lociThemes[0];
+	// see if there's a saved one available. 
+	let defaultThemeName = localStorage.getItem("locithemename");
+	for (let i=0;i<lociThemes.length;i++) {
+		if(lociThemes[i].name == defaultThemeName) {
+			console.log("Found stored theme name " + defaultThemeName);
+			defaultTheme = lociThemes[i];
+			break;
+		}
+	}
 
 	// force all of the font familes in the lociThemes definition to be loaded,
 	// even though they may not appear to be in use yet.  The xterm.js won't
@@ -48,7 +58,7 @@ async function lociTermBegin() {
 			for (let f=0; f<familylist.length; f++) {
 				// let fontname = "0px " + lociThemes[i].xtermoptions.fontFamily;
 				let fontname = "16px " + familylist[f];
-				if( 1 || document.fonts.check(fontname) == false ) {
+				if( document.fonts.check(fontname) == false ) {
 					console.log(`Theme "${lociThemes[i].name}" loading ${fontname}`);
 					document.fonts.load(fontname);
 				} else {

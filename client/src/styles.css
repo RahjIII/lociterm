@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Emoji&family=Noto+Sans&family=Noto+Sans+Symbols&display=block');
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=block');
 
 @font-face {
   font-family: LOFont;
@@ -24,7 +25,7 @@ body, #imebox  {
   font-family: LOFont, Glass, monospace;
   font-size: initial; /* so there is a fallback in case vw doesn't work right. */
   margin: 0px;
-  /* background: rgba(128,0,0,1); */
+  background: rgba(0,0,0,1); 
 }
 
 #imebox {
@@ -82,11 +83,23 @@ body, #imebox  {
 #terminal {
 	width: 100%;
 	height: 100%;
-	position: absolute;
-	border:	10px;
-	display: flex;
+	position: fixed;
 }
+
 
 #terminal .terminal-container {
 	/* background-color: #00FF00; */
 }
+
+.xterm .xterm-viewport {
+    /* On OS X this is required in order for the scroll bar to appear fully opaque */
+    background-color: #000;
+    overflow-y: scroll;
+    cursor: default;
+    position: absolute;
+    right: 0;
+    left: unset;
+    top: 0;
+    bottom: 0;
+}
+

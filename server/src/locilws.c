@@ -1,6 +1,6 @@
 /* locilws.c - LociTerm websocket bindings */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: locilws.c,v 1.2 2022/05/02 03:18:36 malakai Exp $*/
+/* $Id: locilws.c,v 1.3 2022/05/08 18:30:10 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -45,12 +45,15 @@ void empty_proxy_queue(GQueue *q);
 /* init a new proxy_conn_t */
 proxy_conn_t *new_proxy_conn() {
 	proxy_conn_t *n;
+	static int id = 0;
 
 	n = (proxy_conn_t *)malloc(sizeof(proxy_conn_t));
 	/* lws example code always does this to its embedded struct lws's. Doesn't
 	 * hurt to do it to the whole proxy_conn_t.*/
 	memset(n, 0, sizeof(*n));  
 	
+	n->id = id++;
+
 	n->client_q = g_queue_new();
 	n->hostname = NULL;
 	n->ttype_state = 0;

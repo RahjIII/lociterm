@@ -1,10 +1,12 @@
 [
 	{
 		"name": "LOinaBox",
+		"fontsize": "16px",
+		"fingersize": "8mm",
 		"xtermoptions": {
 			"bellStyle": "sound",
 			"fontSize": "16",
-			"fontFamily": "LOFont,courier,Noto Emoji",
+			"fontFamily": "LOFont,courier",
 			"cursorBlink": true,
 			"screenReaderMode": false,
 			"scrollback": 1000,
@@ -33,7 +35,7 @@
 		"name": "LociTerm",
 		"xtermoptions": {
 			"fontSize": 16,
-			"fontFamily": "courier, monospace",
+			"fontFamily": "courier, LOFont, monospace",
 			"bellStyle": "sound",
 			"cursorBlink": true,
 			"screenReaderMode": false,
@@ -75,6 +77,42 @@
 				"brightMagenta": "#15692a",
 				"brightCyan": "#23b247",
 				"brightWhite": "#33ff66"
+			}
+		}
+	},
+	{
+		"name": "Amber",
+		"xtermoptions": {
+			"bellStyle": "sound",
+			"fontFamily": "VT323, LOFont, Noto Emoji",
+			"fontSize": 24,
+			"cursorBlink": true,
+			"screenReaderMode": false,
+			"scrollback": 1000,
+			"theme": {
+				"foreground": "#e5a72d",
+				"background": "black",
+				"cursor": "#ffbb33",
+				"cursorAccent": "#e5a72d" ,
+				"selection": "#33ff66",
+
+				"black": "#eeae2f",
+				"red": "#4c370f",
+				"green": "#956d1d",
+				"yellow": "#b58424",
+				"blue": "#4a360e",
+				"magenta": "#543d10",
+				"cyan": "#8f681c",
+				"white": "#e5a72d",
+
+				"brightBlack": "#ffbb33",
+				"brightRed": "#644914",
+				"brightGreen": "#956d1d",
+				"brightYellow": "#cd9629",
+				"brightBlue": "#6e5016",
+				"brightMagenta": "#694d15",
+				"brightCyan": "#b28223",
+				"brightWhite": "#ffbb33"
 			}
 		}
 	}

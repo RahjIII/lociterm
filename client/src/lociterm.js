@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.3 2022/05/04 03:59:58 malakai Exp $
+// $Id: lociterm.js,v 1.4 2022/05/08 18:30:10 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -115,7 +115,7 @@ class LociTerm {
 
 	connect(url=this.url) {
 		this.url = url;
-		this.terminal.write(`\r\nTrying ${url}... `);
+		//this.terminal.write(`\r\nTrying ${url}... `);
 		this.socket = new WebSocket(this.url, ['loci-client']);
 		this.socket.binaryType = 'arraybuffer';
 		this.socket.onopen = (e) => this.onSocketOpen(e);
@@ -126,7 +126,7 @@ class LociTerm {
 
 	onSocketOpen(e) {
 		console.log("Socket open!" + e);
-		this.terminal.write(`Connected!\r\n`);
+		//this.terminal.write(`Connected!\r\n`);
 		this.doWindowResize();
 	}
 
@@ -148,20 +148,31 @@ class LociTerm {
 
 	onSocketClose(e) {
 		console.log("Socket Close." + e);
-		this.terminal.write(`\r\nWebSocket closed.\r\n`);
+		this.terminal.write(`\r\n┅┅┅┅┅ Disconnected ┅┅┅┅┅\r\n`);
 	}
 
 	onSocketError(e) {
-		this.terminal.write(`\r\nWebSocket error ${e.currentTarget.readyState}.\r\n`);
+		this.terminal.write(`\r\n┅┅┅┅┅ Can't reach the Loci server! ┅┅┅┅┅\r\n`);
 		console.log("Socket Error." + e);
 	}
 
 	applyTheme(theme) {
 
+		// Apply the lociterm specific theme items.
+		if(theme.fingerSize != undefined) {
+			document.documentElement.style.setProperty('--finger-size', theme.fingerSize);
+		}
+		if(theme.fontSize != undefined) {
+			document.documentElement.style.setProperty('--font-size', theme.fontSize);
+		}
+
 		// Apply the xtermjs specific theme items.
-		this.terminal.options = Object.assign(theme.xtermoptions);
-		this.fitAddon.fit();
-		this.doWindowResize();
+		if(theme.xtermoptions != undefined) {
+			this.terminal.options = Object.assign(theme.xtermoptions);
+			this.fitAddon.fit();
+			this.doWindowResize();
+		}
+		localStorage.setItem("locithemename",theme.name);
 	}
 
 	debug() {

@@ -1,6 +1,6 @@
 /* client.c - LociTerm client side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: client.c,v 1.2 2022/05/02 03:18:36 malakai Exp $*/
+/* $Id: client.c,v 1.3 2022/05/08 18:30:10 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -72,14 +72,14 @@ int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 			}
 			free(s);
 			loci_telnet_send_naws(pc->game_telnet,pc->width,pc->height);
-			locid_log("Terminal resized (%dx%d)",pc->width,pc->height);
+			lwsl_user("[%d] Terminal resized (%dx%d)",pc->id,pc->width,pc->height);
 
 			break;
 		case PAUSE:
 		case RESUME:
 		case JSON_DATA:
 		default:
-			locid_log("unimplimented client command.");
+			locid_log("[%d] unimplimented client command.",pc->id);
 			return(-1);
 	}
 	return(*in);
@@ -143,7 +143,7 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 		lws_get_peer_simple(pc->wsi_client,buf,sizeof(buf));
 		pc->hostname = strdup(buf);
 		loci_telnet_init(pc);
-		locid_log("Establishing client connection from %s",pc->hostname);
+		locid_log("[%d] Establishing client connection from %s",pc->id, pc->hostname);
 
 		/* ...which we will now open starting here.  We could postpone this
 		 * open operation and wait on an "open the game" command from the
@@ -170,8 +170,8 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 		info.pwsi = &pc->wsi_game;
 
 		/* Perhaps also a good spot to send "opening..." to the client. */
-		buflen = sprintf(buf,"Trying %s %d...",info.address,info.port);
-		loci_client_write(pc,buf,buflen);
+		// buflen = sprintf(buf,"Trying %s %d...",info.address,info.port);
+		// loci_client_write(pc,buf,buflen);
 
 		if (!lws_client_connect_via_info(&info)) {
 			lwsl_warn("%s: onward game connection failed\n", __func__); 
@@ -203,12 +203,12 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 			 * on how hard he will try now the ws part is
 			 * disappearing... give him 3s
 			 */
-			locid_log("client slow close");
+			locid_log("[%d] client slow close",pc->id);
 			lws_set_timeout(pc->wsi_game,
 				PENDING_TIMEOUT_KILLED_BY_PROXY_CLIENT_CLOSE, 3);
 		} else {
 			/* have lws send the close callback to the game side. */
-			locid_log("client fast close");
+			locid_log("[%d] client fast close",pc->id);
 			lws_wsi_close(pc->wsi_game, LWS_TO_KILL_ASYNC);
 		}
 		break;

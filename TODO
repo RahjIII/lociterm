@@ -16,6 +16,8 @@
 
 * S systemd/sysv launcher script?
 
+* S lws_daemonize check that.
+
 * S drop perms after launch?
 
 * S Get the terminal types and mtts values to be selectable from the config file.

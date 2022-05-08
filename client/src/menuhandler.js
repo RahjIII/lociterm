@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.3 2022/05/04 03:59:58 malakai Exp $
+// $Id: menuhandler.js,v 1.4 2022/05/08 18:30:10 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -34,10 +34,13 @@ class MenuHandler {
 		this.theme_hook = theme_hook;
 		this.openwindow = [];
 		this.lociThemes = lociThemes;
+		this.login = { name: "", password: "" };
 
 		this.mydiv.classList.add('menuhandler');
 		this.mydiv.appendChild(this.create_menubox());
 		this.mydiv.appendChild(this.create_menuside());
+		this.mydiv.appendChild(this.create_loginbox());
+		this.mydiv.appendChild(this.create_settings());
 		
 	}
 
@@ -62,7 +65,9 @@ class MenuHandler {
 	close(name) {
 		var e = document.getElementById(name);
 		e.style.visibility = 'hidden';
-		e.style.right = '-20%';
+		if(e.classList.contains("menuside")) {
+			e.style.right = '-100%';
+		} 
 		this.openwindow[name] =0;
 	};
 
@@ -95,35 +100,26 @@ class MenuHandler {
 	}
 
 	store(key,value) {
-		localStorage.setItem(store,value);
-	}
-
-	loadlogin() {
-		if (typeof(Storage) !== "undefined") {
-			var l = document.getElementById("lb_login");
-			var p = document.getElementById("lb_pass");
-
-			l.value = localStorage.getItem("lb_login");
-			p.value = localStorage.getItem("lb_pass");
-		}
+		console.log("Storage: " + key + "," + value);
+		localStorage.setItem(key,value);
 	}
 
 	sendlogin() {
-		var l = document.getElementById("lb_login");
-		var p = document.getElementById("lb_pass");
-		if(l.value == "" || p.value == "") {
-			return;
-		}
 
-		if (typeof(Storage) !== "undefined") {
-			localStorage.setItem("lb_login",l.value);
-			localStorage.setItem("lb_pass",p.value);
-		}
+		// add some code for setting the env vars here.
 
-		// this is probably wrong.
-		setTimeout(function(){this.send(l.value + "\n")},0);
-		setTimeout(function(){this.send(p.value + "\n")},500);
-		this.done();
+		if(this.login.name != undefined) {
+			setTimeout(
+				()=> this.send(this.login.name + "\n"),
+				0
+			);
+			if(this.login.password != undefined) {
+				setTimeout(
+					()=> this.send(this.login.password + "\n"),
+					500
+				);
+			}
+		}
 	}
 
 	// Add the Menubox definition to the DOM.
@@ -243,6 +239,147 @@ class MenuHandler {
 		return(m);
 	}
 
+	// Add the Menubox definition to the DOM.
+	create_loginbox() {
+
+		let box;
+		let field;
+		let label;
+		let input;
+		let button;
+		let overlay;
+
+		overlay = document.createElement('div');
+		overlay.id='menu_loginbox';
+		overlay.classList.add('overlay');
+
+		box = document.createElement('div');
+		overlay.appendChild(box);
+		box.classList.add('menupop');
+
+		field = document.createElement('div');
+		field.classList.add('menufield');
+		box.appendChild(field);
+
+		label = document.createElement('label');
+		field.appendChild(label);
+		label.innerText = "Name";
+		input = document.createElement('input');
+		field.appendChild(input);
+		input.setAttribute("type","text");
+		input.setAttribute("placeholder","Enter Username");
+		input.addEventListener('input',((e)=>this.login.name=e.target.value));
+	
+		field = document.createElement('div');
+		field.classList.add('menufield');
+		box.appendChild(field);
+		label = document.createElement('label');
+		field.appendChild(label);
+		label.innerText = "Password";
+		input = document.createElement('input');
+		input.addEventListener('input',((e)=>this.login.password=e.target.value));
+		field.appendChild(input);
+		input.setAttribute("type","password");
+		input.setAttribute("placeholder","Enter Password");
+
+		field = document.createElement('div');
+		field.classList.add('menufield');
+		box.appendChild(field);
+		button = document.createElement('button');
+		button.innerText = "Dismiss";
+		button.onclick = (()=>this.close("menu_loginbox"));
+
+		field.appendChild(button);
+		button = document.createElement('button');
+		button.innerText = "Send";
+		button.onclick = (
+			()=> {
+				this.sendlogin();
+				this.close("menu_loginbox")
+			}
+		);
+		field.appendChild(button);
+		
+		return(overlay);
+	}
+
+	create_settings() {
+		let overlay;
+		let box;
+		let field;
+		let item;
+		let button;
+		let label;
+		let input;
+		let initval;
+
+		let menuname = "menu_settings";
+
+		overlay = document.createElement('div');
+		overlay.id=menuname;
+		overlay.classList.add('overlay');
+
+		box = document.createElement('div');
+		overlay.appendChild(box);
+		box.classList.add('menupop');
+
+		// a range slider for setting the finger size css
+		field = document.createElement('div');
+		box.appendChild(field);
+		label = document.createElement('label');
+		field.appendChild(label);
+		label.innerText = "Icons";
+		var fingersize = document.createElement('input');
+		fingersize.setAttribute("type","range");
+		fingersize.setAttribute("min","5");
+		fingersize.setAttribute("max","15");
+		fingersize.setAttribute("step","0.125");
+		initval = getComputedStyle(document.documentElement).getPropertyValue('--finger-size');
+		fingersize.value = parseFloat(initval);
+		fingersize.oninput = (
+			()=> {
+				let themedelta = [];
+				themedelta.fingerSize = fingersize.value+"mm";
+				this.theme_hook(themedelta);
+			}
+		);
+		field.appendChild(fingersize);
+
+		// a range slider for setting the font size css
+		field = document.createElement('div');
+		box.appendChild(field);
+		label = document.createElement('label');
+		field.appendChild(label);
+		label.innerText = "Fonts";
+		var fontsize = document.createElement('input');
+		fontsize.setAttribute("type","range");
+		fontsize.setAttribute("min","10");
+		fontsize.setAttribute("max","24");
+		fontsize.setAttribute("step","0.125");
+		initval = getComputedStyle(document.documentElement).getPropertyValue('--font-size');
+		fontsize.value = parseFloat(initval);
+		fontsize.oninput = (
+			()=> {
+				let themedelta = [];
+				themedelta.fontSize = fontsize.value+"px";
+				themedelta.xtermoptions =[];
+				themedelta.xtermoptions.fontSize =fontsize.value;
+				this.theme_hook(themedelta);
+			}
+		);
+		field.appendChild(fontsize);
+
+		// OK... pretty much a close button. :)
+		field = document.createElement('div');
+		field.classList.add('menufield');
+		box.appendChild(field);
+		button = document.createElement('button');
+		button.innerText = "OK";
+		button.onclick = (()=>this.close(menuname));
+		field.appendChild(button);
+
+		return(overlay);
+	}
 }
 
 export { MenuHandler };
