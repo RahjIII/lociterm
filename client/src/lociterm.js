@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.4 2022/05/08 18:30:10 malakai Exp $
+// $Id: lociterm.js,v 1.5 2022/05/09 05:16:14 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -24,6 +24,7 @@ import { Terminal } from 'xterm';
 import { WebLinksAddon } from 'xterm-addon-web-links';
 import { FitAddon } from 'xterm-addon-fit';
 import { AttachAddon } from 'xterm-addon-attach';
+import { MenuHandler } from './menuhandler.js';
 
 // shamelessly borrowed from ttyd.
 const Command = {
@@ -42,21 +43,19 @@ const Command = {
 
 class LociTerm {
 
-	constructor(mydiv,theme={}) {
+	constructor(mydiv,lociThemes=[]) {
 
 		// set variables.
 		this.mydiv = mydiv;
-		if(theme.xtermoptions != undefined) {
-			this.terminal = new Terminal(theme.xtermoptions);
-		} else {
-			this.terminal = new Terminal();
-		}
+		this.lociThemes = lociThemes;
+		this.terminal = new Terminal();
 		this.fitAddon = new FitAddon();
 		this.textEncoder = new TextEncoder();
 		this.textDecoder = new TextDecoder();
 		this.resizeTimeout = undefined;
 		this.webLinksAddon = new WebLinksAddon();
 		this.socket = undefined;
+		this.themeLoaded = 0;
 		this.url = "";
 
 		// code. 
@@ -66,6 +65,8 @@ class LociTerm {
 		this.terminal.onBinary((e) => this.onBinaryData(e) );
 
 		window.addEventListener('resize', (e) => this.onWindowResize(e) );
+		this.loadDefaultTheme();
+		this.menuhandler = new MenuHandler(this);
 		this.terminal.open(mydiv);
 		this.fitAddon.fit();
 	}
@@ -114,8 +115,15 @@ class LociTerm {
 	}
 
 	connect(url=this.url) {
+		if(this.themeLoaded == false) {
+			console.log("Delaying connection for themes to load...");
+			this.terminal.write(`\r`);
+			setTimeout(() => this.connect(url) , 10.0); 
+			return;
+		}
 		this.url = url;
 		//this.terminal.write(`\r\nTrying ${url}... `);
+		console.log(`Connecting to ${url} . `);
 		this.socket = new WebSocket(this.url, ['loci-client']);
 		this.socket.binaryType = 'arraybuffer';
 		this.socket.onopen = (e) => this.onSocketOpen(e);
@@ -156,29 +164,76 @@ class LociTerm {
 		console.log("Socket Error." + e);
 	}
 
-	applyTheme(theme) {
+	loadDefaultTheme() {
+		let defaultTheme = this.lociThemes[0];
+		let defaultThemeName = localStorage.getItem("locithemename");
+		for (let i=0;i<this.lociThemes.length;i++) {
+			if(this.lociThemes[i].name == defaultThemeName) {
+				console.log("Found stored theme name " + defaultThemeName);
+				defaultTheme = this.lociThemes[i];
+				break;
+			}
+		}
 
+		let fingerSize = localStorage.getItem("fingerSize");
+		if (fingerSize != undefined) {
+			defaultTheme.fingerSize = fingerSize;
+		}
+		let fontSize = localStorage.getItem("fontSize");
+		if (fontSize != undefined) {
+			defaultTheme.fontSize = fontSize;
+			defaultTheme.xtermoptions.fontSize = parseFloat(fontSize);
+		}
+			
+		
+		this.applyTheme(defaultTheme);
+	}
+
+	async applyTheme(theme) {
+
+		this.themeLoaded = 0;
+		console.log("applying theme.");
 		// Apply the lociterm specific theme items.
 		if(theme.fingerSize != undefined) {
 			document.documentElement.style.setProperty('--finger-size', theme.fingerSize);
+			localStorage.setItem("fingerSize",theme.fingerSize);
 		}
 		if(theme.fontSize != undefined) {
 			document.documentElement.style.setProperty('--font-size', theme.fontSize);
+			localStorage.setItem("fontSize",theme.fontSize);
 		}
 
 		// Apply the xtermjs specific theme items.
 		if(theme.xtermoptions != undefined) {
+			// If there's an xterm fontFamily specified, check if that font is
+			// already loaded.  If it is not, ask for it to be loaded, and
+			// trigger an async function to recall applyTheme when it is ready.
+			if(theme.xtermoptions.fontFamily != undefined) {
+				let familylist = theme.xtermoptions.fontFamily.split(",");
+				for (let f=0; f<familylist.length; f++) {
+					let fontname = "16px " + familylist[f];
+					if( document.fonts.check(fontname) == false ) {
+						console.log(`Loading ${fontname}`);
+						document.fonts.load(fontname);
+					}
+				}
+				await document.fonts.ready;
+			}
 			this.terminal.options = Object.assign(theme.xtermoptions);
+			this.terminal.refresh(0,this.terminal.rows-1);
 			this.fitAddon.fit();
 			this.doWindowResize();
 		}
-		localStorage.setItem("locithemename",theme.name);
+		if(theme.name != undefined) {
+			localStorage.setItem("locithemename",theme.name);
+		}
+		console.log("theme is ready.");
+		this.themeLoaded = 1;
 	}
 
 	debug() {
 		debugger
 	}
-
 
 }
 

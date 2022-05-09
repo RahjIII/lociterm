@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.4 2022/05/08 18:30:10 malakai Exp $
+// $Id: menuhandler.js,v 1.5 2022/05/09 05:16:14 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -27,20 +27,20 @@ import Icons from './icons.svg';
 
 class MenuHandler {
 
-	constructor(divid,paste_hook,focus_hook,theme_hook,lociThemes) {
-		this.mydiv = document.getElementById('menuhandler');
-		this.paste_hook = paste_hook;
-		this.focus_hook = focus_hook;
-		this.theme_hook = theme_hook;
+	constructor(lociterm) {
+
+		this.lociterm = lociterm;
 		this.openwindow = [];
-		this.lociThemes = lociThemes;
 		this.login = { name: "", password: "" };
 
+		this.mydiv = document.createElement('div');
+		this.mydiv.id='menuhandler';
 		this.mydiv.classList.add('menuhandler');
 		this.mydiv.appendChild(this.create_menubox());
 		this.mydiv.appendChild(this.create_menuside());
 		this.mydiv.appendChild(this.create_loginbox());
 		this.mydiv.appendChild(this.create_settings());
+		this.lociterm.mydiv.appendChild(this.mydiv);
 		
 	}
 
@@ -91,12 +91,12 @@ class MenuHandler {
 	// send and done.
 	send(keys) {
 		this.done();
-		this.paste_hook(keys);
+		this.lociterm.paste(keys);
 	}
 
 	prompt(keys) {
 		this.send(keys);
-		this.focus_hook();
+		this.lociterm.focus();
 	}
 
 	store(key,value) {
@@ -204,7 +204,7 @@ class MenuHandler {
 			bar.appendChild(c);
 		}
 
-		bar.appendChild(this.create_menuside_themes(this.lociThemes));
+		bar.appendChild(this.create_menuside_themes(this.lociterm.lociThemes));
 		return(bar);
 	}
 
@@ -219,7 +219,7 @@ class MenuHandler {
 			s.innerText = locitheme.name;
 		}
 		s.onclick = () => {
-			this.theme_hook(locitheme);
+			this.lociterm.applyTheme(locitheme);
 			this.done();
 		}
 		return(s);
@@ -340,7 +340,7 @@ class MenuHandler {
 			()=> {
 				let themedelta = [];
 				themedelta.fingerSize = fingersize.value+"mm";
-				this.theme_hook(themedelta);
+				this.lociterm.applyTheme(themedelta);
 			}
 		);
 		field.appendChild(fingersize);
@@ -364,7 +364,7 @@ class MenuHandler {
 				themedelta.fontSize = fontsize.value+"px";
 				themedelta.xtermoptions =[];
 				themedelta.xtermoptions.fontSize =fontsize.value;
-				this.theme_hook(themedelta);
+				this.lociterm.applyTheme(themedelta);
 			}
 		);
 		field.appendChild(fontsize);
