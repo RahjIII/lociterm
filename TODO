@@ -1,14 +1,11 @@
 ------- TODO TODO TODO TODO --------------
+* FIX the baudbug with split utf8 sequences.
 
-* C locally saved (on browser) prefs
+* S get it working through apache ws proxy.
 
-* C Get the old login window working.
+* client theme selector moved to prefs window.
 
-* C make the "about" menu item show credits.
-
-* C adjust the lociterm applytheme to be able to re-style the normal css stuff.
-
-* C configurable client element and text sizes.
+* Client make the "about" menu item show credits.
 
 * M add a "tar up the distro" method to top level make?
 
@@ -24,17 +21,25 @@
 
 * S Get the connection endpoint to be selectable from the config file.
 
-* S Get https: and wss: working!
-
 * S Optional- telnet-ssl on the game side, selectable from config?
 
 * C client option for keep keyboard open
 
-* S get it working through apache ws proxy.
-
 * S fix the locid_log function to work better at showing the connection the messages are for.
 
 ------------- DONE! -----------------
+* S Get https: and wss: working!
+
+* Fix the 'missing return key' bug.
+
+* C adjust the lociterm applytheme to be able to re-style the normal css stuff.
+
+* C configurable client element and text sizes.
+
+* Client  locally saved (on browser) prefs
+
+* Client Get the old login window working.
+
 * configurable client themes/colors into menuside code too.
 
 + configurable client themes/colors 

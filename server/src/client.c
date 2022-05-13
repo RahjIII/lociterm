@@ -1,6 +1,6 @@
 /* client.c - LociTerm client side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: client.c,v 1.3 2022/05/08 18:30:10 malakai Exp $*/
+/* $Id: client.c,v 1.4 2022/05/13 04:32:28 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -58,7 +58,7 @@ int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 
 	switch (*in) {
 		case INPUT:
-			loci_game_write(pc,in+1,len-1);
+			telnet_send_text(pc->game_telnet,in+1,len-1);
 			break;
 		case RESIZE_TERMINAL:
 			width = 80;

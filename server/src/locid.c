@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.3 2022/05/08 18:30:10 malakai Exp $ */
+/* $Id: locid.c,v 1.4 2022/05/13 04:32:28 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -189,7 +189,7 @@ char *cert_file = get_conf_string(gkf,"ssl","cert","cert.pem");
 
 	/* begin websocket init */
 	//int lwslogs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_CLIENT | LLL_HEADER | LLL_INFO;
-	//int lwslogs = LLL_ERR | LLL_WARN | LLL_NOTICE;
+	// int lwslogs = LLL_ERR | LLL_WARN | LLL_NOTICE;
 	int lwslogs = LLL_ERR | LLL_WARN;
 	lws_set_log_level(lwslogs, (lws_log_emit_t)locid_log_lws);
 

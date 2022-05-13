@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.5 2022/05/09 05:16:14 malakai Exp $
+// $Id: lociterm.js,v 1.6 2022/05/13 04:32:28 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -124,7 +124,11 @@ class LociTerm {
 		this.url = url;
 		//this.terminal.write(`\r\nTrying ${url}... `);
 		console.log(`Connecting to ${url} . `);
-		this.socket = new WebSocket(this.url, ['loci-client']);
+		this.socket = new WebSocket(this.url, ['loci-client'],
+			{
+				rejectUnauthorized: false,
+			}
+		);
 		this.socket.binaryType = 'arraybuffer';
 		this.socket.onopen = (e) => this.onSocketOpen(e);
 		this.socket.onmessage = (e) => this.onSocketData(e);

@@ -1,8 +1,8 @@
-# $Id: makefile,v 1.3 2022/05/08 18:30:10 malakai Exp $
+# $Id: makefile,v 1.4 2022/05/13 04:32:28 malakai Exp $
 #
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.3 2022/05/08 18:30:10 malakai Exp $
+# $Id: makefile,v 1.4 2022/05/13 04:32:28 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -28,6 +28,7 @@ RUN = ./run
 SERVERDIR = ./server
 CLIENTDIR = ./client
 NPM = ./client/node_modules
+CERTNAME = loci
 
 # #### Recipies Start Here ####
 
@@ -51,10 +52,19 @@ $(RUN) :
 	mkdir -p $(RUN)
 	mkdir -p $(RUN)/bin
 	mkdir -p $(RUN)/etc
+	mkdir -p $(RUN)/etc/ssl/certs
+	mkdir -p $(RUN)/etc/ssl/private
 	mkdir -p $(RUN)/var/www/loci
 
 $(NPM) : 
 	cd $(CLIENTDIR); npm install
+
+.PHONY: cert
+cert : $(RUN)
+	$(info --- Creating self-signed cert and key ----)
+	openssl req -nodes -new -x509 \
+		-keyout $(RUN)/etc/ssl/private/$(CERTNAME)_key.pem \
+		-out $(RUN)/etc/ssl/certs/$(CERTNAME)_cert.pem
 
 # Cleaning up...
 .PHONY : clean

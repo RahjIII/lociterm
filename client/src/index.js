@@ -1,6 +1,6 @@
 // index.js - LociTerm entry js
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: index.js,v 1.5 2022/05/09 05:16:14 malakai Exp $
+// $Id: index.js,v 1.6 2022/05/13 04:32:28 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -36,5 +36,13 @@ const terminal = new LociTerm(
 	lociThemes
 );
 
-terminal.connect("ws://zeppelin.lake.jeffrika.com:4005");
+//terminal.connect("ws://zeppelin.lake.jeffrika.com:4005");
+let websocket_url = `wss://${document.location.host}${document.location.pathname}`;
+console.log(`Websocket URL is ${websocket_url}`)
+if( document.location.port == 5001 ) { 
+	websocket_url = `wss://${document.location.hostname}:4005${document.location.pathname}`;
+	console.log(`NPM serve mode detected.  Connecting to ${websocket_url} instead.`)
+} 
+terminal.connect(websocket_url);
+	
 
