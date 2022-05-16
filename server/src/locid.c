@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.4 2022/05/13 04:32:28 malakai Exp $ */
+/* $Id: locid.c,v 1.5 2022/05/16 04:26:22 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -29,6 +29,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <signal.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 #include <libwebsockets.h>
 
 #include "libtelnet.h"
@@ -42,8 +44,8 @@
 
 #define CONFIG_FILE "/etc/locid.conf"
 
-char *locid_proxy_name;
 static int interrupted;
+struct locid_conf *config;
 
 static const lws_retry_bo_t retry = {
 	.secs_since_valid_ping = 3,
@@ -109,18 +111,99 @@ int get_conf_boolean(GKeyFile * gkf, gchar * group, gchar * key, int def) {
 	}
 
 }
+
+struct locid_conf *new_config(char *filename) {
+	struct locid_conf *c;
+	GKeyFile *gkf;
+	struct servent *srv;
+
+	c = (struct locid_conf *)malloc(sizeof(struct locid_conf));
+
+	gkf = g_key_file_new();
+
+	if(!g_key_file_load_from_file(gkf,filename,G_KEY_FILE_NONE,NULL)){
+		fprintf(stderr,"Couldn't read config file %s\n",CONFIG_FILE);
+	}
+
+	/* set config file variables */
+	c->client_service = get_conf_string(gkf,"client","service","4005");
+	c->listening_port = 4005;
+	if ( !(c->listening_port = atoi(c->client_service)) ) {
+		if( (srv = getservbyname(c->client_service,"tcp")) ) {
+			c->listening_port = ntohs(srv->s_port);
+		} else {
+			c->listening_port = 4005;
+		}
+	}
+
+	c->log_file = g_key_file_get_string(gkf, "locid", "log-file", NULL);
+	c->vhost_name = get_conf_string(gkf, "locid", "vhost_name", "localhost");
+	c->mountpoint = get_conf_string(gkf, "locid", "mountpoint", "/");
+	c->origin = get_conf_string(gkf, "locid", "origin", "/var/www/loci");  /* shrug */
+	c->default_doc = get_conf_string(gkf, "locid", "default_doc", "index.html");
+
+	c->client_security = get_conf_string(gkf,"client","security","none");
+
+	c->game_usessl = 0;
+	c->game_security = get_conf_string(gkf,"game","security","none");
+	if(!strcasecmp("ssl",c->game_security)) {
+		c->game_usessl = 1;
+	}
+	c->game_host = get_conf_string(gkf,"game","host","::");
+	c->game_service = get_conf_string(gkf,"game","service","4000");
+	if ( !(c->game_port = atoi(c->game_service)) ) {
+		if( (srv = getservbyname(c->game_service,"tcp")) ) {
+			c->game_port = ntohs(srv->s_port);
+		} else {
+			c->game_port = 4000;
+		}
+	}
+
+	c->cert_file = get_conf_string(gkf,"ssl","cert","cert.pem");
+	c->key_file = get_conf_string(gkf,"ssl","key","key.pem");
+	c->chain_file = get_conf_string(gkf,"ssl","chain","");
+	c->locid_proxy_name = get_proxy_name();
+
+
+	g_key_file_free(gkf);
+	return(c);
+}
+
+void free_config(struct locid_conf *c) {
+
+	if(!c) return;
+
+	if(c->log_file) free(c->log_file);
+	if(c->vhost_name) free(c->vhost_name);
+	if(c->mountpoint) free(c->mountpoint);
+	if(c->origin) free(c->origin);
+	if(c->default_doc) free(c->default_doc);
+	if(c->client_security) free(c->client_security);
+	if(c->game_security) free(c->game_security);
+	if(c->game_host) free(c->game_host);
+	if(c->game_service) free(c->game_service);
+	if(c->cert_file) free(c->cert_file);
+	if(c->key_file) free(c->key_file);
+	if(c->chain_file) free(c->chain_file);
+	if(c->locid_proxy_name) free(c->locid_proxy_name);
+
+	free(c);
+}
+
+
+
 int main(int argc, char **argv) {
 
 	/* local variables. */
 	char *configfilename = NULL;
-	GKeyFile *gkf;
 	int debug = 0;
 	struct lws_context_creation_info info;
 	struct lws_context *context;
 	struct lws_http_mount *mount;
+	char *s;
+	sigset_t mask;
 
 	/* ...and begin. */
-	locid_proxy_name = get_proxy_name();
 
 	while(1) {
 		char *short_options = "hc:dv";
@@ -142,7 +225,9 @@ int main(int argc, char **argv) {
 				debug = 1;
 				break;
 			case 'v':
-				fprintf(stdout,"%s\n",locid_proxy_name);
+				s = get_proxy_name();
+				fprintf(stdout,"%s\n",s);
+				free(s);
 				exit(EXIT_SUCCESS);
 			case 'h':
 			default:
@@ -154,38 +239,23 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	
+
 	if(configfilename == NULL) {
 		configfilename = CONFIG_FILE;
 	}
-	gkf = g_key_file_new();
 
-	if(!g_key_file_load_from_file(gkf,configfilename,G_KEY_FILE_NONE,NULL)){
-		fprintf(stderr,"Couldn't read config file %s\n",CONFIG_FILE);
-		//exit(EXIT_FAILURE);
-	}
+	config = new_config(configfilename);
 
-	/* config file variables */
-	int listening_port = get_conf_int(gkf,"locid","listen",4005);
-	char *log_file = g_key_file_get_string(gkf, "locid", "log-file", NULL);
-	char *vhost_name = get_conf_string(gkf, "locid", "vhost_name", "localhost");
-	char *mountpoint = get_conf_string(gkf, "locid", "mountpoint", "/");
-	char *origin = get_conf_string(gkf, "locid", "origin", "/var/www/loci");  /* shrug */
-	char *default_doc = get_conf_string(gkf, "locid", "default_doc", "index.html");
+	locid_log_init(config->log_file);
 
-	char *client_security = get_conf_string(gkf,"client","security","none");
-	
-	char *game_security = get_conf_string(gkf,"game","security","none");
-	char *game_host = get_conf_string(gkf,"game","host","::");
-	char *game_service = get_conf_string(gkf,"game","service","4000");
-
-char *cert_file = get_conf_string(gkf,"ssl","cert","cert.pem");
-	char *key_file = get_conf_string(gkf,"ssl","key","key.pem");
-	char *chain_file = get_conf_string(gkf,"ssl","chain","");
-
-	locid_log_init(log_file);
-	locid_log("Starting %s", locid_proxy_name);
-	locid_log("config file is %s", configfilename);
-	locid_log("Mountpoint is %s", mountpoint);
+	locid_log("Starting %s", config->locid_proxy_name);
+	locid_log("Loaded config file %s", configfilename);
+	locid_log("Mountpoint is %s", config->mountpoint);
+	locid_log("Game is %s %d security %S", 
+		config->game_host, config->game_port,
+		config->game_security
+	);
 
 	/* begin websocket init */
 	//int lwslogs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_CLIENT | LLL_HEADER | LLL_INFO;
@@ -196,26 +266,26 @@ char *cert_file = get_conf_string(gkf,"ssl","cert","cert.pem");
 	/* init the mountpoint struct for lws's built in http server. */
 	mount = (struct lws_http_mount *)malloc(sizeof(struct lws_http_mount));
 	memset(mount, 0, sizeof *mount); /* otherwise uninitialized garbage */
-	mount->mountpoint = mountpoint;
-	mount->mountpoint_len = strlen(mountpoint);
-	mount->origin = origin;
+	mount->mountpoint = config->mountpoint;
+	mount->mountpoint_len = strlen(config->mountpoint);
+	mount->origin = config->origin;
 	mount->origin_protocol = LWSMPRO_FILE;
-	mount->def = default_doc;
+	mount->def = config->default_doc;
 
 
 	/* init the info struct for lws's context. */
 	memset(&info, 0, sizeof info); /* otherwise uninitialized garbage */
-	info.port = listening_port;
+	info.port = config->listening_port;
 	info.mounts = mount;
 	info.protocols = protocols;
-	info.vhost_name = vhost_name;
+	info.vhost_name = config->vhost_name;
 	//info.options = LWS_SERVER_OPTION_HTTP_HEADERS_SECURITY_BEST_PRACTICES_ENFORCE;
 #if defined(LWS_WITH_TLS)
-	if (!strcmp(client_security,"ssl")) {
+	if (!strcasecmp(config->client_security,"ssl")) {
 		lwsl_user("Client side using TLS\n");
 		info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
-		info.ssl_cert_filepath = cert_file;
-		info.ssl_private_key_filepath = key_file;
+		info.ssl_cert_filepath = config->cert_file;
+		info.ssl_private_key_filepath = config->key_file;
 	}
 #endif
 	/* could make this configurable later. */
@@ -228,6 +298,9 @@ char *cert_file = get_conf_string(gkf,"ssl","cert","cert.pem");
 	}
 
 	/* turn on the signal handler. */
+	sigemptyset(&mask);
+	sigaddset(&mask,SIGPIPE);
+	sigprocmask(SIG_SETMASK,&mask,NULL);
 	signal(SIGINT, sigint_handler);
 
 	/* end websocket init */
@@ -239,5 +312,6 @@ char *cert_file = get_conf_string(gkf,"ssl","cert","cert.pem");
 
 	/* exit and cleanup */
 	lws_context_destroy(context);
+	free_config(config);
 	locid_log("Shutdown complete.");
 }

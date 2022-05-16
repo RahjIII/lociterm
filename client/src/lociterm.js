@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.6 2022/05/13 04:32:28 malakai Exp $
+// $Id: lociterm.js,v 1.7 2022/05/16 04:26:22 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -143,14 +143,65 @@ class LociTerm {
 	}
 
 	onSocketData(event) {
-		
-		let str = new TextDecoder().decode(event.data);
-		let cmd = str.slice(0,1);
-		let data = str.slice(1);
+
+		let str = "";
+		let rawbuffer = event.data;
+		let rawbytes = new Uint8Array(rawbuffer);
+
+		let cmd = new TextDecoder('utf8').decode(rawbuffer).charAt(0);
 
 		switch(cmd) {
 			case Command.OUTPUT:
-				this.terminal.write(data);
+				var output;
+				var outbytes;
+
+				if( this.leftover != undefined ) {
+					// There were some trailing UTF bytes left over from the last
+					// OUTPUT message that we would like to combine into this message.
+					let leftbytes = new Uint8Array(this.leftover);
+					output = new ArrayBuffer( this.leftover.byteLength + rawbytes.byteLength-1 );
+					outbytes = new Uint8Array(output);
+					outbytes.set(leftbytes.slice(0,leftbytes.byteLength),0);
+					outbytes.set(rawbytes.slice(1,rawbytes.byteLength),leftbytes.byteLength);
+					this.leftover = undefined;
+				} else {
+					// No leftover utf bytes, just need to remove the first byte command.
+					output = new ArrayBuffer( rawbytes.byteLength-1 );
+					outbytes = new Uint8Array(output);
+					outbytes.set(rawbytes.slice(1,rawbytes.bytelength),0);
+				}
+
+				/* ok... its possible that there is a dangling utf sequence at the end
+				 * of this uint8 ArrayBuffer, due to the sequence being split across a
+				 * packet boundary.  The text decoder would fail because of that, and
+				 * try to sub in a ? character.  Rather than leave the bad data as a
+				 * substitute character, we are gonna try to fix it, by removing the
+				 * partial utf sequence from the end, and saving it for transmission
+				 * with the next message. */
+
+				try {
+					// fatal:true here because we want the thing to fail if there's a
+					// partial sequence.
+					str = new TextDecoder('utf8', {fatal:true}).decode(output);
+				} catch {
+					let v = new DataView(output);
+					let i=v.byteLength -1;
+					/* skip backwards from the last byte, over any sequence bytes */
+					while( (v.getUint8(i) & 0xc0) == 0x80 ) {
+						i--;
+					}
+					// the retry chunk has had the partail utf sequence removed.
+					let retry = (output).slice(0,i);
+					// this.leftover chunk contains the partial utf sequence for the
+					// next send attempt.
+					this.leftover = (output).slice(i,v.byteLength);
+
+					// fatal:false, cause there's nothing else we know how to fix.  If
+					// they get garbage chars at this point.. oh ??ell.  
+					str = new TextDecoder('utf8', {fatal:false}).decode(retry);
+				}
+
+				this.terminal.write(str);
 				break;
 			default:
 				console.warn("Unhandled command " + cmd);

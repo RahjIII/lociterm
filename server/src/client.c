@@ -1,6 +1,6 @@
 /* client.c - LociTerm client side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: client.c,v 1.4 2022/05/13 04:32:28 malakai Exp $*/
+/* $Id: client.c,v 1.5 2022/05/16 04:26:22 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -28,6 +28,7 @@
 
 #include "libtelnet.h"
 
+#include "locid.h"
 #include "locilws.h"
 #include "debug.h"
 #include "game.h"
@@ -117,6 +118,8 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 	proxy_conn_t *pc;
 	struct lws_client_connect_info info;
 	proxy_msg_t *msg;
+	proxy_msg_t *nextmsg;
+	proxy_msg_t *newmsg;
 	uint8_t *data;
 	int m, a;
 	char buf[4096];
@@ -156,9 +159,14 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 
 		info.method = "RAW";
 		info.context = lws_get_context(wsi);
-		info.port = 4000;  /* FIXME! */
-		info.address = "127.0.0.1";  /* FIXME! */
-		info.ssl_connection = 0;
+		info.port = config->game_port; 
+		info.address = config->game_host;
+		if(config->game_usessl) {
+			info.ssl_connection = LCCSCF_USE_SSL|LCCSCF_ALLOW_SELFSIGNED|LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK;
+		} else {
+			info.ssl_connection = 0;
+		}
+
 		info.local_protocol_name = "loci-game";
 		/* also mark this onward conn with the proxy_conn.  This is take from
 		 * the lws example code.  probably should be lws_set_opaque_user_data()

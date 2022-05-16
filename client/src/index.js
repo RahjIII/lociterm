@@ -1,6 +1,6 @@
 // index.js - LociTerm entry js
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: index.js,v 1.6 2022/05/13 04:32:28 malakai Exp $
+// $Id: index.js,v 1.7 2022/05/16 04:26:22 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -36,13 +36,23 @@ const terminal = new LociTerm(
 	lociThemes
 );
 
-//terminal.connect("ws://zeppelin.lake.jeffrika.com:4005");
-let websocket_url = `wss://${document.location.host}${document.location.pathname}`;
+
+// The websocket's use of SSL will follow the page's use.
+let wsproto = "wss:";
+if(document.location.protocol == "http:") {
+	wsproto = "ws:";
+}
+let websocket_url = `${wsproto}//${document.location.host}${document.location.pathname}`;
 console.log(`Websocket URL is ${websocket_url}`)
+
+// The npm serve mode is pretty handy, but it uses a different host port than
+// the websocket server.  Account for that here.
 if( document.location.port == 5001 ) { 
-	websocket_url = `wss://${document.location.hostname}:4005${document.location.pathname}`;
+	websocket_url = `${wsproto}//${document.location.hostname}:4005${document.location.pathname}`;
 	console.log(`NPM serve mode detected.  Connecting to ${websocket_url} instead.`)
 } 
+
+// open it up and go.
 terminal.connect(websocket_url);
 	
 

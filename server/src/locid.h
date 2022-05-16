@@ -1,6 +1,6 @@
 /* locid.h - LociTerm main and config */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.h,v 1.2 2022/05/02 03:18:36 malakai Exp $ */
+/* $Id: locid.h,v 1.3 2022/05/16 04:26:22 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -30,9 +30,28 @@
 #define LOCID_MINOR_VER 0
 
 /* structs and typedefs */
+struct locid_conf {
+	int listening_port;
+	char *log_file;
+	char *vhost_name;
+	char *mountpoint;
+	char *origin;
+	char *default_doc;
+	char *client_security;
+	char *client_service;
+	char *game_security;
+	char *game_host;
+	char *game_service;
+	char *cert_file;
+	char *key_file;
+	char *chain_file;
+	char *locid_proxy_name;
+	int game_port;
+	int game_usessl;
+};
 
 /* exported global variable declarations */
-extern char *locid_proxy_name;
+extern struct locid_conf *config;
 
 /* exported function declarations */
 

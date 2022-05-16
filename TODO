@@ -1,33 +1,34 @@
 ------- TODO TODO TODO TODO --------------
-* FIX the baudbug with split utf8 sequences.
 
-* S get it working through apache ws proxy.
+* Server get it working through apache ws proxy.
+
+* Server Optional- game security ssl isn't working, fix it.
 
 * client theme selector moved to prefs window.
 
 * Client make the "about" menu item show credits.
 
-* M add a "tar up the distro" method to top level make?
+* Makefile add a "tar up the distro" method to top level make?
 
-* M add a better "install me" option to make
+* Makefile add a better "install me" option to make
 
-* S systemd/sysv launcher script?
+* Server systemd/sysv launcher script?
 
-* S lws_daemonize check that.
+* Server lws_daemonize check that.
 
-* S drop perms after launch?
+* Server drop perms after launch?
 
-* S Get the terminal types and mtts values to be selectable from the config file.
+* Server Get the terminal types and mtts values to be selectable from the config file?
 
-* S Get the connection endpoint to be selectable from the config file.
+* Client option for keep keyboard open
 
-* S Optional- telnet-ssl on the game side, selectable from config?
-
-* C client option for keep keyboard open
-
-* S fix the locid_log function to work better at showing the connection the messages are for.
+* Server fix the locid_log function to work better at showing the connection the messages are for.
 
 ------------- DONE! -----------------
+* FIX the baudbug with split utf8 sequences.
+
+* Server Get the connection endpoint to be selectable from the config file.
+
 * S Get https: and wss: working!
 
 * Fix the 'missing return key' bug.

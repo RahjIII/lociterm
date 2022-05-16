@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.4 2022/05/08 18:30:10 malakai Exp $ */
+/* $Id: telnet.c,v 1.5 2022/05/16 04:26:22 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -31,6 +31,7 @@
 
 #include "libtelnet.h"
 
+#include "locid.h"
 #include "debug.h"
 #include "locilws.h"
 #include "client.h"
@@ -62,7 +63,7 @@ void send_next_ttype(proxy_conn_t *pc);
 /* cycle through ttypes. */
 void send_next_ttype(proxy_conn_t *pc) {
 
-	/* TODO make this come from the config file. */
+	/* TODO make this selectable from the config file? */
 	char *mtts[] = {
 		"lociterm",
 		"XTERM",

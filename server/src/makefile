@@ -1,6 +1,6 @@
 # makefile - LociTerm locid server
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.3 2022/05/08 18:30:10 malakai Exp $
+# $Id: makefile,v 1.4 2022/05/16 04:26:22 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -38,7 +38,8 @@ ADDITIONAL_HFILES =
 MISSING_HFILES = 
 
 # CDEBUG, use -g for gdb symbols.  For gprof, add -pg and -no-pie.
-CDEBUG = -g -Og
+#CDEBUG = -g -Og
+CDEBUG = -g 
 
 # #### Flags and linklibs definitions ####
 
