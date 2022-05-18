@@ -1,12 +1,18 @@
 ------- TODO TODO TODO TODO --------------
 
-* Server get it working through apache ws proxy.
+* client - touch fade option into settings.
 
-* Server Optional- game security ssl isn't working, fix it.
+* client - keep the gear from fading out.
 
 * client theme selector moved to prefs window.
 
 * Client make the "about" menu item show credits.
+
+* client get the manifest working
+
+* Server get it working through apache ws proxy.
+
+* Server Optional- game security ssl isn't working, fix it.
 
 * Makefile add a "tar up the distro" method to top level make?
 
@@ -25,6 +31,8 @@
 * Server fix the locid_log function to work better at showing the connection the messages are for.
 
 ------------- DONE! -----------------
+* favicon seems to be working.
+
 * FIX the baudbug with split utf8 sequences.
 
 * Server Get the connection endpoint to be selectable from the config file.

@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.5 2022/05/16 04:26:22 malakai Exp $ */
+/* $Id: locid.c,v 1.6 2022/05/18 02:36:33 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -209,6 +209,7 @@ int main(int argc, char **argv) {
 		char *short_options = "hc:dv";
 		static struct option long_options[] = {
 			{"help", no_argument,0,'h'},
+			{"version", no_argument,0,'v'},
 			{"config",required_argument,0,'c'},
 			{"debug", no_argument,0,'d'},
 			{"version", no_argument,0,'v'},
@@ -235,6 +236,7 @@ int main(int argc, char **argv) {
 				fprintf(stdout,"\t-c / --config   : specify location of config file\n");
 				fprintf(stdout,"\t-d / --debug    : run in debug mode\n");
 				fprintf(stdout,"\t-h / --help     : this message\n");
+				fprintf(stdout,"\t-v / --version  : show the version\n");
 				exit(EXIT_SUCCESS);
 		}
 	}

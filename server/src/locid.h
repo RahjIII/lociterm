@@ -1,6 +1,6 @@
 /* locid.h - LociTerm main and config */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.h,v 1.3 2022/05/16 04:26:22 malakai Exp $ */
+/* $Id: locid.h,v 1.4 2022/05/18 02:36:33 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -26,8 +26,14 @@
 /* global #defines */
 #define LOCID_SHORTNAME "locid"
 #define LOCID_LONGNAME "Last Outpost Client Implementation Demon"
+
+#ifndef LOCID_MAJOR_VER
 #define LOCID_MAJOR_VER 0
+#endif
+
+#ifndef LOCID_MINOR_VER
 #define LOCID_MINOR_VER 0
+#endif
 
 /* structs and typedefs */
 struct locid_conf {

@@ -1,8 +1,8 @@
-# $Id: makefile,v 1.4 2022/05/13 04:32:28 malakai Exp $
+# $Id: makefile,v 1.5 2022/05/18 02:36:32 malakai Exp $
 #
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.4 2022/05/13 04:32:28 malakai Exp $
+# $Id: makefile,v 1.5 2022/05/18 02:36:32 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -24,7 +24,8 @@
 
 
 # #### Variable definitions ####
-RUN = ./run
+BUILD = ./dist
+INSTALL = /usr/local
 SERVERDIR = ./server
 CLIENTDIR = ./client
 NPM = ./client/node_modules
@@ -32,42 +33,47 @@ CERTNAME = loci
 
 # #### Recipies Start Here ####
 
-$(info ---------- START OF RUN -----------)
-all : $(RUN) $(NPM) server client
-	$(info ---------- END OF RUN --- SUCCESS! -----------)
+$(info ---------- START OF BUILD -----------)
+all : $(BUILD) $(NPM) server client
+	$(info ---------- END OF BUILD --- SUCCESS! -----------)
 
 .PHONY : server
-server : $(RUN)
+server : $(BUILD)
 	cd $(SERVERDIR)/src; make
-	cp $(SERVERDIR)/src/build/locid $(RUN)/bin
-	cp $(SERVERDIR)/locid.conf $(RUN)/etc
+	cp $(SERVERDIR)/src/build/locid $(BUILD)/bin
+	cp $(SERVERDIR)/locid.conf $(BUILD)/etc
 
 .PHONY : client 
-client : $(RUN)
+client : $(NPM) $(BUILD)
 	cd $(CLIENTDIR); npm run build
-	cp -r $(CLIENTDIR)/dist/* $(RUN)/var/www/loci
+	cp -r $(CLIENTDIR)/dist/* $(BUILD)/var/www/loci
 
 # Create run directory...
-$(RUN) : 
-	mkdir -p $(RUN)
-	mkdir -p $(RUN)/bin
-	mkdir -p $(RUN)/etc
-	mkdir -p $(RUN)/etc/ssl/certs
-	mkdir -p $(RUN)/etc/ssl/private
-	mkdir -p $(RUN)/var/www/loci
+$(BUILD) : 
+	mkdir -p $(BUILD)
+	mkdir -p $(BUILD)/bin
+	mkdir -p $(BUILD)/etc
+	mkdir -p $(BUILD)/etc/ssl/certs
+	mkdir -p $(BUILD)/etc/ssl/private
+	mkdir -p $(BUILD)/var/www/loci
 
-$(NPM) : 
+$(NPM) :
 	cd $(CLIENTDIR); npm install
 
 .PHONY: cert
-cert : $(RUN)
+cert : $(BUILD)
 	$(info --- Creating self-signed cert and key ----)
 	openssl req -nodes -new -x509 \
-		-keyout $(RUN)/etc/ssl/private/$(CERTNAME)_key.pem \
-		-out $(RUN)/etc/ssl/certs/$(CERTNAME)_cert.pem
+		-keyout $(BUILD)/etc/ssl/private/$(CERTNAME)_key.pem \
+		-out $(BUILD)/etc/ssl/certs/$(CERTNAME)_cert.pem
 
 # Cleaning up...
 .PHONY : clean
 clean : 
 	cd server; make clean
 	cd client; npm run build
+
+.PHONY : install
+install :
+	$(info --- install ----)
+	cp -av $(BUILD)/* $(INSTALL)

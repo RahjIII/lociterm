@@ -10,7 +10,7 @@ module.exports = {
 			metaDesc: 'Last Outpost Client Implementation',
 			template: './src/index.html',
 			filename: 'index.html',
-			inject: 'body'
+			inject: 'head'
 		})
 	],
 	mode: 'development',
@@ -28,8 +28,11 @@ module.exports = {
 				use: ['style-loader','css-loader'],
 			},
 			{
-				test: /\.(png|svg|jpg|jpeg|gif)$/i,
+				test: /\.(png|svg|jpg|jpeg|gif|ico)$/i,
 				type: 'asset/resource',
+				generator: {
+					filename: './img/[name][ext]',
+				}
 			},
 			{
 				test: /\.(ttf)$/i,
@@ -37,7 +40,7 @@ module.exports = {
 				generator: {
 					filename: './fonts/[name][ext]',
 				}
-			},
+			}
 		],
 	},
 };
