@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.6 2022/05/18 02:36:33 malakai Exp $ */
+/* $Id: locid.c,v 1.7 2022/05/18 20:39:25 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -42,7 +42,9 @@
 
 #include "locid.h"
 
+#ifndef CONFIG_FILE
 #define CONFIG_FILE "/etc/locid.conf"
+#endif
 
 static int interrupted;
 struct locid_conf *config;

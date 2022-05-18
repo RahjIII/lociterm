@@ -1,7 +1,27 @@
-Requires libglib2.0-dev, ctags, openssl, libwebsockets4.4.0, npm
+Requires libglib2.0-dev, ctags, openssl, cmake, libwebsockets4.4.0, npm
+
+on debian-
+
+apt-get install libglib2.0-dev exuberant-ctags openssl cmake npm
+
 
 To build type `make`.
 
-Doesn't have an install script yet.
+Then "make install"- but there's no systemd/sysv startup script yet.
+
+"make certs" to make some self signed ones.
+
+"make systemd" to make locid run as lociterm.service
+
 Edit the locid.conf config file per the comments.
+
+
+To add proxy rules to apache2:
+    RewriteEngine on
+    RewriteCond %{HTTP:Upgrade} websocket [NC]
+    RewriteCond %{HTTP:Connection} upgrade [NC]
+    RewriteRule .* "wss://localhost:4005%{REQUEST_URI}" [P]
+    ProxyPass /lociterm https://localhost:4005/
+    ProxyPassReverse /lociterm https:///localhost:4005/
+    ProxyRequests off
 

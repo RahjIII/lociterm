@@ -1,8 +1,8 @@
-# $Id: makefile,v 1.5 2022/05/18 02:36:32 malakai Exp $
+# $Id: makefile,v 1.6 2022/05/18 20:39:25 malakai Exp $
 #
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.5 2022/05/18 02:36:32 malakai Exp $
+# $Id: makefile,v 1.6 2022/05/18 20:39:25 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -77,3 +77,8 @@ clean :
 install :
 	$(info --- install ----)
 	cp -av $(BUILD)/* $(INSTALL)
+
+.PHONY: systemd
+systemd: 
+	cp server/lociterm.service /etc/systemd/system
+	systemctl enable lociterm.service

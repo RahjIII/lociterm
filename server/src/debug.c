@@ -1,6 +1,6 @@
 /* debug.c - Debugging and loggin code for LociTerm */
 /* Created: Wed Mar  3 11:09:27 PM EST 2021 malakai */
-/* $Id: debug.c,v 1.2 2022/05/02 03:18:36 malakai Exp $*/
+/* $Id: debug.c,v 1.3 2022/05/18 20:39:25 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -70,6 +70,7 @@ void locid_log(char *str, ...)
 	}
 
 	fprintf(locid_logfile, "%s %s%c", tmstr, vbuf,nl);
+	fflush(locid_logfile);
 }
 
 int locid_ssl_err_cb(const char *str, size_t len, void *u) {

@@ -10,15 +10,11 @@
 
 * client get the manifest working
 
-* Server get it working through apache ws proxy.
-
 * Server Optional- game security ssl isn't working, fix it.
 
 * Makefile add a "tar up the distro" method to top level make?
 
 * Makefile add a better "install me" option to make
-
-* Server systemd/sysv launcher script?
 
 * Server lws_daemonize check that.
 
@@ -31,6 +27,13 @@
 * Server fix the locid_log function to work better at showing the connection the messages are for.
 
 ------------- DONE! -----------------
+* Server systemd/sysv launcher script?
+
+* server - parse the x-forwared-for header so that transparent proxy through
+ apache will work.
+
+* Server get it working through apache ws proxy.
+
 * favicon seems to be working.
 
 * FIX the baudbug with split utf8 sequences.

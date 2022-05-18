@@ -1,6 +1,6 @@
 /* client.c - LociTerm client side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: client.c,v 1.6 2022/05/18 18:41:36 malakai Exp $*/
+/* $Id: client.c,v 1.7 2022/05/18 20:39:25 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -152,6 +152,10 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 			locid_log("[%d] Using x-forwarded-for as the hostname: '%s'",pc->id, buf);
 			if(pc->hostname) free(pc->hostname);
 			pc->hostname = strdup(buf);
+		}
+
+		if(lws_hdr_copy(pc->wsi_client,buf,sizeof(buf),WSI_TOKEN_HTTP_USER_AGENT) > 0) {
+			locid_log("[%d] User Agent: '%s'",pc->id, buf);
 		}
 
 		loci_telnet_init(pc);

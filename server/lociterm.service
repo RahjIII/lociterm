@@ -1,0 +1,15 @@
+[Unit]
+Description=LociTerm Service
+After=network.target
+
+[Service]
+# change this as appropriate
+ExecStart=/usr/local/bin/locid -c /usr/local/etc/locid.conf
+KillMode=process
+Restart=always
+RestartSec=5s
+StartLimitIntervalSec=0
+User=lo
+
+[Install]
+WantedBy=default.target
