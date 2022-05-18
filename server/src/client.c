@@ -1,6 +1,6 @@
 /* client.c - LociTerm client side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: client.c,v 1.5 2022/05/16 04:26:22 malakai Exp $*/
+/* $Id: client.c,v 1.6 2022/05/18 18:41:36 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -124,6 +124,7 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 	int m, a;
 	char buf[4096];
 	int buflen;
+	int n;
 
 	/* pc is stored in the wsi user data area.  fetch it.  (pc may come back
 	 * NULL on the first time this is called, but that's ok.)*/
@@ -142,11 +143,18 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 		 * it can be looked up by callbacks made the game side wsi... */
 		pc->wsi_client = wsi;
 
-		/* grab a string copy of the peer's address */
 		lws_get_peer_simple(pc->wsi_client,buf,sizeof(buf));
 		pc->hostname = strdup(buf);
-		loci_telnet_init(pc);
 		locid_log("[%d] Establishing client connection from %s",pc->id, pc->hostname);
+
+		/* grab a string copy of the peer's address */
+		if(lws_hdr_copy(pc->wsi_client,buf,sizeof(buf),WSI_TOKEN_X_FORWARDED_FOR) > 0) {
+			locid_log("[%d] Using x-forwarded-for as the hostname: '%s'",pc->id, buf);
+			if(pc->hostname) free(pc->hostname);
+			pc->hostname = strdup(buf);
+		}
+
+		loci_telnet_init(pc);
 
 		/* ...which we will now open starting here.  We could postpone this
 		 * open operation and wait on an "open the game" command from the
