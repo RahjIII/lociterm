@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.7 2022/05/16 04:26:22 malakai Exp $
+// $Id: lociterm.js,v 1.8 2022/05/21 02:34:27 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -230,6 +230,7 @@ class LociTerm {
 			}
 		}
 
+		// these should probably be in an array to be looped over...
 		let fingerSize = localStorage.getItem("fingerSize");
 		if (fingerSize != undefined) {
 			defaultTheme.fingerSize = fingerSize;
@@ -238,6 +239,10 @@ class LociTerm {
 		if (fontSize != undefined) {
 			defaultTheme.fontSize = fontSize;
 			defaultTheme.xtermoptions.fontSize = parseFloat(fontSize);
+		}
+		let menuFade = localStorage.getItem("menuFade");
+		if (menuFade != undefined) {
+			defaultTheme.menuFade = menuFade;
 		}
 			
 		
@@ -256,6 +261,10 @@ class LociTerm {
 		if(theme.fontSize != undefined) {
 			document.documentElement.style.setProperty('--font-size', theme.fontSize);
 			localStorage.setItem("fontSize",theme.fontSize);
+		}
+		if(theme.menuFade != undefined) {
+			document.documentElement.style.setProperty('--menufade-hidden', theme.menuFade);
+			localStorage.setItem("menuFade",theme.menuFade);
 		}
 
 		// Apply the xtermjs specific theme items.

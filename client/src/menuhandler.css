@@ -4,6 +4,7 @@
 	--book-text-color: #443311;
 	--finger-size: 8mm;
 	--font-size: 16px;
+	--menufade-hidden: 0.20;
 }
 
 /* 
@@ -32,7 +33,7 @@
 	margin: 1em;
 	border-radius: 2mm;
 	visibility: visible;
-	opacity: 0.20;
+	opacity: var(--menufade-hidden);
 	transition: opacity 4s ease-in-out;
 }
 
@@ -116,12 +117,6 @@
 	padding: 1em;
 }
 
-.menuside div {
-	border-color: var(--book-cover-color);
-	border-style: none;
-	border-width: 1mm;
-}
-
 
 .menuside {
 	float: right;
@@ -152,8 +147,12 @@
 }
 
 .menuside div {
-	background: hsla(0,0%,25%,0.80);
+	border-style: none;
+	border-width: 1mm;
 	border-radius: 2.0mm;
+	border-color: var(--book-cover-color);
+/*	background: var(--book-paper-color);*/
+	background: hsla(0,0%,25%,0.80);
 	min-height:	var(--finger-size);
 	padding: 2.0mm;
 	margin: 0.5mm;
@@ -204,6 +203,7 @@
 }
 
 .menupop {
+	position: relative;
 	display: grid;
 	justify-content: center;
 	align-items: center;
@@ -216,8 +216,51 @@
 	border-color: var(--book-cover-color);
 	border-style: solid;
 	border-width: 1mm;
-	text-transform: capitalize;
+	max-width: 80%;
+	overflow: auto;
+	/* text-transform: capitalize;*/
 }
+
+.menupop div {
+	display: grid;
+	padding: 1mm;
+	overflow: auto;
+}
+
+.menupop .textflow {
+	display: block;
+	padding: 1mm;
+	overflow: auto;
+}
+
+.imgcontainer {
+	justify-content: center;
+}
+
+.menupop input,
+.menupop input.checkbox,
+.menupop button {
+	min-height: calc(var(--finger-size)/2.0);
+	min-width: calc(var(--finger-size)/2.0);
+	font-size: var(--font-size);
+	margin: 1mm;
+}
+
+.close {
+	position: absolute;
+	right: 2mm;
+	top: 0;
+	font-size: calc(var(--font-size) * 2.0);
+	font-weight: bold;
+	color: var(--book-cover-color);
+}
+
+.close:hover,
+.close:focus {
+  color: red;
+  cursor: pointer;
+}
+
 
 .menufield {
 	display: grid;
@@ -227,5 +270,6 @@
 }
 
 .menufield label {
+	min-height: var(--finger-size);
 }
 

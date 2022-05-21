@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.6 2022/05/13 04:32:28 malakai Exp $
+// $Id: menuhandler.js,v 1.7 2022/05/21 02:34:27 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -24,6 +24,7 @@
 import Menubox from './menubox.json';
 import Menuside from './menuside.json';
 import Icons from './icons.svg';
+import LOIcon from './img/loiconcolor.gif';
 
 class MenuHandler {
 
@@ -40,6 +41,7 @@ class MenuHandler {
 		this.mydiv.appendChild(this.create_menuside());
 		this.mydiv.appendChild(this.create_loginbox());
 		this.mydiv.appendChild(this.create_settings());
+		this.mydiv.appendChild(this.create_about());
 		this.lociterm.mydiv.appendChild(this.mydiv);
 		
 	}
@@ -127,7 +129,6 @@ class MenuHandler {
 		let box = document.createElement('div');
 		box.id='menubox';
 		box.classList.add('menugrid');
-
 
 		for(let i=0; i<Menubox.length; i++) {
 			let item = Menubox[i];
@@ -239,73 +240,114 @@ class MenuHandler {
 		return(m);
 	}
 
+
 	// Add the Menubox definition to the DOM.
 	create_loginbox() {
 
-		let box;
-		let field;
-		let label;
-		let input;
-		let button;
-		let overlay;
+		let l;
+		let cdiv;
+		let divstack = [];
 
-		overlay = document.createElement('div');
+		let overlay = document.createElement('div');
 		overlay.id='menu_loginbox';
 		overlay.classList.add('overlay');
+		divstack.push(overlay);
+		cdiv = overlay;
 
-		box = document.createElement('div');
-		overlay.appendChild(box);
-		box.classList.add('menupop');
+		l = document.createElement('form');
+		cdiv.appendChild(l);
+		l.setAttribute("actions","");
+		l.setAttribute("method","dialog");
+		l.classList.add('menupop');
+		divstack.push(l);
+		cdiv = l;
 
-		field = document.createElement('div');
-		field.classList.add('menufield');
-		box.appendChild(field);
+		l = document.createElement('div');
+		cdiv.appendChild(l);
+		l.classList.add('imgcontainer');
+		divstack.push(l);
+		cdiv = l;
 
-		label = document.createElement('label');
-		field.appendChild(label);
-		label.innerText = "Name";
-		label.setAttribute("for","username");
-		input = document.createElement('input');
-		field.appendChild(input);
-		input.setAttribute("type","text");
-		input.id = "username";
-		input.setAttribute("placeholder","Enter Username");
-		input.setAttribute("autocomplete","username");
-		input.addEventListener('input',((e)=>this.login.name=e.target.value));
+		l = document.createElement('span');
+		cdiv.appendChild(l);
+		l.onclick = (()=>this.close("menu_loginbox"));
+		l.classList.add('close');
+		l.title = "Close menu_loginbox";
+		l.innerText = "×";
+
+		l = document.createElement('img');
+		cdiv.appendChild(l);
+		l.src = LOIcon;
+
+		divstack.pop(); //imgcontainer
+		cdiv = divstack[divstack.length-1];
 	
-		field = document.createElement('div');
-		field.classList.add('menufield');
-		box.appendChild(field);
-		label = document.createElement('label');
-		field.appendChild(label);
-		label.innerText = "Password";
-		label.setAttribute("for","password");
-		input = document.createElement('input');
-		input.addEventListener('input',((e)=>this.login.password=e.target.value));
-		field.appendChild(input);
-		input.setAttribute("type","password");
-		input.id = "password";
-		input.setAttribute("placeholder","Enter Password");
-		input.setAttribute("autocomplete","current-password");
+		l = document.createElement('div');
+		cdiv.appendChild(l);
+		divstack.push(l);
+		cdiv = l;
 
-		field = document.createElement('div');
-		field.classList.add('menufield');
-		box.appendChild(field);
-		button = document.createElement('button');
-		button.innerText = "Dismiss";
-		button.onclick = (()=>this.close("menu_loginbox"));
+		// Username
+		l = document.createElement('label');
+		cdiv.appendChild(l);
+		l.setAttribute("for","username");
+		l.innerText = "Username";
+		l = document.createElement('input');
+		cdiv.appendChild(l);
+		l.setAttribute("type","text");
+		l.setAttribute("placeholder","Enter Username");
+		l.setAttribute("name","username");
+		l.id = "username";
+		l.setAttribute("autocomplete","username");
+		l.addEventListener('input',((e)=>this.login.name=e.target.value));
 
-		field.appendChild(button);
-		button = document.createElement('button');
-		button.innerText = "Send";
-		button.onclick = (
+		// Password
+		l = document.createElement('label');
+		cdiv.appendChild(l);
+		l.setAttribute("for","password");
+		l.innerText = "Password";
+		l = document.createElement('input');
+		cdiv.appendChild(l);
+		l.setAttribute("type","password");
+		l.setAttribute("placeholder","Enter Password");
+		l.setAttribute("name","password");
+		l.id = "password";
+		l.setAttribute("autocomplete","current-password");
+		l.addEventListener('input',((e)=>this.login.password=e.target.value));
+
+
+		// rememberme
+		l = document.createElement('div');
+		l.style.display = 'block';
+		cdiv.appendChild(l);
+		divstack.push(l);
+		cdiv = l;
+		l = document.createElement('input');
+		cdiv.appendChild(l);
+		l.setAttribute("type","checkbox");
+		l.setAttribute("checked","checked");
+		l.setAttribute("name","remember");
+		l.id = "remember";
+		l.innerText = "Remember Me";
+		l = document.createElement('label');
+		cdiv.appendChild(l);
+		l.setAttribute("for","remember");
+		l.innerText = "Remember Me";
+		divstack.pop(); 
+		cdiv = divstack[divstack.length-1];
+
+		// login
+		l = document.createElement('button');
+		cdiv.appendChild(l);
+		l.setAttribute("type","submit");
+		l.innerText = "Login";
+		l.onclick = (
 			()=> {
 				this.sendlogin();
 				this.close("menu_loginbox")
 			}
 		);
-		field.appendChild(button);
-		
+
 		return(overlay);
 	}
 
@@ -318,6 +360,7 @@ class MenuHandler {
 		let label;
 		let input;
 		let initval;
+		let l;
 
 		let menuname = "menu_settings";
 
@@ -329,34 +372,19 @@ class MenuHandler {
 		overlay.appendChild(box);
 		box.classList.add('menupop');
 
-		// a range slider for setting the finger size css
-		field = document.createElement('div');
-		box.appendChild(field);
-		label = document.createElement('label');
-		field.appendChild(label);
-		label.innerText = "Icons";
-		var fingersize = document.createElement('input');
-		fingersize.setAttribute("type","range");
-		fingersize.setAttribute("min","5");
-		fingersize.setAttribute("max","15");
-		fingersize.setAttribute("step","0.125");
-		initval = getComputedStyle(document.documentElement).getPropertyValue('--finger-size');
-		fingersize.value = parseFloat(initval);
-		fingersize.oninput = (
-			()=> {
-				let themedelta = [];
-				themedelta.fingerSize = fingersize.value+"mm";
-				this.lociterm.applyTheme(themedelta);
-			}
-		);
-		field.appendChild(fingersize);
+		l = document.createElement('span');
+		box.appendChild(l);
+		l.onclick = (()=>this.close("menu_settings"));
+		l.classList.add('close');
+		l.title = "Close menu_loginbox";
+		l.innerText = "×";
 
 		// a range slider for setting the font size css
 		field = document.createElement('div');
 		box.appendChild(field);
 		label = document.createElement('label');
 		field.appendChild(label);
-		label.innerText = "Fonts";
+		label.innerText = "Font Size";
 		var fontsize = document.createElement('input');
 		fontsize.setAttribute("type","range");
 		fontsize.setAttribute("min","10");
@@ -375,17 +403,121 @@ class MenuHandler {
 		);
 		field.appendChild(fontsize);
 
-		// OK... pretty much a close button. :)
+		// a range slider for setting the finger size css
 		field = document.createElement('div');
-		field.classList.add('menufield');
 		box.appendChild(field);
-		button = document.createElement('button');
-		button.innerText = "OK";
-		button.onclick = (()=>this.close(menuname));
-		field.appendChild(button);
+		label = document.createElement('label');
+		field.appendChild(label);
+		label.innerText = "Icon Size";
+		var fingersize = document.createElement('input');
+		fingersize.setAttribute("type","range");
+		fingersize.setAttribute("min","5");
+		fingersize.setAttribute("max","15");
+		fingersize.setAttribute("step","0.125");
+		initval = getComputedStyle(document.documentElement).getPropertyValue('--finger-size');
+		fingersize.value = parseFloat(initval);
+		fingersize.oninput = (
+			()=> {
+				let themedelta = [];
+				themedelta.fingerSize = fingersize.value+"mm";
+				this.lociterm.applyTheme(themedelta);
+			}
+		);
+		field.appendChild(fingersize);
+
+		// a range slider for setting the grid fadeout
+		field = document.createElement('div');
+		box.appendChild(field);
+		label = document.createElement('label');
+		field.appendChild(label);
+		label.innerText = "Icon Fade";
+		var menufade = document.createElement('input');
+		menufade.setAttribute("type","range");
+		menufade.setAttribute("min","0.0");
+		menufade.setAttribute("max","1.0");
+		menufade.setAttribute("step","0.05");
+		initval = getComputedStyle(document.documentElement).getPropertyValue('--menufade-hidden');
+		menufade.value = parseFloat(initval);
+		menufade.oninput = (
+			()=> {
+				let themedelta = [];
+				themedelta.menuFade = menufade.value;
+				this.lociterm.applyTheme(themedelta);
+			}
+		);
+		field.appendChild(menufade);
+		return(overlay);
+	}
+
+	create_about() {
+
+		let l;
+		let cdiv;
+		let divstack = [];
+
+		let overlay = document.createElement('div');
+		overlay.id='menu_about';
+		overlay.classList.add('overlay');
+		divstack.push(overlay);
+		cdiv = overlay;
+
+		l = document.createElement('div');
+		cdiv.appendChild(l);
+		l.classList.add('menupop');
+		divstack.push(l);
+		cdiv = l;
+
+		l = document.createElement('div');
+		cdiv.appendChild(l);
+		l.classList.add('imgcontainer');
+		divstack.push(l);
+		cdiv = l;
+
+		l = document.createElement('span');
+		cdiv.appendChild(l);
+		l.onclick = (()=>this.close("menu_about"));
+		l.classList.add('close');
+		l.title = "Close about";
+		l.innerText = "×";
+
+		l = document.createElement('img');
+		cdiv.appendChild(l);
+		l.src = LOIcon;
+
+
+		divstack.pop(); 
+		cdiv = divstack[divstack.length-1];
+
+		l = document.createElement('div');
+		l.classList.add('textflow');
+		cdiv.appendChild(l);
+		divstack.push(l);
+		cdiv = l;
+
+		l = document.createElement('p');
+		cdiv.appendChild(l);
+		l.innerText = "LociTerm - Last Outpost Client Interface Terminal "
+		l.innerText += "Copyright © 2022 <rahjiii@jeffrika.com> "
+		l.innerText += "(https://www.last-outpost.com/LO/pubcode)"
+
+		l = document.createElement('p');
+		cdiv.appendChild(l);
+		l.innerText = "LociTerm uses:  xterm.js (https://xtermjs.org); libwebsockets by Andy Green (https://libwebsockets.org); libtelnet by Sean Middleditch (http://github.com/seanmiddleditch/libtelnet); and many other useful open source libraries and tools."
+
+		l = document.createElement('p');
+		cdiv.appendChild(l);
+		l.innerText = "Some icons courtesy of Open Iconic (https://useiconic.com/open/); GlassTTY VT220 TrueType font by Viacheslav Slavinsky (http://sensi.org/~svo/glasstty); Noto Emoji font by Google; "
+		
+		l = document.createElement('p');
+		cdiv.appendChild(l);
+		l.innerText = "Thank you to the Multi User Dungeon #coding discord group for your help and encouragement, and to every member of the Last Outpost Honor Guard! "
+
+		divstack.pop(); //imgcontainer
+		cdiv = divstack[divstack.length-1];
 
 		return(overlay);
 	}
+
 }
 
 export { MenuHandler };
