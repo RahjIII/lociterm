@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.8 2022/05/21 15:18:10 malakai Exp $
+// $Id: menuhandler.js,v 1.9 2022/05/21 20:12:03 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -108,17 +108,22 @@ class MenuHandler {
 
 	sendlogin() {
 
-		// add some code for setting the env vars here.
+		// this is all VERY hoaky.  But it'll do until I can get it coded up
+		// better, with either a gmcp message or some env vars.
+		
+		if(this.lociterm.socket.readyState != 1) { // open
+			this.lociterm.connect();
+		}
 
 		if(this.login.name != undefined) {
 			setTimeout(
 				()=> this.send(this.login.name + "\n"),
-				0
+				500
 			);
 			if(this.login.password != undefined) {
 				setTimeout(
 					()=> this.send(this.login.password + "\n"),
-					500
+					750
 				);
 			}
 		}

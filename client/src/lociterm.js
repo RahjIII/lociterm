@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.9 2022/05/21 15:18:10 malakai Exp $
+// $Id: lociterm.js,v 1.10 2022/05/21 20:12:03 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -212,7 +212,6 @@ class LociTerm {
 	onSocketClose(e) {
 		console.log("Socket Close." + e);
 		this.terminal.write(`\r\n┅┅┅┅┅ Disconnected ┅┅┅┅┅\r\n`);
-		debugger
 	}
 
 	onSocketError(e) {
