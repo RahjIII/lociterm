@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.7 2022/05/21 02:34:27 malakai Exp $
+// $Id: menuhandler.js,v 1.8 2022/05/21 15:18:10 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -205,7 +205,9 @@ class MenuHandler {
 			bar.appendChild(c);
 		}
 
-		bar.appendChild(this.create_menuside_themes(this.lociterm.lociThemes));
+		// this would add the themes to the side menu.. but I've moved them
+		// into the client prefs selector.
+		// bar.appendChild(this.create_menuside_themes(this.lociterm.lociThemes));
 		return(bar);
 	}
 
@@ -240,6 +242,54 @@ class MenuHandler {
 		return(m);
 	}
 
+	create_theme_selector(locithemes) {
+
+		let l;
+		let cdiv;
+		let divstack = [];
+
+		let main = document.createElement('div');
+		divstack.push(main);
+		cdiv = main;
+
+		l = document.createElement('label');
+		cdiv.appendChild(l);
+		l.setAttribute("for","theme-select");
+		l.innerText = "Theme";
+
+		l = document.createElement('select');
+		cdiv.appendChild(l);
+		l.setAttribute("name","theme-select");
+		l.id = "theme-select";
+		l.oninput = ((e)=>{
+			this.lociterm.applyThemeNo(e.srcElement.value);
+		});
+
+		divstack.push(l);
+		cdiv = l;
+
+		l = document.createElement('option');
+		cdiv.appendChild(l);
+		l.setAttribute("value",-1);
+		l.innerText = "Current";
+
+		for(let i=0; i<locithemes.length; i++) {
+			let locitheme = locithemes[i];
+			l = document.createElement('option');
+			cdiv.appendChild(l);
+			l.setAttribute("value",i);
+			l.innerText =locitheme.name;
+			if ( locitheme.label != undefined ) {
+				l.innerText = locitheme.label;
+			}
+		}
+
+		divstack.pop(); 
+		cdiv = divstack[divstack.length-1];
+		return(main);
+
+	}
+
 
 	// Add the Menubox definition to the DOM.
 	create_loginbox() {
@@ -270,7 +320,7 @@ class MenuHandler {
 
 		l = document.createElement('span');
 		cdiv.appendChild(l);
-		l.onclick = (()=>this.close("menu_loginbox"));
+		l.onclick = (()=>this.done());
 		l.classList.add('close');
 		l.title = "Close menu_loginbox";
 		l.innerText = "×";
@@ -304,14 +354,14 @@ class MenuHandler {
 		// Password
 		l = document.createElement('label');
 		cdiv.appendChild(l);
-		l.setAttribute("for","password");
+		l.setAttribute("for","current-password");
 		l.innerText = "Password";
 		l = document.createElement('input');
 		cdiv.appendChild(l);
 		l.setAttribute("type","password");
 		l.setAttribute("placeholder","Enter Password");
 		l.setAttribute("name","password");
-		l.id = "password";
+		l.id = "current-password";
 		l.setAttribute("autocomplete","current-password");
 		l.addEventListener('input',((e)=>this.login.password=e.target.value));
 
@@ -374,10 +424,13 @@ class MenuHandler {
 
 		l = document.createElement('span');
 		box.appendChild(l);
-		l.onclick = (()=>this.close("menu_settings"));
+		l.onclick = (()=>this.done("menu_settings"));
 		l.classList.add('close');
 		l.title = "Close menu_loginbox";
 		l.innerText = "×";
+
+		l = this.create_theme_selector(this.lociterm.lociThemes);
+		box.appendChild(l);
 
 		// a range slider for setting the font size css
 		field = document.createElement('div');
@@ -475,7 +528,7 @@ class MenuHandler {
 
 		l = document.createElement('span');
 		cdiv.appendChild(l);
-		l.onclick = (()=>this.close("menu_about"));
+		l.onclick = (()=>this.done());
 		l.classList.add('close');
 		l.title = "Close about";
 		l.innerText = "×";

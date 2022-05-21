@@ -723,10 +723,6 @@
 				"open": "menu_settings"
 			},
 			{
-				"label": "Themes",
-				"open": "menu_themes_dynamic"
-			},
-			{
 				"label": "About",
 				"open": "menu_about"
 			}

@@ -1,8 +1,6 @@
 ------- TODO TODO TODO TODO --------------
 
-* client - keep the gear from fading out.
-
-* client theme selector moved to prefs window.
+* Plumb the login window to use env vars instead?
 
 * client get the manifest working
 
@@ -11,6 +9,8 @@
 * Makefile add a "tar up the distro" method to top level make?
 
 * Makefile add a better "install me" option to make
+
+* Makefile - have make move the existing locid to locid.prev on install to avoid the text file busy problem.
 
 * Server lws_daemonize check that.
 
@@ -23,6 +23,11 @@
 * Server fix the locid_log function to work better at showing the connection the messages are for.
 
 ------------- DONE! -----------------
+* client theme selector moved to prefs window.
+
+- client - keep the gear from fading out.
+	Meh, could maybe do that later.
+
 * Client make the "about" menu item show credits.
 
 * client - touch fade option into settings.

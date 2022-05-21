@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.8 2022/05/21 02:34:27 malakai Exp $
+// $Id: lociterm.js,v 1.9 2022/05/21 15:18:10 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -212,6 +212,7 @@ class LociTerm {
 	onSocketClose(e) {
 		console.log("Socket Close." + e);
 		this.terminal.write(`\r\n┅┅┅┅┅ Disconnected ┅┅┅┅┅\r\n`);
+		debugger
 	}
 
 	onSocketError(e) {
@@ -247,6 +248,14 @@ class LociTerm {
 			
 		
 		this.applyTheme(defaultTheme);
+	}
+
+	applyThemeNo(no=-1) {
+		
+		if( (no < 0) || (no >= this.lociThemes.length) ) {
+			return;
+		}
+		this.applyTheme(this.lociThemes[no]);
 	}
 
 	async applyTheme(theme) {
@@ -290,6 +299,7 @@ class LociTerm {
 		}
 		if(theme.name != undefined) {
 			localStorage.setItem("locithemename",theme.name);
+			this.themeName = theme.name;
 		}
 		console.log("theme is ready.");
 		this.themeLoaded = 1;

@@ -221,6 +221,7 @@
 	/* text-transform: capitalize;*/
 }
 
+
 .menupop div {
 	display: grid;
 	padding: 1mm;
@@ -237,6 +238,7 @@
 	justify-content: center;
 }
 
+.menupop select,
 .menupop input,
 .menupop input.checkbox,
 .menupop button {
@@ -244,6 +246,8 @@
 	min-width: calc(var(--finger-size)/2.0);
 	font-size: var(--font-size);
 	margin: 1mm;
+	color: var(--book-text-color);
+	background: white;
 }
 
 .close {
