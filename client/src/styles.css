@@ -2,6 +2,11 @@
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=block');
 
 @font-face {
+	font-family: Commodore;
+	src: url(./fonts/CommodoreAngledv1.2.ttf) format("truetype");
+}
+
+@font-face {
   font-family: LOFont;
   src: url(./fonts/DejaVuSansMono.ttf) format("truetype");
 }

@@ -1,6 +1,6 @@
 /* debug.c - Debugging and loggin code for LociTerm */
 /* Created: Wed Mar  3 11:09:27 PM EST 2021 malakai */
-/* $Id: debug.c,v 1.3 2022/05/18 20:39:25 malakai Exp $*/
+/* $Id: debug.c,v 1.4 2022/05/29 18:28:27 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -38,7 +38,7 @@ void locid_log_init(char *pathname) {
 
 	locid_logfile = stderr;
 	if(pathname && *pathname) {
-		if(! (out=fopen(pathname,"w+"))) {
+		if(! (out=fopen(pathname,"a"))) {
 			locid_log("Can't open log file %s: %s",pathname,strerror(errno));
 			exit(EXIT_FAILURE);
 		}
@@ -78,7 +78,7 @@ int locid_ssl_err_cb(const char *str, size_t len, void *u) {
 	return(0);
 }
 
-/* defining this to return 0 tells lws not to include a timestamp. */
+/* defining this to return 0 tells lws not to include a time stamp. */
 int lwsl_timestamp(int level, char *p, size_t len) {
 	return(0);
 }

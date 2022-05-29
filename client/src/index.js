@@ -1,6 +1,6 @@
 // index.js - LociTerm entry js
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: index.js,v 1.8 2022/05/18 02:36:32 malakai Exp $
+// $Id: index.js,v 1.9 2022/05/29 18:28:27 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -36,7 +36,6 @@ const terminal = new LociTerm(
 	lociThemes
 );
 
-
 // The websocket's use of SSL will follow the page's use.
 let wsproto = "wss:";
 if(document.location.protocol == "http:") {
@@ -55,4 +54,3 @@ if( document.location.port == 5001 ) {
 // open it up and go.
 terminal.connect(websocket_url);
 	
-

@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.9 2022/05/21 20:12:03 malakai Exp $
+// $Id: menuhandler.js,v 1.10 2022/05/29 18:28:27 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -32,7 +32,7 @@ class MenuHandler {
 
 		this.lociterm = lociterm;
 		this.openwindow = [];
-		this.login = { name: "", password: "" };
+		//this.login = { name: "", password: "" };
 
 		this.mydiv = document.createElement('div');
 		this.mydiv.id='menuhandler';
@@ -115,14 +115,14 @@ class MenuHandler {
 			this.lociterm.connect();
 		}
 
-		if(this.login.name != undefined) {
+		if(this.lociterm.login.name != undefined) {
 			setTimeout(
-				()=> this.send(this.login.name + "\n"),
+				()=> this.send(this.lociterm.login.name + "\n"),
 				500
 			);
-			if(this.login.password != undefined) {
+			if(this.lociterm.login.password != undefined) {
 				setTimeout(
-					()=> this.send(this.login.password + "\n"),
+					()=> this.send(this.lociterm.login.password + "\n"),
 					750
 				);
 			}
@@ -216,6 +216,9 @@ class MenuHandler {
 		return(bar);
 	}
 
+	// Given a theme struct, create a menuside style button for it.  (This was
+	// how styles were selected before they were moved into the client prefs
+	// window, and may not be called anywhere anymore.)
 	create_menuside_theme_button(locitheme) {
 		let s = document.createElement('div');
 
@@ -233,6 +236,9 @@ class MenuHandler {
 		return(s);
 	}
 
+	// Given a themes array, create a menuside style menu for it.  This is how
+	// styles were selected before they were moved into the client prefs
+	// window, and may not be called anywhere anymore.)
 	create_menuside_themes(locithemes,menu_id="menu_themes_dynamic") {
 
 		let m = document.createElement('div');
@@ -247,6 +253,7 @@ class MenuHandler {
 		return(m);
 	}
 
+	// Build the select box for choosing a theme from the themes array.
 	create_theme_selector(locithemes) {
 
 		let l;
@@ -354,7 +361,7 @@ class MenuHandler {
 		l.setAttribute("name","username");
 		l.id = "username";
 		l.setAttribute("autocomplete","username");
-		l.addEventListener('input',((e)=>this.login.name=e.target.value));
+		l.addEventListener('input',((e)=>this.lociterm.login.name=e.target.value));
 
 		// Password
 		l = document.createElement('label');
@@ -368,7 +375,7 @@ class MenuHandler {
 		l.setAttribute("name","password");
 		l.id = "current-password";
 		l.setAttribute("autocomplete","current-password");
-		l.addEventListener('input',((e)=>this.login.password=e.target.value));
+		l.addEventListener('input',((e)=>this.lociterm.login.password=e.target.value));
 
 
 		// rememberme
@@ -507,6 +514,7 @@ class MenuHandler {
 		return(overlay);
 	}
 
+	// Return an overlay popup for the About menu.
 	create_about() {
 
 		let l;

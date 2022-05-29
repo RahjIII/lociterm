@@ -1,6 +1,6 @@
 /* client.c - LociTerm client side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: client.c,v 1.7 2022/05/18 20:39:25 malakai Exp $*/
+/* $Id: client.c,v 1.8 2022/05/29 18:28:27 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -25,6 +25,7 @@
 #include <signal.h>
 #include <string.h>
 #include <glib.h>
+#include <json-c/json.h>
 
 #include "libtelnet.h"
 
@@ -41,17 +42,20 @@
 /* local function declarations */
 int loci_client_parse(proxy_conn_t *pc, char *in, size_t len);
 void loci_client_send_cmd(proxy_conn_t *pc, char cmd, char *in, size_t len);
+int loci_connect_to_game(proxy_conn_t *pc, int gameno);
+int loci_client_json_cmd_parse(proxy_conn_t *pc,char *in, size_t len);
 
 /* locals */
 
 /* functions */
 
-/* reads loci client protocol messagess and acts on them. */
+/* reads loci client protocol messages and acts on them. */
 int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 
 	int width = 80;
 	int height = 25;
 	char *s;
+	int gameno;
 
 	if (!in || !len) {
 		return(-1);
@@ -59,7 +63,9 @@ int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 
 	switch (*in) {
 		case INPUT:
-			telnet_send_text(pc->game_telnet,in+1,len-1);
+			if(pc->wsi_game) {
+				telnet_send_text(pc->game_telnet,in+1,len-1);
+			}
 			break;
 		case RESIZE_TERMINAL:
 			width = 80;
@@ -72,15 +78,31 @@ int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 				pc->height = height;
 			}
 			free(s);
-			loci_telnet_send_naws(pc->game_telnet,pc->width,pc->height);
+			if(pc->wsi_game) {
+				loci_telnet_send_naws(pc->game_telnet,pc->width,pc->height);
+			}
 			lwsl_user("[%d] Terminal resized (%dx%d)",pc->id,pc->width,pc->height);
 
 			break;
+		case CONNECT_GAME:
+			/* The message provides a number for 'connect to nth game', but
+			 * it's not really implemented yet.  Always connect to game 0. */
+			if( (sscanf(in+1,"%d",&gameno)==1) ) {
+				locid_log("[%d] client requested game %d.",pc->id);
+				gameno = 0;  /* the default game */
+			} else {
+				gameno = 0;
+			}
+			return(loci_connect_to_game(pc,gameno));
+
+			break;
+		case SEND_CMD:
+			loci_client_json_cmd_parse(pc,in+1,len-1);
+			break;
 		case PAUSE:
 		case RESUME:
-		case JSON_DATA:
 		default:
-			locid_log("[%d] unimplimented client command.",pc->id);
+			locid_log("[%d] unimplemented client command.",pc->id);
 			return(-1);
 	}
 	return(*in);
@@ -111,12 +133,58 @@ void loci_client_write(proxy_conn_t *pc, char *in, size_t len) {
 	loci_client_send_cmd(pc,OUTPUT,in,len);
 }
 
+/* connect to the mud. */
+int loci_connect_to_game(proxy_conn_t *pc, int gameno) {
+
+	struct lws_client_connect_info info;
+
+	if(pc->wsi_game != NULL) {
+		lwsl_warn("%s: client requested a second connection?\n", __func__); 
+		return(0);
+	}
+
+	/* lws example code likes to clear out structures before use */
+	memset(&info, 0, sizeof(info));
+
+	info.method = "RAW";
+	info.context = lws_get_context(pc->wsi_client);
+	info.port = config->game_port; 
+	info.address = config->game_host;
+	if(config->game_usessl) {
+		info.ssl_connection = LCCSCF_USE_SSL|LCCSCF_ALLOW_SELFSIGNED|LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK;
+	} else {
+		info.ssl_connection = 0;
+	}
+
+	info.local_protocol_name = "loci-game";
+	/* also mark this onward conn with the proxy_conn.  This is take from
+	 * the lws example code.  probably should be lws_set_opaque_user_data()
+	 * instead for clarity and consistency, but whatever. */
+	info.opaque_user_data = pc;
+	/* if the connect_via_info call succeeds, it'll set the wsi into the
+	 * location pointed to by info.pwsi, in this case, the wsi_game field
+	 * of the proxy_conn. */
+	info.pwsi = &pc->wsi_game;
+
+	/* Perhaps also a good spot to send "opening..." to the client. */
+	// buflen = sprintf(buf,"Trying %s %d...",info.address,info.port);
+	// loci_client_write(pc,buf,buflen);
+
+	if (!lws_client_connect_via_info(&info)) {
+		lwsl_warn("%s: onward game connection failed\n", __func__); 
+		/* return -1 means hang up on the ws client, triggering _CLOSE flow */
+		return -1;
+	}
+
+	return(0);
+}
+
+
 /* main LWS callback for the webclient side of the proxy. */
 int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 			 void *user, void *in, size_t len)
 {
 	proxy_conn_t *pc;
-	struct lws_client_connect_info info;
 	proxy_msg_t *msg;
 	proxy_msg_t *nextmsg;
 	proxy_msg_t *newmsg;
@@ -160,45 +228,10 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 
 		loci_telnet_init(pc);
 
-		/* ...which we will now open starting here.  We could postpone this
-		 * open operation and wait on an "open the game" command from the
-		 * client side (perhaps along with an address to open) but not in this
-		 * iteration.  */
-
-
-		/* lws example code likes to clear out structures before use */
-		memset(&info, 0, sizeof(info));
-
-		info.method = "RAW";
-		info.context = lws_get_context(wsi);
-		info.port = config->game_port; 
-		info.address = config->game_host;
-		if(config->game_usessl) {
-			info.ssl_connection = LCCSCF_USE_SSL|LCCSCF_ALLOW_SELFSIGNED|LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK;
-		} else {
-			info.ssl_connection = 0;
-		}
-
-		info.local_protocol_name = "loci-game";
-		/* also mark this onward conn with the proxy_conn.  This is take from
-		 * the lws example code.  probably should be lws_set_opaque_user_data()
-		 * instead for clarity and consistency, but whatever. */
-		info.opaque_user_data = pc;
-		/* if the connect_via_info call succeeds, it'll set the wsi into the
-		 * location pointed to by info.pwsi, in this case, the wsi_game field
-		 * of the proxy_conn. */
-		info.pwsi = &pc->wsi_game;
-
-		/* Perhaps also a good spot to send "opening..." to the client. */
-		// buflen = sprintf(buf,"Trying %s %d...",info.address,info.port);
-		// loci_client_write(pc,buf,buflen);
-
-		if (!lws_client_connect_via_info(&info)) {
-			lwsl_warn("%s: onward game connection failed\n", __func__); 
-			/* return -1 means hang up on the ws client, triggering _CLOSE flow */
-			return -1;
-		}
-
+		/* loci_connect_to_game(pc,0); */
+		/* Don't open up the connection to the game until the client
+		 * specifically requests it. This is so that the client has a chance to
+		 * send up any login or environment */
 		break;
 
 	case LWS_CALLBACK_CLOSED:
@@ -250,18 +283,17 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 			return -1;
 		}
 
-		/* and repeat while the queue contians messages. */
+		/* and repeat while the queue contains messages. */
 		if (!(g_queue_is_empty(pc->client_q))) {
 			lws_callback_on_writable(wsi);
 		}
 		break;
 
 	case LWS_CALLBACK_RECEIVE:
-		if (!pc || !pc->wsi_game)
-			break;
+		if (!pc) break;
 
-		/* dencapsulate inbound from the client here. The ufiltered data
-		 * is at *in.  It needs its loci protocol framing translated, and then
+		/* de-encapsulate inbound from the client here. The unfiltered data is
+		 * at *in.  It needs its loci protocol framing translated, and then
 		 * sent on to the outbound game q.*/
 
 		loci_client_parse(pc,in,len);
@@ -273,4 +305,9 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 	}
 
 	return 0;
+}
+
+/* parse verbose json data send from the web client.  */
+int loci_client_json_cmd_parse(proxy_conn_t *pc,char *str, size_t len) {
+	return(0);
 }

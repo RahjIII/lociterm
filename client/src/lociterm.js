@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.10 2022/05/21 20:12:03 malakai Exp $
+// $Id: lociterm.js,v 1.11 2022/05/29 18:28:27 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -26,19 +26,23 @@ import { FitAddon } from 'xterm-addon-fit';
 import { AttachAddon } from 'xterm-addon-attach';
 import { MenuHandler } from './menuhandler.js';
 
-// shamelessly borrowed from ttyd.
+// shamelessly borrowed from ttyd, as I was considering keeping the ws
+// protocols compatible- but I didn't end up doing that.   Not all of these are
+// implemented.
 const Command = {
-	// client message
+	// client message - these are RECEIVED
 	OUTPUT: '0',
 	SET_WINDOW_TITLE: '1',
 	SET_PREFERENCES: '2',
+	RECV_CMD: '3',
 
-	// server message
+	// server message - these are SENT
 	INPUT: '0',
 	RESIZE_TERMINAL: '1',
 	PAUSE: '2',
 	RESUME: '3',
-	JSON_DATA: '{'
+	CONNECT_GAME: '5',
+	SEND_CMD: '6'
 }
 
 class LociTerm {
@@ -54,6 +58,7 @@ class LociTerm {
 		this.textDecoder = new TextDecoder();
 		this.resizeTimeout = undefined;
 		this.webLinksAddon = new WebLinksAddon();
+		this.login = { requested: 0, name: "", password: "", remember: 1 };
 		this.socket = undefined;
 		this.themeLoaded = 0;
 		this.url = "";
@@ -84,6 +89,12 @@ class LociTerm {
 		this.sendMsg(Command.RESIZE_TERMINAL,`${this.terminal.cols} ${this.terminal.rows}`);
 	}
 
+	// Connect to the n'th game on the server's list
+	doConnectGame(n=0) {
+		console.log(`Connecting to game ${n}.`);
+		this.sendMsg(Command.CONNECT_GAME,n);
+	}
+
 	focus(data) {
 		return(this.terminal.focus());
 	}
@@ -91,6 +102,7 @@ class LociTerm {
 	sendMsg(cmd,data) {
 		if(this.socket == undefined) {
 			// never even connected yet..
+			console.log(`No socket for message '${data}'`);
 			return;
 		}
 		if(this.socket.readyState == 1) {  // OPEN
@@ -99,6 +111,7 @@ class LociTerm {
 			this.connect();
 		} else {
 			// message is lost..
+			console.log(`Lost message '${data}'`);
 		}
 	}
 
@@ -113,6 +126,11 @@ class LociTerm {
 	paste(data) {
 		this.sendMsg(Command.INPUT,data);
 	}
+
+	doSendCMD(obj) {
+		this.sendBinaryMsg(Command.SEND_CMD,JSON.stringify(obj));
+	}
+
 
 	connect(url=this.url) {
 		if(this.themeLoaded == false) {
@@ -139,7 +157,12 @@ class LociTerm {
 	onSocketOpen(e) {
 		console.log("Socket open!" + e);
 		//this.terminal.write(`Connected!\r\n`);
+		// Send the window size to the game side so that it can be made
+		// available to the mud at connection time.
 		this.doWindowResize();
+		// Request connection to the default game.  (doConnectGame takes an
+		// argument... but there's only the default game so far.)
+		this.doConnectGame(0);
 	}
 
 	onSocketData(event) {
@@ -158,6 +181,7 @@ class LociTerm {
 				if( this.leftover != undefined ) {
 					// There were some trailing UTF bytes left over from the last
 					// OUTPUT message that we would like to combine into this message.
+					// (See the large comment block below.)
 					let leftbytes = new Uint8Array(this.leftover);
 					output = new ArrayBuffer( this.leftover.byteLength + rawbytes.byteLength-1 );
 					outbytes = new Uint8Array(output);
@@ -171,13 +195,13 @@ class LociTerm {
 					outbytes.set(rawbytes.slice(1,rawbytes.bytelength),0);
 				}
 
-				/* ok... its possible that there is a dangling utf sequence at the end
-				 * of this uint8 ArrayBuffer, due to the sequence being split across a
-				 * packet boundary.  The text decoder would fail because of that, and
-				 * try to sub in a ? character.  Rather than leave the bad data as a
-				 * substitute character, we are gonna try to fix it, by removing the
-				 * partial utf sequence from the end, and saving it for transmission
-				 * with the next message. */
+				// ok... its possible that there is a dangling utf sequence at the end
+				// of this uint8 ArrayBuffer, due to the sequence being split across a
+				// packet boundary.  The text decoder would fail because of that, and
+				// try to sub in a ? character.  Rather than leave the bad data as a
+				// substitute character, we are gonna try to fix it, by removing the
+				// partial utf sequence from the end, and saving it for transmission
+				// with the next message.
 
 				try {
 					// fatal:true here because we want the thing to fail if there's a
@@ -190,19 +214,24 @@ class LociTerm {
 					while( (v.getUint8(i) & 0xc0) == 0x80 ) {
 						i--;
 					}
-					// the retry chunk has had the partail utf sequence removed.
+					// the retry chunk has had the partial utf sequence removed.
 					let retry = (output).slice(0,i);
 					// this.leftover chunk contains the partial utf sequence for the
 					// next send attempt.
 					this.leftover = (output).slice(i,v.byteLength);
 
 					// fatal:false, cause there's nothing else we know how to fix.  If
-					// they get garbage chars at this point.. oh ??ell.  
+					// they get garbage chars at this point, oh ??ell.
 					str = new TextDecoder('utf8', {fatal:false}).decode(retry);
 				}
 
 				this.terminal.write(str);
 				break;
+			case Command.RECV_CMD:
+				let msg = new TextDecoder('utf8').decode(rawbuffer).charAt(1);
+				let obj = JSON.parse(msg);
+				// Of course, there's nothing implemented yet so...
+				console.warn("Unhandled recv_json: " + msg);
 			default:
 				console.warn("Unhandled command " + cmd);
 				break;
@@ -260,8 +289,8 @@ class LociTerm {
 	async applyTheme(theme) {
 
 		this.themeLoaded = 0;
-		console.log("applying theme.");
-		// Apply the lociterm specific theme items.
+		// Apply the lociterm specific theme items.  This should probably be
+		// some kind of loop.
 		if(theme.fingerSize != undefined) {
 			document.documentElement.style.setProperty('--finger-size', theme.fingerSize);
 			localStorage.setItem("fingerSize",theme.fingerSize);
@@ -300,7 +329,6 @@ class LociTerm {
 			localStorage.setItem("locithemename",theme.name);
 			this.themeName = theme.name;
 		}
-		console.log("theme is ready.");
 		this.themeLoaded = 1;
 	}
 

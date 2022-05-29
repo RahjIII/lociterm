@@ -1,4 +1,4 @@
-Requires libglib2.0-dev, ctags, openssl, cmake, libwebsockets4.4.0, npm
+Requires libglib2.0-dev, ctags, openssl, cmake, libwebsockets4.4.0, npm, libjson-c-dev
 
 on debian-
 

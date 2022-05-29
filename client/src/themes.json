@@ -115,6 +115,39 @@
 				"brightWhite": "#ffbb33"
 			}
 		}
+	},
+	{
+		"name": "c64",
+		"fontsize": "16px",
+		"fingersize": "8mm",
+		"xtermoptions": {
+			"bellStyle": "sound",
+			"fontSize": "16",
+			"fontFamily": "Commodore, LOFont, Noto Emoji",
+			"cursorBlink": true,
+			"screenReaderMode": false,
+			"scrollback": 1000,
+			"theme": {
+				"background": "#40318D",
+				"black": "#000000",
+				"red": "#883932",
+				"green": "#55A049",
+				"yellow": "#BFCE72",
+				"blue": "#4031CD",
+				"magenta": "#8B3F96",
+				"cyan": "#67B6BD",
+				"white": "#ffffff",
+
+				"brightBlack": "#505050",
+				"brightRed": "#B86962",
+				"brightGreen": "#94E089",
+				"brightYellow": "#8B5429",
+				"brightBlue": "#7869C4",
+				"brightMagenta": "#574200",
+				"brightCyan": "#787878",
+				"brightWhite": "#9F9F9F"
+			}
+		}
 	}
 ]
 

@@ -1,6 +1,6 @@
 /* client.h - LociTerm client side protocols */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: client.h,v 1.2 2022/05/02 03:18:36 malakai Exp $ */
+/* $Id: client.h,v 1.3 2022/05/29 18:28:27 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -29,13 +29,15 @@
 #define OUTPUT '0'
 #define SET_WINDOW_TITLE '1'
 #define SET_PREFERENCES '2'
+#define RECV_CMD '3'
 
 // from web client message
 #define INPUT '0'
 #define RESIZE_TERMINAL '1'
 #define PAUSE '2'
 #define RESUME '3'
-#define JSON_DATA '{'
+#define CONNECT_GAME '5'
+#define SEND_CMD '6'
 
 /* structs and typedefs */
 

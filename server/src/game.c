@@ -1,6 +1,6 @@
 /* game.c - LociTerm game side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: game.c,v 1.2 2022/05/02 03:18:36 malakai Exp $*/
+/* $Id: game.c,v 1.3 2022/05/29 18:28:27 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -62,8 +62,6 @@ void loci_game_write(proxy_conn_t *pc, char *in, size_t len) {
 	
 
 int loci_game_parse(proxy_conn_t *pc, char *in, size_t len) {
-	/* INSERT TELNET PARSER HERE */
-	/*loci_client_write(pc,in,len); */
 	telnet_recv(pc->game_telnet,in,len);
 	return(1);
 }
@@ -140,9 +138,6 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 		if (!pc || !pc->wsi_client)
 			break;
 
-		/* FIXME dencapsulate inbound from the game here. The ufiltered data
-		 * is at *in.  It needs its telnet protocol stripped, and then
-		 * sent on to the outbound client q.*/
 		loci_game_parse(pc,in,len);
 	
 		break;
@@ -156,7 +151,7 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 		data = (uint8_t *)&msg[1] + LWS_PRE;
 
 		/* notice we allowed for LWS_PRE in the payload already */
-		m = lws_write(wsi, data, msg->len, LWS_WRITE_BINARY); /* jsj should this be LWS_WRITE_BINARY? */
+		m = lws_write(wsi, data, msg->len, LWS_WRITE_BINARY); 
 		a = (int)msg->len;
 		free(msg);
 
