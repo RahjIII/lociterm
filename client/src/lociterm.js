@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.11 2022/05/29 18:28:27 malakai Exp $
+// $Id: lociterm.js,v 1.12 2022/07/17 15:55:31 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -24,6 +24,7 @@ import { Terminal } from 'xterm';
 import { WebLinksAddon } from 'xterm-addon-web-links';
 import { FitAddon } from 'xterm-addon-fit';
 import { AttachAddon } from 'xterm-addon-attach';
+import { Unicode11Addon } from 'xterm-addon-unicode11';
 import { MenuHandler } from './menuhandler.js';
 
 // shamelessly borrowed from ttyd, as I was considering keeping the ws
@@ -54,6 +55,7 @@ class LociTerm {
 		this.lociThemes = lociThemes;
 		this.terminal = new Terminal();
 		this.fitAddon = new FitAddon();
+		this.unicode11Addon = new Unicode11Addon();
 		this.textEncoder = new TextEncoder();
 		this.textDecoder = new TextDecoder();
 		this.resizeTimeout = undefined;
@@ -64,6 +66,8 @@ class LociTerm {
 		this.url = "";
 
 		// code. 
+		this.terminal.loadAddon(this.unicode11Addon);
+		this.terminal.unicode.activeVersion = '11';
 		this.terminal.loadAddon(this.fitAddon);
 		this.terminal.loadAddon(this.webLinksAddon);
 		this.terminal.onData((e) => this.onTerminalData(e) );
@@ -74,6 +78,7 @@ class LociTerm {
 		this.menuhandler = new MenuHandler(this);
 		this.terminal.open(mydiv);
 		this.fitAddon.fit();
+		this.focus();
 	}
 
 	// call this as an event listener handler

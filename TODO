@@ -1,5 +1,8 @@
 ------- TODO TODO TODO TODO --------------
 
+* android ime-
+	see ./browser/input/CompositionHelper.ts
+
 * Plumb the login window to use env vars instead?
 
 * client get the manifest working
@@ -23,6 +26,8 @@
 * Server fix the locid_log function to work better at showing the connection the messages are for.
 
 ------------- DONE! -----------------
+* Enable Unicode 11 support via xterm-addon-unicode11
+
 * client theme selector moved to prefs window.
 
 - client - keep the gear from fading out.

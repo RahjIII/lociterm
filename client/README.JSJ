@@ -15,6 +15,7 @@ npm install xterm -save
 npm install xterm-addon-web-links -save
 npm install xterm-addon-fit -save
 npm install xterm-addon-attach -save
+npm install xterm-addon-unicode11 -save
 
 # I created webpak.config.js by hand from an example.
 vi webpack.config.js

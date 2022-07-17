@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.10 2022/05/29 18:28:27 malakai Exp $
+// $Id: menuhandler.js,v 1.11 2022/07/17 15:55:31 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -359,9 +359,14 @@ class MenuHandler {
 		l.setAttribute("type","text");
 		l.setAttribute("placeholder","Enter Username");
 		l.setAttribute("name","username");
+		l.setAttribute("autocapitalize","none");
 		l.id = "username";
 		l.setAttribute("autocomplete","username");
-		l.addEventListener('input',((e)=>this.lociterm.login.name=e.target.value));
+		l.addEventListener('change',((e)=>{ this.lociterm.login.name=e.target.value }));
+		// debugging... :/
+		// l.addEventListener('compositionstart',((e)=>{ this.event_print(e); this.lociterm.login.name=e.target.value }));
+		// l.addEventListener('compositionupdate',((e)=>{ this.event_print(e); this.lociterm.login.name=e.target.value }));
+		// l.addEventListener('compositionend',((e)=>{ this.event_print(e); this.lociterm.login.name=e.target.value }));
 
 		// Password
 		l = document.createElement('label');
@@ -375,7 +380,7 @@ class MenuHandler {
 		l.setAttribute("name","password");
 		l.id = "current-password";
 		l.setAttribute("autocomplete","current-password");
-		l.addEventListener('input',((e)=>this.lociterm.login.password=e.target.value));
+		l.addEventListener('change',((e)=>this.lociterm.login.password=e.target.value));
 
 
 		// rememberme
@@ -582,6 +587,13 @@ class MenuHandler {
 		cdiv = divstack[divstack.length-1];
 
 		return(overlay);
+	}
+
+	event_print(e) {
+		this.lociterm.terminal.write(`🌀\r\n`);
+		this.lociterm.terminal.write(`${e.type}\r\n`);
+		this.lociterm.terminal.write(`${e.data}\r\n`);
+		this.lociterm.terminal.write(`🌀\r\n`);
 	}
 
 }
