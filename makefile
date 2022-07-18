@@ -1,8 +1,8 @@
-# $Id: makefile,v 1.6 2022/05/18 20:39:25 malakai Exp $
+# $Id: makefile,v 1.7 2022/07/18 16:16:27 lo Exp $
 #
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.6 2022/05/18 20:39:25 malakai Exp $
+# $Id: makefile,v 1.7 2022/07/18 16:16:27 lo Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -76,7 +76,10 @@ clean :
 .PHONY : install
 install :
 	$(info --- install ----)
+	mv -f $(INSTALL)/bin/locid $(INSTALL)/bin/locid.prev 2>/dev/null || true
 	cp -av $(BUILD)/* $(INSTALL)
+	@echo
+	@echo ---- Run \`systemctl restart lociterm.service\` as root to go live ----
 
 .PHONY: systemd
 systemd: 
