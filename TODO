@@ -1,4 +1,5 @@
 ------- TODO TODO TODO TODO --------------
+* Get the client version strings to work!!
 
 * android ime-
 	see ./browser/input/CompositionHelper.ts

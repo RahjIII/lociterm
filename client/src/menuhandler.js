@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.11 2022/07/17 15:55:31 malakai Exp $
+// $Id: menuhandler.js,v 1.12 2022/07/18 14:47:53 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -108,6 +108,19 @@ class MenuHandler {
 
 	sendlogin() {
 
+		let remember = document.getElementById("remember").checked;
+		let username = document.getElementById("username").value;
+		let password = document.getElementById("current-password").value;
+		if (remember == true) {
+			localStorage.setItem("username",username);
+			localStorage.setItem("password",password);
+		} else {
+			document.getElementById("username").value = "";
+			document.getElementById("current-password").value = "";
+			localStorage.removeItem("username");
+			localStorage.removeItem("password");
+		}
+
 		// this is all VERY hoaky.  But it'll do until I can get it coded up
 		// better, with either a gmcp message or some env vars.
 		
@@ -115,14 +128,14 @@ class MenuHandler {
 			this.lociterm.connect();
 		}
 
-		if(this.lociterm.login.name != undefined) {
+		if(username != undefined) {
 			setTimeout(
-				()=> this.send(this.lociterm.login.name + "\n"),
+				()=> this.send(username + "\n"),
 				500
 			);
-			if(this.lociterm.login.password != undefined) {
+			if(password != undefined) {
 				setTimeout(
-					()=> this.send(this.lociterm.login.password + "\n"),
+					()=> this.send(password + "\n"),
 					750
 				);
 			}
@@ -362,11 +375,11 @@ class MenuHandler {
 		l.setAttribute("autocapitalize","none");
 		l.id = "username";
 		l.setAttribute("autocomplete","username");
-		l.addEventListener('change',((e)=>{ this.lociterm.login.name=e.target.value }));
-		// debugging... :/
-		// l.addEventListener('compositionstart',((e)=>{ this.event_print(e); this.lociterm.login.name=e.target.value }));
-		// l.addEventListener('compositionupdate',((e)=>{ this.event_print(e); this.lociterm.login.name=e.target.value }));
-		// l.addEventListener('compositionend',((e)=>{ this.event_print(e); this.lociterm.login.name=e.target.value }));
+		l.addEventListener('change',((e)=>{ }));
+		let username = localStorage.getItem("username");
+		if( username != undefined) {
+			l.value = username;
+		}
 
 		// Password
 		l = document.createElement('label');
@@ -380,7 +393,11 @@ class MenuHandler {
 		l.setAttribute("name","password");
 		l.id = "current-password";
 		l.setAttribute("autocomplete","current-password");
-		l.addEventListener('change',((e)=>this.lociterm.login.password=e.target.value));
+		l.addEventListener('change',((e)=>{}));
+		let password = localStorage.getItem("password");
+		if( password != undefined) {
+			l.value = password;
+		}
 
 
 		// rememberme
@@ -392,10 +409,11 @@ class MenuHandler {
 		l = document.createElement('input');
 		cdiv.appendChild(l);
 		l.setAttribute("type","checkbox");
-		l.setAttribute("checked","checked");
+		l.checked = true;
 		l.setAttribute("name","remember");
 		l.id = "remember";
 		l.innerText = "Remember Me";
+		l.addEventListener('change',((e)=>{}));
 		l = document.createElement('label');
 		cdiv.appendChild(l);
 		l.setAttribute("for","remember");
