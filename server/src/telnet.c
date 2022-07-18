@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.5 2022/05/16 04:26:22 malakai Exp $ */
+/* $Id: telnet.c,v 1.6 2022/07/18 16:02:58 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -99,6 +99,8 @@ void loci_free_env_var(struct telnet_environ_t *f) {
 /* creates a reasonable set of telnet env vars for the connection. */
 void loci_environment_init(proxy_conn_t *pc) {
 
+	char buf[1024];
+
 	if(!pc) return;
 	if(pc->hostname) {
 		pc->environment = g_list_append(pc->environment,
@@ -106,10 +108,11 @@ void loci_environment_init(proxy_conn_t *pc) {
 		);
 	}
 	pc->environment = g_list_append(pc->environment,
-		loci_new_env_var(TELNET_ENVIRON_VAR,"CLIENT_NAME","locid") /* FIXME, should follow LOCID_SHORTNAME */
+		loci_new_env_var(TELNET_ENVIRON_VAR,"CLIENT_NAME",LOCID_SHORTNAME)
 	);
+	snprintf(buf,sizeof(buf),"%d.%d",LOCID_MAJOR_VER,LOCID_MINOR_VER);
 	pc->environment = g_list_append(pc->environment,
-		loci_new_env_var(TELNET_ENVIRON_VAR,"CLIENT_VERSION","0.0") /* FIXME, same... */
+		loci_new_env_var(TELNET_ENVIRON_VAR,"CLIENT_VERSION",buf)
 	);
 	pc->environment = g_list_append(pc->environment,
 		loci_new_env_var(TELNET_ENVIRON_VAR,"CHARSET","UTF-8")
