@@ -96,15 +96,3 @@ body, #imebox  {
 	/* background-color: #00FF00; */
 }
 
-.xterm .xterm-viewport {
-    /* On OS X this is required in order for the scroll bar to appear fully opaque */
-    background-color: #000;
-    overflow-y: scroll;
-    cursor: default;
-    position: absolute;
-    right: 0;
-    left: unset;
-    top: 0;
-    bottom: 0;
-}
-
