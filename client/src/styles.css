@@ -16,6 +16,7 @@
   src: url(./fonts/Glass_TTY_VT220.ttf) format("truetype");
 }
 
+
 #input {
   autocapitalize: false;
   autocorrect: false;

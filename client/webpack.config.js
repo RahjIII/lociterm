@@ -35,6 +35,13 @@ module.exports = {
 				}
 			},
 			{
+				test: /\.(ogg|mp3)$/i,
+				type: 'asset/resource',
+				generator: {
+					filename: './snd/[name][ext]',
+				}
+			},
+			{
 				test: /\.(ttf)$/i,
 				type: 'asset/resource',
 				generator: {

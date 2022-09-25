@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.12 2022/07/17 15:55:31 malakai Exp $
+// $Id: lociterm.js,v 1.13 2022/09/25 14:18:35 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -26,6 +26,7 @@ import { FitAddon } from 'xterm-addon-fit';
 import { AttachAddon } from 'xterm-addon-attach';
 import { Unicode11Addon } from 'xterm-addon-unicode11';
 import { MenuHandler } from './menuhandler.js';
+import BellSound from './snd/Oxygen-Im-Contact-In.ogg';
 
 // shamelessly borrowed from ttyd, as I was considering keeping the ws
 // protocols compatible- but I didn't end up doing that.   Not all of these are
@@ -53,7 +54,10 @@ class LociTerm {
 		// set variables.
 		this.mydiv = mydiv;
 		this.lociThemes = lociThemes;
-		this.terminal = new Terminal();
+		this.terminal = new Terminal({
+			// Unicode11Addon is a proposed api?? 
+			allowProposedApi: true 
+		});
 		this.fitAddon = new FitAddon();
 		this.unicode11Addon = new Unicode11Addon();
 		this.textEncoder = new TextEncoder();
@@ -72,6 +76,12 @@ class LociTerm {
 		this.terminal.loadAddon(this.webLinksAddon);
 		this.terminal.onData((e) => this.onTerminalData(e) );
 		this.terminal.onBinary((e) => this.onBinaryData(e) );
+
+		// bah xtermjs removed the built in bell in 5.0.0
+		this.terminal.audio = new Audio(BellSound);
+		this.terminal.onBell(() => {
+			this.terminal.audio.play();
+		});
 
 		window.addEventListener('resize', (e) => this.onWindowResize(e) );
 		this.loadDefaultTheme();

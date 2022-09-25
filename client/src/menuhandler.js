@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.12 2022/07/18 14:47:53 malakai Exp $
+// $Id: menuhandler.js,v 1.13 2022/09/25 14:18:35 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -595,7 +595,11 @@ class MenuHandler {
 
 		l = document.createElement('p');
 		cdiv.appendChild(l);
-		l.innerText = "Some icons courtesy of Open Iconic (https://useiconic.com/open/); GlassTTY VT220 TrueType font by Viacheslav Slavinsky (http://sensi.org/~svo/glasstty); Noto Emoji font by Google; "
+		l.innerText = "Some icons courtesy of Open Iconic (https://useiconic.com/open/); GlassTTY VT220 TrueType font by Viacheslav Slavinsky (http://sensi.org/~svo/glasstty); Noto Emoji font by Google. "
+		
+		l = document.createElement('p');
+		cdiv.appendChild(l);
+		l.innerText = "Terminal bell sound from Oxegen desktop theme (https://invent.kde.org/plasma/oxygen)."
 		
 		l = document.createElement('p');
 		cdiv.appendChild(l);

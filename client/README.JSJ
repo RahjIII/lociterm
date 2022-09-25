@@ -39,6 +39,9 @@ npm run dev
 npm run build 
 
 # added some config to webpack.config.js and package.json to enable a live dev
-# server
-npm run dev
+# server.  you'll want to be running (cd ../server/src; ./locid -c local.conf)
+# to have the backend running.
+npm run serve
+
+
 
