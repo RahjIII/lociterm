@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.13 2022/09/25 14:18:35 malakai Exp $
+// $Id: lociterm.js,v 1.14 2022/12/02 14:39:23 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -81,6 +81,8 @@ class LociTerm {
 		this.terminal.audio = new Audio(BellSound);
 		this.terminal.onBell(() => {
 			this.terminal.audio.play();
+			// This will shake an android phone!
+			// navigator.vibrate([50,100,150]);
 		});
 
 		window.addEventListener('resize', (e) => this.onWindowResize(e) );
