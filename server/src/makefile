@@ -1,6 +1,6 @@
 # makefile - LociTerm locid server
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.4 2022/05/16 04:26:22 malakai Exp $
+# $Id: makefile,v 1.5 2022/12/27 04:25:51 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -43,7 +43,7 @@ CDEBUG = -g
 
 # #### Flags and linklibs definitions ####
 
-CFLAGS = -Wall -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable `pkg-config --cflags glib-2.0`
+CFLAGS = -I/usr/local/include -Wall -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable `pkg-config --cflags glib-2.0`
 
 LDFLAGS = -L/usr/local/lib
 LINKLIBS = -lwebsockets `pkg-config --libs glib-2.0`

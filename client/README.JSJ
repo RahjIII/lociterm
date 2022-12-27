@@ -44,4 +44,7 @@ npm run build
 npm run serve
 
 
-
+# Note that for testing, this will install the nightly beta of xtermjs
+npm install -S xterm@beta --legacy-peer-deps
+# this puts it back
+npm install -S xterm@5.1.0

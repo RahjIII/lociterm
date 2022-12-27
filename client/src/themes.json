@@ -1,6 +1,6 @@
 [
 	{
-		"name": "LOinaBox",
+		"name": "LociTerm",
 		"fontsize": "16px",
 		"fingersize": "8mm",
 		"xtermoptions": {
@@ -32,7 +32,7 @@
 		}
 	},
 	{
-		"name": "LociTerm",
+		"name": "XTerm",
 		"xtermoptions": {
 			"fontSize": 16,
 			"fontFamily": "courier, LOFont, monospace",

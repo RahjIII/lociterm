@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.14 2022/12/02 14:39:23 malakai Exp $
+// $Id: lociterm.js,v 1.15 2022/12/27 04:25:51 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -86,8 +86,8 @@ class LociTerm {
 		});
 
 		window.addEventListener('resize', (e) => this.onWindowResize(e) );
-		this.loadDefaultTheme();
 		this.menuhandler = new MenuHandler(this);
+		this.loadDefaultTheme();
 		this.terminal.open(mydiv);
 		this.fitAddon.fit();
 		this.focus();
@@ -267,11 +267,13 @@ class LociTerm {
 
 	loadDefaultTheme() {
 		let defaultTheme = this.lociThemes[0];
+		defaultTheme.locithemeno = 0;
 		let defaultThemeName = localStorage.getItem("locithemename");
 		for (let i=0;i<this.lociThemes.length;i++) {
 			if(this.lociThemes[i].name == defaultThemeName) {
 				console.log("Found stored theme name " + defaultThemeName);
 				defaultTheme = this.lociThemes[i];
+				defaultTheme.locithemeno = i;
 				break;
 			}
 		}
@@ -290,7 +292,20 @@ class LociTerm {
 		if (menuFade != undefined) {
 			defaultTheme.menuFade = menuFade;
 		}
-			
+
+		let bgridAnchor = localStorage.getItem("bgridAnchor");
+		if (bgridAnchor != undefined) {
+			defaultTheme.bgridAnchor = bgridAnchor;
+		} else {
+			defaultTheme.bgridAnchor = "tr";
+		}
+
+		let menusideAnchor = localStorage.getItem("menusideAnchor");
+		if (menusideAnchor != undefined) {
+			defaultTheme.menusideAnchor = menusideAnchor;
+		} else {
+			defaultTheme.menusideAnchor = "br";
+		}
 		
 		this.applyTheme(defaultTheme);
 	}
@@ -319,6 +334,68 @@ class LociTerm {
 		if(theme.menuFade != undefined) {
 			document.documentElement.style.setProperty('--menufade-hidden', theme.menuFade);
 			localStorage.setItem("menuFade",theme.menuFade);
+		}
+
+		if(theme.bgridAnchor != undefined) {
+			localStorage.setItem("bgridAnchor",theme.bgridAnchor);
+			if( theme.bgridAnchor[0] == 't' ) {
+				document.documentElement.style.setProperty('--bgridAnchor-top', "0");
+				document.documentElement.style.setProperty('--bgridAnchor-bottom', 'unset');
+			} else {
+				document.documentElement.style.setProperty('--bgridAnchor-top', 'unset');
+				document.documentElement.style.setProperty('--bgridAnchor-bottom', "2em");
+			}
+			if( theme.bgridAnchor[1] == 'l' ) {
+				document.documentElement.style.setProperty('--bgridAnchor-left', "0");
+				document.documentElement.style.setProperty('--bgridAnchor-right', 'uset');
+			} else {
+				document.documentElement.style.setProperty('--bgridAnchor-left', 'unset');
+				document.documentElement.style.setProperty('--bgridAnchor-right', "0");
+			}
+			// Update the bgridAnchor selector
+			let select = document.getElementById("bgridAnchor-select");
+			if(select != undefined) {
+				select.value = theme.bgridAnchor;
+			}
+		}
+
+		if(theme.menusideAnchor != undefined) {
+			localStorage.setItem("menusideAnchor",theme.menusideAnchor);
+			if( theme.menusideAnchor[0] == 't' ) {
+				document.documentElement.style.setProperty('--menuside-open-top', 0);
+				document.documentElement.style.setProperty('--menuside-open-bottom', 'unset');
+				document.documentElement.style.setProperty('--menuside-close-top', "-100%");
+				document.documentElement.style.setProperty('--menuside-close-bottom', 'unset');
+			} else {
+				document.documentElement.style.setProperty('--menuside-open-top', 'unset');
+				document.documentElement.style.setProperty('--menuside-open-bottom', 0);
+				document.documentElement.style.setProperty('--menuside-close-top', 'unset');
+				document.documentElement.style.setProperty('--menuside-close-bottom', "-100%");
+			}
+			if( theme.menusideAnchor[1] == 'l' ) {
+				document.documentElement.style.setProperty('--menuside-open-left', 0);
+				document.documentElement.style.setProperty('--menuside-open-right', 'unset');
+				document.documentElement.style.setProperty('--menuside-close-left', "-100%");
+				document.documentElement.style.setProperty('--menuside-close-right', 'unset');
+			} else {
+				document.documentElement.style.setProperty('--menuside-open-left', 'unset');
+				document.documentElement.style.setProperty('--menuside-open-right', 0);
+				document.documentElement.style.setProperty('--menuside-close-left', 'unset');
+				document.documentElement.style.setProperty('--menuside-close-right', "-100%");
+			}
+			// Update the menusideAnchor selector
+			let select = document.getElementById("menusideAnchor-select");
+			if(select != undefined) {
+				select.value = theme.menusideAnchor;
+			}
+		}
+
+		// Update the theme selector
+		if(theme.locithemeno != undefined) {
+			let select = document.getElementById("theme-select");
+			if(select != undefined) {
+				select.value = theme.locithemeno;
+			}
 		}
 
 		// Apply the xtermjs specific theme items.

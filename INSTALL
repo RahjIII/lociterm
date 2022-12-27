@@ -1,11 +1,27 @@
+1. Dependencies
+---------------
+
 Requires libglib2.0-dev, ctags, openssl, cmake, libwebsockets4.4.0, npm, libjson-c-dev
 
-on debian-
+on debian 11-
 
-apt-get install libglib2.0-dev exuberant-ctags openssl cmake npm
+`apt-get install libglib2.0-dev exuberant-ctags openssl cmake npm libjson-c-dev`
 
+Note that libwesockets in debian 11 is the wrong version!  Gotta get the code from https://libwebsockets.org/repo/libwebsockets
 
-To build type `make`.
+cd ~/othercode
+git clone https://libwebsockets.org/repo/libwebsockets
+cd libwebsockets
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+
+2. Building LOciTerm
+--------------------
+
+To build type `make` in this directory.
 
 Then "make install"- but there's no systemd/sysv startup script yet.
 
@@ -15,6 +31,8 @@ Then "make install"- but there's no systemd/sysv startup script yet.
 
 Edit the locid.conf config file per the comments.
 
+3. Proxy rules for apache2
+--------------------------
 
 To add proxy rules to apache2:
     RewriteEngine on

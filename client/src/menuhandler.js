@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.13 2022/09/25 14:18:35 malakai Exp $
+// $Id: menuhandler.js,v 1.14 2022/12/27 04:25:51 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -25,6 +25,7 @@ import Menubox from './menubox.json';
 import Menuside from './menuside.json';
 import Icons from './icons.svg';
 import LOIcon from './img/loiconcolor.gif';
+
 
 class MenuHandler {
 
@@ -59,7 +60,11 @@ class MenuHandler {
 		var e = document.getElementById(name);
 		this.done();
 		e.style.visibility = 'visible';
-		e.style.right = '0%';
+		if(e.classList.contains("menuside")) {
+			//e.style.right = '0%';
+			e.classList.remove("menuside-close");
+			e.classList.add("menuside-open");
+		}
 		this.openwindow[name] =1;
 	};
 
@@ -68,7 +73,9 @@ class MenuHandler {
 		var e = document.getElementById(name);
 		e.style.visibility = 'hidden';
 		if(e.classList.contains("menuside")) {
-			e.style.right = '-100%';
+			//	e.style.right = '-100%';
+			e.classList.remove("menuside-open");
+			e.classList.add("menuside-close");
 		} 
 		this.openwindow[name] =0;
 	};
@@ -142,6 +149,7 @@ class MenuHandler {
 		}
 	}
 
+
 	// Add the Menubox definition to the DOM.
 	create_menubox() {
 		let box = document.createElement('div');
@@ -188,6 +196,7 @@ class MenuHandler {
 			c.id = side.id
 			c.classList.add('menu');
 			c.classList.add('menuside');
+			c.classList.add('menuside-close');
 
 			for(let j=0; j<side.item.length; j++) {
 				let item = side.item[j];
@@ -293,11 +302,6 @@ class MenuHandler {
 		divstack.push(l);
 		cdiv = l;
 
-		l = document.createElement('option');
-		cdiv.appendChild(l);
-		l.setAttribute("value",-1);
-		l.innerText = "Current";
-
 		for(let i=0; i<locithemes.length; i++) {
 			let locitheme = locithemes[i];
 			l = document.createElement('option');
@@ -312,6 +316,39 @@ class MenuHandler {
 		divstack.pop(); 
 		cdiv = divstack[divstack.length-1];
 		return(main);
+
+	}
+
+	// a generic corner selector
+	create_anchor_selector(named="",labeled="",oninput="") {
+		let field;
+		let label;
+		let select;
+
+		let optlist = { 
+			tr: "Top Right", br: "Bottom Right",
+			tl: "Top Left", bl: "Bottom Left" 
+		};
+
+		field = document.createElement('div');
+		label = document.createElement('label');
+		field.appendChild(label);
+		label.setAttribute("for",named);
+		label.innerText = labeled;
+
+		select = document.createElement("select");
+		field.appendChild(select);
+		select.setAttribute("name",named);
+		select.id = named;
+		select.oninput = oninput;
+
+		for (let value in optlist) {
+			let l = document.createElement('option');
+			l.setAttribute("value",value);
+			l.innerText = optlist[value];
+			select.appendChild(l);
+		}
+		return(field);
 
 	}
 
@@ -496,7 +533,7 @@ class MenuHandler {
 		box.appendChild(field);
 		label = document.createElement('label');
 		field.appendChild(label);
-		label.innerText = "Icon Size";
+		label.innerText = "Button Size";
 		var fingersize = document.createElement('input');
 		fingersize.setAttribute("type","range");
 		fingersize.setAttribute("min","5");
@@ -518,7 +555,7 @@ class MenuHandler {
 		box.appendChild(field);
 		label = document.createElement('label');
 		field.appendChild(label);
-		label.innerText = "Icon Fade";
+		label.innerText = "Button Fade";
 		var menufade = document.createElement('input');
 		menufade.setAttribute("type","range");
 		menufade.setAttribute("min","0.0");
@@ -534,6 +571,27 @@ class MenuHandler {
 			}
 		);
 		field.appendChild(menufade);
+
+		// a selector for Icon Anchor
+		field = this.create_anchor_selector("bgridAnchor-select","Button Grid",
+			((e)=>{
+				let themedelta = [];
+				themedelta.bgridAnchor = e.srcElement.value;
+				this.lociterm.applyTheme(themedelta);
+			})
+		);
+		box.appendChild(field);
+
+		// a selector for sidemenu Anchor
+		field = this.create_anchor_selector("menusideAnchor-select","Menus",
+			((e)=>{
+				let themedelta = [];
+				themedelta.menusideAnchor = e.srcElement.value;
+				this.lociterm.applyTheme(themedelta);
+			})
+		);
+		box.appendChild(field);
+
 		return(overlay);
 	}
 

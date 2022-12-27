@@ -5,6 +5,19 @@
 	--finger-size: 8mm;
 	--font-size: 16px;
 	--menufade-hidden: 0.20;
+	--bgridAnchor-top: 0;
+	--bgridAnchor-bottom: unset;
+	--bgridAnchor-left: unset;
+	--bgridAnchor-right: 0;
+
+	--menuside-open-top: unset;
+	--menuside-open-bottom: 0;
+	--menuside-open-left: unset;
+	--menuside-open-right: 0;
+	--menuside-close-top: unset;
+	--menuside-close-bottom: -100%;
+	--menuside-close-left: unset;
+	--menuside-close-right: -100%;
 }
 
 /* 
@@ -27,8 +40,10 @@
 
 #menubox {
 	position: absolute;
-	top: 0;
-	right: 0;
+	top: var(--bgridAnchor-top);
+	bottom: var(--bgridAnchor-bottom);
+	left: var(--bgridAnchor-left);
+	right: var(--bgridAnchor-right);
 	z-index: 4;
 	margin: 1em;
 	border-radius: 2mm;
@@ -126,10 +141,8 @@
 	position: fixed;
 	display: block;
 	visibility: hidden;
-	right: -100%;
 	transition: all 0.15s ease-in-out;
 	z-index: 10;
-	bottom: 0;
 	font-size: var(--font-size);
 }
 
@@ -144,6 +157,20 @@
 
 .menuside button:hover {
 	color: #ffb76c;
+}
+
+.menuside-open {
+	top:	var(--menuside-open-top);
+	bottom:	var(--menuside-open-bottom);
+	left:	var(--menuside-open-left);
+	right:	var(--menuside-open-right);
+}
+
+.menuside-close {
+	top:	var(--menuside-close-top);
+	bottom:	var(--menuside-close-bottom);
+	left:	var(--menuside-close-left);
+	right:	var(--menuside-close-right);
 }
 
 .menuside div {

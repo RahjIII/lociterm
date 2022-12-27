@@ -1,6 +1,6 @@
 /* client.c - LociTerm client side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: client.c,v 1.8 2022/05/29 18:28:27 malakai Exp $*/
+/* $Id: client.c,v 1.9 2022/12/27 04:25:51 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -55,7 +55,7 @@ int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 	int width = 80;
 	int height = 25;
 	char *s;
-	int gameno;
+	int gameno=0;
 
 	if (!in || !len) {
 		return(-1);
@@ -87,12 +87,14 @@ int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 		case CONNECT_GAME:
 			/* The message provides a number for 'connect to nth game', but
 			 * it's not really implemented yet.  Always connect to game 0. */
-			if( (sscanf(in+1,"%d",&gameno)==1) ) {
-				locid_log("[%d] client requested game %d.",pc->id);
-				gameno = 0;  /* the default game */
-			} else {
-				gameno = 0;
+			s = (char *)malloc(len);
+			memset(s, 0, len);  
+			memcpy(s,in+1,len-1);
+			if( (sscanf(s,"%d",&gameno)==1) ) {
+				locid_log("[%d] client requested game %d.",pc->id,gameno);
+				gameno = 0;  /* But I don't care, he gets the default game */
 			}
+			free(s);
 			return(loci_connect_to_game(pc,gameno));
 
 			break;
