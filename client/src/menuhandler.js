@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.14 2022/12/27 04:25:51 malakai Exp $
+// $Id: menuhandler.js,v 1.15 2022/12/28 05:41:44 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -26,6 +26,7 @@ import Menuside from './menuside.json';
 import Icons from './icons.svg';
 import LOIcon from './img/loiconcolor.gif';
 
+import PackageData from '../package.json';
 
 class MenuHandler {
 
@@ -33,17 +34,21 @@ class MenuHandler {
 
 		this.lociterm = lociterm;
 		this.openwindow = [];
-		//this.login = { name: "", password: "" };
-
-		this.mydiv = document.createElement('div');
-		this.mydiv.id='menuhandler';
+		// make the menuhandler in the menuhandler div that is already on the
+		// page, or if that doesn't exist, create it under this lociterm.  Note
+		// that if you create it under lociterm, the screenreader mode hints
+		// may overlay the menus making the menus unclickable!
+		if ((this.mydiv = document.getElementById("menuhandler")) == undefined) {
+			this.mydiv = document.createElement('div');
+			this.mydiv.id='menuhandler';
+			this.lociterm.mydiv.appendChild(this.mydiv);
+		}
 		this.mydiv.classList.add('menuhandler');
 		this.mydiv.appendChild(this.create_menubox());
 		this.mydiv.appendChild(this.create_menuside());
 		this.mydiv.appendChild(this.create_loginbox());
 		this.mydiv.appendChild(this.create_settings());
 		this.mydiv.appendChild(this.create_about());
-		this.lociterm.mydiv.appendChild(this.mydiv);
 		
 	}
 
@@ -643,9 +648,9 @@ class MenuHandler {
 
 		l = document.createElement('p');
 		cdiv.appendChild(l);
-		l.innerText = "LociTerm - Last Outpost Client Interface Terminal "
-		l.innerText += "Copyright © 2022 <rahjiii@jeffrika.com> "
-		l.innerText += "(https://www.last-outpost.com/LO/pubcode)"
+		l.innerText = `${PackageData.name}-${PackageData.version} `;
+		l.innerText += `Copyright ${PackageData.copyright} ${PackageData.author} `;
+		l.innerText += `(${PackageData.homepage}) `;
 
 		l = document.createElement('p');
 		cdiv.appendChild(l);

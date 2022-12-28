@@ -1,7 +1,12 @@
 {
-  "name": "lociterm",
-  "version": "0.0",
-  "description": "",
+  "name": "LociTerm",
+  "longname": "Last Outpost Client Interface Terminal",
+  "version": "1.2",
+  "description": "The preferred game client for The Last Outpost",
+  "homepage": "https://www.last-outpost.com/pubcode",
+  "author": "Jeff Jahr <rahjiii@jeffrika.com>",
+  "copyright": "©2022-2023",
+  "license": "GPL",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -10,9 +15,8 @@
     "build": "webpack --mode production"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
+    "copy-webpack-plugin": "^5.1.2",
     "css-loader": "^6.7.1",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",

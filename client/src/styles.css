@@ -17,83 +17,34 @@
 }
 
 
-#input {
-  autocapitalize: false;
-  autocorrect: false;
-  autocomplete: false;
-}
-
 .scalefont {
   /* font-size: 1.75vw; */
 }
 
-body, #imebox  { 
+body  { 
   font-family: LOFont, Glass, monospace;
   font-size: initial; /* so there is a fallback in case vw doesn't work right. */
   margin: 0px;
   background: rgba(0,0,0,1); 
 }
 
-#imebox {
+
+
+.locilayout {
 	position: absolute;
-	z-index: 2;
+	top: 0;
 	bottom: 0;
 	left: 0;
-	right: 0.5em;
+	right: 0;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	overflow-y: clip;
 }
-
-#imebox input, select, textarea {
-	width: 100%;
-	background-color: transparent;
-	color: white;
-	border-style: none;
-	font-family: inherit;
-	font-size: inherit;
-}
-
-#vt100 .ansi0               { color:            #eeeeee; }
-#vt100 .ansi1               { color:            #fd233e; }
-#vt100 .ansi2               { color:            #1cbd30; }
-#vt100 .ansi3               { color:            #b4a543; }
-#vt100 .ansi4               { color:            #7575ff; }
-#vt100 .ansi5               { color:            #ea5685; }
-#vt100 .ansi6               { color:            #28cdcd; }
-#vt100 .ansi7               { color:            #e4e4e4; }
-#vt100 .ansi8               { color:            #FFFFFF; }
-#vt100 .ansi9               { color:            #ff566e; }
-#vt100 .ansi10              { color:            #5cff71; }
-#vt100 .ansi11              { color:            #ffffb4; }
-#vt100 .ansi12              { color:            #4ea0e4; }
-#vt100 .ansi13              { color:            #ff95db; }
-#vt100 .ansi14              { color:            #87e4e4; }
-#vt100 .ansi15              { color:            #FFFFFF; }
-
-#vt100 .bgAnsi0             { background-color: #eeeeee; }
-#vt100 .bgAnsi1             { background-color: #fd233e; }
-#vt100 .bgAnsi2             { background-color: #1cbd30; }
-#vt100 .bgAnsi3             { background-color: #b4a543; }
-#vt100 .bgAnsi4             { background-color: #4e4ebd; }
-#vt100 .bgAnsi5             { background-color: #ea5685; }
-#vt100 .bgAnsi6             { background-color: #28cdcd; }
-#vt100 .bgAnsi7             { background-color: #e4e4e4; }
-#vt100 .bgAnsi8             { background-color: #FFFFFF; }
-#vt100 .bgAnsi9             { background-color: #ff566e; }
-#vt100 .bgAnsi10            { background-color: #5cff71; }
-#vt100 .bgAnsi11            { background-color: #ffffb4; }
-#vt100 .bgAnsi12            { background-color: #4ea0e4; }
-#vt100 .bgAnsi13            { background-color: #ff95db; }
-#vt100 .bgAnsi14            { background-color: #87e4e4; }
-#vt100 .bgAnsi15            { background-color: #000000; }
-
 
 #terminal {
 	width: 100%;
 	height: 100%;
-	position: fixed;
+	/* position: fixed;*/
+	flex-grow: 1;
 }
-
-
-#terminal .terminal-container {
-	/* background-color: #00FF00; */
-}
-

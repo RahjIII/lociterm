@@ -1,0 +1,18 @@
+{
+  "lang": "en",
+  "dir": "ltr",
+  "short_name": "LociTerm",
+  "name": "Last Outpost Client Interface Terminal",
+  "description": "The Last Outpost's preferred MUD client",
+  "icons": [{
+      "src": "https://www.last-outpost.com/LO/common/losquareicon192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }],
+  "start_url": "/",
+  "id": "/lociterm/",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "display": "fullscreen",
+  "orientation": "portrait"
+}

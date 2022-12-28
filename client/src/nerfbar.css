@@ -1,0 +1,25 @@
+.nerfbar {
+	display: flex;
+	min-height: var(--finger-size);
+	color: red;
+	border: blue;
+	border-style: solid;
+	padding: 0.5em;
+
+}
+
+.nerfbar div {
+}
+
+.nerfbar input {
+	font-size: var(--font-size);
+	font-family: inherit;
+	background: #FF000022;
+	border-style: none;
+	color: red;
+	border-width: 0px;
+	flex-grow: 1;
+	autocapitalize: false;
+	autocorrect: false;
+	autocomplete: true;
+}

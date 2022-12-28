@@ -1,5 +1,20 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const path = require('path');
+
+let package = require('./package.json');
+
+function modify(buffer) {
+   // copy-webpack-plugin passes a buffer
+   var manifest = JSON.parse(buffer.toString());
+
+   // make any modifications you like, such as
+   manifest.version = package.version;
+
+   // pretty print to JSON with two spaces
+   manifest_JSON = JSON.stringify(manifest, null, 2);
+   return manifest_JSON;
+}
 
 module.exports = {
 	plugins: [
@@ -11,7 +26,15 @@ module.exports = {
 			template: './src/index.html',
 			filename: 'index.html',
 			inject: 'head'
-		})
+		}),
+		new CopyWebpackPlugin([
+		{
+			from: "./src/manifest.json",
+			to:   "./manifest.json",
+			transform (content, path) {
+				return modify(content)
+			}
+		}])
 	],
 	mode: 'development',
 	output: {

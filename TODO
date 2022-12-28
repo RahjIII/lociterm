@@ -1,12 +1,13 @@
 ------- TODO TODO TODO TODO --------------
-* Get the client version strings to work!!
+* client - work on the nerfbar some more.  A local line mode editor would be a
+ nice thing to have for some games other than LO.
 
 * android ime-
+	Remains an open issue. :( 
+	See: https://github.com/xtermjs/xterm.js/pull/4265
 	see ./browser/input/CompositionHelper.ts
 
 * Plumb the login window to use env vars instead?
-
-* client get the manifest working
 
 * Server Optional- game security ssl isn't working, fix it.
 
@@ -27,6 +28,10 @@
 * Server fix the locid_log function to work better at showing the connection the messages are for.
 
 ------------- DONE! -----------------
+* client get the manifest working
+
+* Get the client version strings to work.  You can set 'em in version.h and package.json for server and client.
+
 * Enable Unicode 11 support via xterm-addon-unicode11
 
 * client theme selector moved to prefs window.

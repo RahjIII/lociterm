@@ -5,11 +5,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="<%= htmlWebpackPlugin.options.metaDesc %>" />
-  <link href="<%= require('./img/loiconcolor.gif') %>" rel="shortcut icon">
+  <link rel="icon" sizes="192x192" href="<%= require('./img/losquareicon192.png') %>">
+  <link rel="manifest" href="./manifest.json">
 </head>
 <body>
 
-  <div id="terminal"></div>
+	<div class="locilayout">
+		<div id="menuhandler"></div>
+		<div id="terminal"></div>
+		<div id="nerfbar"></div>
+	</div>
 
 </body>
 </html>
