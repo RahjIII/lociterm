@@ -1,6 +1,6 @@
 // index.js - LociTerm entry js
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: index.js,v 1.10 2022/12/28 05:41:44 malakai Exp $
+// $Id: index.js,v 1.11 2023/01/30 00:01:58 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -29,16 +29,13 @@ import './styles.css';
 import lociThemes from './themes.json';
 
 import { LociTerm } from './lociterm.js';
-import { NerfBar } from './nerfbar.js';
 
 // lociTermBegin();
+
 const terminal = new LociTerm(
 	document.getElementById('terminal'), // the anchor div
 	lociThemes
 );
-
-// WIP nerfbar is disabled.
-// const nerfbar = new NerfBar(terminal,"nerfbar");
 
 // The websocket's use of SSL will follow the page's use.
 let wsproto = "wss:";
@@ -57,4 +54,4 @@ if( document.location.port == 5001 ) {
 
 // open it up and go.
 terminal.connect(websocket_url);
-	
+

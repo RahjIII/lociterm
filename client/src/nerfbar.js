@@ -1,6 +1,6 @@
 // nerfbar.js - pitiful line mode support
 // Created: Mon 26 Dec 2022 11:55:45 PM EST
-// $Id: nerfbar.js,v 1.1 2022/12/28 05:41:44 malakai Exp $
+// $Id: nerfbar.js,v 1.2 2023/01/30 00:01:58 malakai Exp $
 
 // Copyright © 2023 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -42,24 +42,82 @@ class NerfBar {
 		let box = this.mydiv;
 		let label;
 		let input;
+		let sendkey;
+		let tabkey;
 
-		label = document.createElement('label');
-		label.setAttribute("for","nerfinput");
-		label.innerText = "NerfBar";
-		box.appendChild(label);
+		//label = document.createElement('label');
+		//label.setAttribute("for","nerfinput");
+		//label.innerText = "NerfBar";
+		//box.appendChild(label);
 
 		input = document.createElement('input');
 		input.setAttribute("name","nerfinput");
 		input.setAttribute("type","text");
+		input.setAttribute("autocapitalize","none");
+		input.setAttribute("autocomplete","off");
+		input.setAttribute("autococorrect","off");
+		input.placeholder = "Enter a command...";
 		input.id = "nerfinput";
+
 		input.onchange = ((e)=>{
 			this.lociterm.paste(e.srcElement.value);
 			this.lociterm.paste("\n");
 			e.srcElement.value = "";
 		});
+
+		input.onkeydown = ((e)=>{
+			if(e.code == "Enter") {
+				this.lociterm.paste(e.srcElement.value);
+				this.lociterm.paste("\n");
+				e.srcElement.value = "";
+				e.preventDefault();
+			}
+			if(e.code == "Tab") {
+				this.lociterm.paste(e.srcElement.value);
+				this.lociterm.paste("\t");
+				e.srcElement.value = "";
+				e.preventDefault();
+			}
+		});
 		box.appendChild(input);
 
+		tabkey = document.createElement('button');
+		tabkey.setAttribute("type","button");
+		tabkey.onclick = ((e)=>{
+			this.lociterm.paste(input.value);
+			this.lociterm.paste("\t");
+			input.value = "";
+		});
+		tabkey.innerText = "↹";
+		box.appendChild(tabkey);
+
+		sendkey = document.createElement('button');
+		sendkey.setAttribute("type","button");
+		sendkey.onclick = ((e)=>{
+			this.lociterm.paste(input.value);
+			this.lociterm.paste("\n");
+			input.value = "";
+		});
+		sendkey.innerText = "⏎";
+		box.appendChild(sendkey);
+
 		return(box);
+	}
+
+	// make the nerfbar appear.
+	open() {
+		this.mydiv.style.display= 
+			getComputedStyle(document.documentElement).getPropertyValue('--nerfbar-open-display');
+		this.lociterm.fitAddon.fit();
+		this.lociterm.doWindowResize();
+	}
+
+	// make the nerfbar DIE DIE DIE. I hate you, nerfbar.
+	close() {
+		this.mydiv.style.display=
+			getComputedStyle(document.documentElement).getPropertyValue('--nerfbar-close-display');
+		this.lociterm.fitAddon.fit();
+		this.lociterm.doWindowResize();
 	}
 
 }

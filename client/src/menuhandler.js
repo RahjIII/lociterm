@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.15 2022/12/28 05:41:44 malakai Exp $
+// $Id: menuhandler.js,v 1.16 2023/01/30 00:01:58 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -488,6 +488,7 @@ class MenuHandler {
 		let input;
 		let initval;
 		let l;
+		let nerf;
 
 		let menuname = "menu_settings";
 
@@ -597,6 +598,21 @@ class MenuHandler {
 		);
 		box.appendChild(field);
 
+		nerf = this.create_nerfbar_select("nerfbar-select","Line Mode",
+			((e)=>{
+				if(e.srcElement.value == 0) {
+					this.lociterm.nerfbar.close();
+				} else {
+					this.lociterm.nerfbar.open();
+				}
+				let themedelta = [];
+				themedelta.nerfbar = e.srcElement.value;
+				this.lociterm.applyTheme(themedelta);
+			})
+		);
+		box.appendChild(nerf);
+
+
 		return(overlay);
 	}
 
@@ -679,6 +695,41 @@ class MenuHandler {
 		this.lociterm.terminal.write(`${e.type}\r\n`);
 		this.lociterm.terminal.write(`${e.data}\r\n`);
 		this.lociterm.terminal.write(`🌀\r\n`);
+	}
+
+	create_nerfbar_select(named="",labeled="",oninput="") {
+		let mydiv;
+		let label;
+		let select;
+
+		let optlist = { 
+			false: "Disabled", true: "Enabled"
+		};
+
+		mydiv = document.createElement('div');
+
+		label = document.createElement('label');
+		mydiv.appendChild(label);
+		label.setAttribute("for",named);
+		label.innerText = labeled;
+
+		select = document.createElement("select");
+		mydiv.appendChild(select);
+		select.setAttribute("name",named);
+		select.id = named;
+		select.oninput = oninput;
+
+		for (let value in optlist) {
+			let l = document.createElement('option');
+			l.setAttribute("value",value);
+			l.innerText = optlist[value];
+			select.appendChild(l);
+		}
+
+		mydiv.appendChild(select);
+
+		return(mydiv);
+
 	}
 
 }

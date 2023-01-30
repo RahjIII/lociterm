@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.15 2022/12/27 04:25:51 malakai Exp $
+// $Id: lociterm.js,v 1.16 2023/01/30 00:01:58 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -26,7 +26,8 @@ import { FitAddon } from 'xterm-addon-fit';
 import { AttachAddon } from 'xterm-addon-attach';
 import { Unicode11Addon } from 'xterm-addon-unicode11';
 import { MenuHandler } from './menuhandler.js';
-import BellSound from './snd/Oxygen-Im-Contact-In.ogg';
+import { NerfBar } from './nerfbar.js';
+import BellSound from './snd/Oxygen-Im-Contact-In.mp3';
 
 // shamelessly borrowed from ttyd, as I was considering keeping the ws
 // protocols compatible- but I didn't end up doing that.   Not all of these are
@@ -68,6 +69,7 @@ class LociTerm {
 		this.socket = undefined;
 		this.themeLoaded = 0;
 		this.url = "";
+		this.nerfbar = new NerfBar(this,"nerfbar");
 
 		// code. 
 		this.terminal.loadAddon(this.unicode11Addon);
@@ -82,7 +84,7 @@ class LociTerm {
 		this.terminal.onBell(() => {
 			this.terminal.audio.play();
 			// This will shake an android phone!
-			// navigator.vibrate([50,100,150]);
+			navigator.vibrate([50,100,150]);
 		});
 
 		window.addEventListener('resize', (e) => this.onWindowResize(e) );
@@ -242,6 +244,7 @@ class LociTerm {
 					str = new TextDecoder('utf8', {fatal:false}).decode(retry);
 				}
 
+				this.terminal.scrollToBottom();
 				this.terminal.write(str);
 				break;
 			case Command.RECV_CMD:
@@ -292,6 +295,12 @@ class LociTerm {
 		if (menuFade != undefined) {
 			defaultTheme.menuFade = menuFade;
 		}
+		let nerfbar = localStorage.getItem("nerfbar");
+		if (nerfbar != undefined) {
+			defaultTheme.nerfbar = nerfbar;
+		} else {
+			defaultTheme.nerfbar = "false";
+		}
 
 		let bgridAnchor = localStorage.getItem("bgridAnchor");
 		if (bgridAnchor != undefined) {
@@ -334,6 +343,18 @@ class LociTerm {
 		if(theme.menuFade != undefined) {
 			document.documentElement.style.setProperty('--menufade-hidden', theme.menuFade);
 			localStorage.setItem("menuFade",theme.menuFade);
+		}
+		if(theme.nerfbar != undefined) {
+			if(theme.nerfbar == "true") {
+				this.nerfbar.open();
+			} else {
+				this.nerfbar.close();
+			}
+			localStorage.setItem("nerfbar",theme.nerfbar);
+			let select = document.getElementById("nerfbar-select");
+			if(select != undefined) {
+				select.value = theme.nerfbar;
+			}
 		}
 
 		if(theme.bgridAnchor != undefined) {

@@ -1,11 +1,24 @@
-.nerfbar {
-	display: flex;
-	min-height: var(--finger-size);
-	color: red;
-	border: blue;
-	border-style: solid;
-	padding: 0.5em;
+:root {
+	--nerfbar-open-display: flex;
+	--nerfbar-close-display: none;
+}
 
+#nerfbar {
+	display: var(--nerfbar-close-display);
+	min-height: var(--finger-size);
+	max-height: var(--finger-size);
+	flex-grow: 3;
+}
+
+.nerfbar {
+	background: var(--book-paper-color);
+	color: var(--book-text-color);
+	border-color: var(--book-cover-color);
+	border-style: solid;
+	border-radius: calc(var(--finger-size)/2.0);
+	padding: 0.5em;
+	align-items: center;
+	border-width: 1mm;
 }
 
 .nerfbar div {
@@ -14,12 +27,14 @@
 .nerfbar input {
 	font-size: var(--font-size);
 	font-family: inherit;
-	background: #FF000022;
 	border-style: none;
-	color: red;
 	border-width: 0px;
 	flex-grow: 1;
-	autocapitalize: false;
-	autocorrect: false;
-	autocomplete: true;
+	outline-color: var(--book-cover-color);
+	min-height: var(--finger-size);
+}
+
+.nerfbar button {
+	min-height: var(--finger-size);
+	min-width: var(--finger-size);
 }

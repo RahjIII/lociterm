@@ -20,12 +20,6 @@
 	--menuside-close-right: -100%;
 }
 
-/* 
- bookpurple #7c1f3b
- paper #d8d6c6
- text #443311
- link #cc2600
-*/
 
 .menuhandler {
 	justify-content: center;
@@ -220,6 +214,7 @@
 
 .overlay {
 	position: absolute;
+	top: 0;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -244,6 +239,7 @@
 	border-style: solid;
 	border-width: 1mm;
 	max-width: 80%;
+	max-height: 80%;
 	overflow: auto;
 	/* text-transform: capitalize;*/
 }
