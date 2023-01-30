@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.7 2022/05/18 20:39:25 malakai Exp $ */
+/* $Id: locid.c,v 1.8 2023/01/30 20:28:41 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -205,6 +205,13 @@ int main(int argc, char **argv) {
 	char *s;
 	sigset_t mask;
 
+	static const struct lws_protocol_vhost_options pvo_mime = {
+		NULL,				/* "next" pvo linked-list */
+		NULL,				/* "child" pvo linked-list */
+		".mp3",				/* file suffix to match */
+		"audio/mpeg"		/* mimetype to use */
+	};
+
 	/* ...and begin. */
 
 	while(1) {
@@ -275,6 +282,7 @@ int main(int argc, char **argv) {
 	mount->origin = config->origin;
 	mount->origin_protocol = LWSMPRO_FILE;
 	mount->def = config->default_doc;
+	mount->extra_mimetypes = &pvo_mime;
 
 
 	/* init the info struct for lws's context. */
