@@ -1,6 +1,6 @@
 /* client.h - LociTerm client side protocols */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: client.h,v 1.3 2022/05/29 18:28:27 malakai Exp $ */
+/* $Id: client.h,v 1.4 2023/02/11 03:22:23 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -30,6 +30,8 @@
 #define SET_WINDOW_TITLE '1'
 #define SET_PREFERENCES '2'
 #define RECV_CMD '3'
+#define RECONNECT_KEY '7'
+#define INVALIDATE_KEY '8'
 
 // from web client message
 #define INPUT '0'

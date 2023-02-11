@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.8 2023/01/30 20:28:41 malakai Exp $ */
+/* $Id: locid.c,v 1.9 2023/02/11 03:22:23 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -269,10 +269,14 @@ int main(int argc, char **argv) {
 	);
 
 	/* begin websocket init */
-	//int lwslogs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_CLIENT | LLL_HEADER | LLL_INFO;
 	// int lwslogs = LLL_ERR | LLL_WARN | LLL_NOTICE;
-	int lwslogs = LLL_ERR | LLL_WARN;
-	lws_set_log_level(lwslogs, (lws_log_emit_t)locid_log_lws);
+	if(debug) {
+		int lwslogs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_CLIENT | LLL_HEADER | LLL_INFO;
+		lws_set_log_level(lwslogs, (lws_log_emit_t)locid_log_lws);
+	} else {
+		int lwslogs = LLL_ERR | LLL_WARN;
+		lws_set_log_level(lwslogs, (lws_log_emit_t)locid_log_lws);
+	}
 
 	/* init the mountpoint struct for lws's built in http server. */
 	mount = (struct lws_http_mount *)malloc(sizeof(struct lws_http_mount));

@@ -1,6 +1,6 @@
 /* game.c - LociTerm game side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: game.c,v 1.3 2022/05/29 18:28:27 malakai Exp $*/
+/* $Id: game.c,v 1.4 2023/02/11 03:22:23 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -62,7 +62,9 @@ void loci_game_write(proxy_conn_t *pc, char *in, size_t len) {
 	
 
 int loci_game_parse(proxy_conn_t *pc, char *in, size_t len) {
-	telnet_recv(pc->game_telnet,in,len);
+	if(pc->game_telnet) {
+		telnet_recv(pc->game_telnet,in,len);
+	}
 	return(1);
 }
 
@@ -97,6 +99,7 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 
 	case LWS_CALLBACK_RAW_CLOSE:
 		lwsl_user("LWS_CALLBACK_RAW_CLOSE\n");
+		locid_log("[%d] game side close %s.",pc->id,pc->uuid);
 		/*
 		 * Clean up any pending messages to us that are never going
 		 * to get delivered now, we are in the middle of closing
@@ -135,7 +138,8 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 
 	case LWS_CALLBACK_RAW_RX:
 		lwsl_user("LWS_CALLBACK_RAW_RX (%d)\n", (int)len);
-		if (!pc || !pc->wsi_client)
+		//if (!pc || !pc->wsi_client)
+		if (!pc)
 			break;
 
 		loci_game_parse(pc,in,len);

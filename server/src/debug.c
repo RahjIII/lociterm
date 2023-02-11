@@ -1,6 +1,6 @@
 /* debug.c - Debugging and loggin code for LociTerm */
 /* Created: Wed Mar  3 11:09:27 PM EST 2021 malakai */
-/* $Id: debug.c,v 1.4 2022/05/29 18:28:27 malakai Exp $*/
+/* $Id: debug.c,v 1.5 2023/02/11 03:22:23 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -54,6 +54,7 @@ void locid_log(char *str, ...)
 	char vbuf[LOG_BUF_LEN];
 	int slen;
 	char nl='\n';
+	*vbuf = '\0';
 
 	va_start(ap, str);
 	vsnprintf(vbuf, sizeof(vbuf) - 1, str, ap);

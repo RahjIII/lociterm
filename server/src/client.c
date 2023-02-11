@@ -1,6 +1,6 @@
 /* client.c - LociTerm client side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: client.c,v 1.9 2022/12/27 04:25:51 malakai Exp $*/
+/* $Id: client.c,v 1.10 2023/02/11 03:22:23 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -42,8 +42,9 @@
 /* local function declarations */
 int loci_client_parse(proxy_conn_t *pc, char *in, size_t len);
 void loci_client_send_cmd(proxy_conn_t *pc, char cmd, char *in, size_t len);
-int loci_connect_to_game(proxy_conn_t *pc, int gameno);
+int loci_connect_to_game(proxy_conn_t *pc, int gameno, char *uuid);
 int loci_client_json_cmd_parse(proxy_conn_t *pc,char *in, size_t len);
+void loci_client_send_key(proxy_conn_t *pc);
 
 /* locals */
 
@@ -56,6 +57,8 @@ int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 	int height = 25;
 	char *s;
 	int gameno=0;
+	char *uuid;
+	int ret;
 
 	if (!in || !len) {
 		return(-1);
@@ -90,12 +93,22 @@ int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 			s = (char *)malloc(len);
 			memset(s, 0, len);  
 			memcpy(s,in+1,len-1);
-			if( (sscanf(s,"%d",&gameno)==1) ) {
-				locid_log("[%d] client requested game %d.",pc->id,gameno);
-				gameno = 0;  /* But I don't care, he gets the default game */
+			uuid = (char *)malloc(len);
+			*uuid = '\0';
+			if( (sscanf(s,"%d %s",&gameno,uuid)>=1) ) {
+				if(*uuid) {
+					ret = loci_connect_to_game(pc,gameno,uuid);
+				} else {
+					/* But I don't care, he gets the default game */
+					ret = loci_connect_to_game(pc,gameno,NULL);
+				}
+			} else {
+				locid_log("[%d] bad client CONNECT_GAME request.");
+				ret = -1;
 			}
 			free(s);
-			return(loci_connect_to_game(pc,gameno));
+			free(uuid);
+			return(ret);
 
 			break;
 		case SEND_CMD:
@@ -126,7 +139,9 @@ void loci_client_send_cmd(proxy_conn_t *pc, char cmd, char *in, size_t len) {
 	memcpy(data+1,in,len);
 	/* put it on the client q and request service. */
 	g_queue_push_tail(pc->client_q,msg);
-	lws_callback_on_writable(pc->wsi_client);
+	if(pc->wsi_client) {
+		lws_callback_on_writable(pc->wsi_client);
+	}
 	return;
 }
 
@@ -135,8 +150,19 @@ void loci_client_write(proxy_conn_t *pc, char *in, size_t len) {
 	loci_client_send_cmd(pc,OUTPUT,in,len);
 }
 
+/* send the reconnection key to the client. */
+void loci_client_send_key(proxy_conn_t *pc) {
+	locid_log("[%d] sent current reconnect key %s.",pc->id,pc->uuid);
+	loci_client_send_cmd(pc,RECONNECT_KEY,pc->uuid,strlen(pc->uuid));
+}
+
+void loci_client_invalidate_key(proxy_conn_t *pc) {
+	locid_log("[%d] send invalidate key message.",pc->id);
+	loci_client_send_cmd(pc,INVALIDATE_KEY,"",0);
+}
+
 /* connect to the mud. */
-int loci_connect_to_game(proxy_conn_t *pc, int gameno) {
+int loci_connect_to_game_number(proxy_conn_t *pc, int gameno) {
 
 	struct lws_client_connect_info info;
 
@@ -144,6 +170,8 @@ int loci_connect_to_game(proxy_conn_t *pc, int gameno) {
 		lwsl_warn("%s: client requested a second connection?\n", __func__); 
 		return(0);
 	}
+
+	locid_log("[%d] client requested gameno %d.",pc->id,gameno);
 
 	/* lws example code likes to clear out structures before use */
 	memset(&info, 0, sizeof(info));
@@ -178,7 +206,72 @@ int loci_connect_to_game(proxy_conn_t *pc, int gameno) {
 		return -1;
 	}
 
+	loci_client_send_key(pc);
+
 	return(0);
+}
+
+/* reconnect to the mud. */
+int loci_connect_to_game_uuid(proxy_conn_t *pc,char *uuid) {
+
+	proxy_conn_t *oldpc;
+
+	if(!uuid || !*uuid) {
+		return(-1);
+	}
+
+
+	oldpc = find_proxy_conn_by_uuid(uuid);
+
+	/* if !found return(-1) */
+	if(!oldpc) {
+		locid_log("[%d] client reconnect %s NOT FOUND.",pc->id,uuid);
+		return(-1);
+	}
+
+	/* patch the found old pc gameside into this client pc */
+	locid_log("[%d] client reconnect %s found id %d",pc->id,uuid,oldpc->id);
+	pc->wsi_game = oldpc->wsi_game;
+	oldpc->wsi_game = NULL;
+	lws_set_opaque_user_data(pc->wsi_game,pc);
+
+	/* copy in the queues */
+	move_proxy_queue(pc->game_q,oldpc->game_q);
+	move_proxy_queue(pc->client_q,oldpc->client_q);
+
+	if(pc->uuid) g_free(pc->uuid);
+	pc->uuid = oldpc->uuid;
+	oldpc->uuid = NULL;
+
+	/* close out the old proxyconn */
+	if(oldpc->wsi_client) {
+		lws_wsi_close(oldpc->wsi_client, LWS_TO_KILL_SYNC);
+	}
+
+	loci_client_send_key(pc);
+	loci_renegotiate_env(pc);
+
+	return(0);
+}
+
+int loci_connect_to_game(proxy_conn_t *pc, int gameno, char *uuid) {
+	
+	int ret;
+
+	if(pc->wsi_game != NULL) {
+		lwsl_warn("%s: client requested a second connection?\n", __func__); 
+		return(0);
+	}
+
+	if( !uuid || (*uuid == '\0')) {
+		return(loci_connect_to_game_number(pc,gameno));
+	}
+	ret = loci_connect_to_game_uuid(pc,uuid);	
+	if (ret == -1 ) {
+		return(loci_connect_to_game_number(pc,gameno));
+	} 
+	return(ret);
+
 }
 
 
@@ -226,6 +319,10 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 
 		if(lws_hdr_copy(pc->wsi_client,buf,sizeof(buf),WSI_TOKEN_HTTP_USER_AGENT) > 0) {
 			locid_log("[%d] User Agent: '%s'",pc->id, buf);
+			if(pc->useragent) {
+				g_free(pc->useragent);
+			}
+			pc->useragent = strdup(buf);
 		}
 
 		loci_telnet_init(pc);
@@ -239,32 +336,38 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 	case LWS_CALLBACK_CLOSED:
 		/* dump all of the pending messages destined for the client side onto
 		 * the ground, and clean up our entries in the proxy_conn. */
-		empty_proxy_queue(pc->client_q);
+		/* empty_proxy_queue(pc->client_q); */  /* FIXME  NO! */
 		pc->wsi_client = NULL;
 		lws_set_opaque_user_data(wsi, NULL);
 
 		/* if the game side has either not opened, or has closed and cleaned
 		 * itself up, we can get rid of the proxy_conn too and be all done. */
 		if (!pc->wsi_game) {
+			locid_log("[%d] client side full close",pc->id);
+			empty_proxy_queue(pc->client_q); 
 			free_proxy_conn(pc);
 			break;
 		}
 
+		locid_log("[%d] client side half close",pc->id);
+
 		/* The game side of the proxy is still alive... */
-		if (!g_queue_is_empty(pc->game_q)) {
-			/* LWS-
-			 * Yes, let him get on with trying to send
-			 * the remaining pieces... but put a time limit
-			 * on how hard he will try now the ws part is
-			 * disappearing... give him 3s
-			 */
-			locid_log("[%d] client slow close",pc->id);
-			lws_set_timeout(pc->wsi_game,
-				PENDING_TIMEOUT_KILLED_BY_PROXY_CLIENT_CLOSE, 3);
-		} else {
-			/* have lws send the close callback to the game side. */
-			locid_log("[%d] client fast close",pc->id);
-			lws_wsi_close(pc->wsi_game, LWS_TO_KILL_ASYNC);
+		if(0) {
+			if (!g_queue_is_empty(pc->game_q)) {
+				/* LWS-
+				 * Yes, let him get on with trying to send
+				 * the remaining pieces... but put a time limit
+				 * on how hard he will try now the ws part is
+				 * disappearing... give him 3s
+				 */
+				locid_log("[%d] client slow close",pc->id);
+				lws_set_timeout(pc->wsi_game,
+					PENDING_TIMEOUT_KILLED_BY_PROXY_CLIENT_CLOSE, 3);
+			} else {
+				/* have lws send the close callback to the game side. */
+				locid_log("[%d] client fast close",pc->id);
+				lws_wsi_close(pc->wsi_game, LWS_TO_KILL_ASYNC);
+			}
 		}
 		break;
 

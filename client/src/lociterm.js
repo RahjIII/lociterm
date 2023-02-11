@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.16 2023/01/30 00:01:58 malakai Exp $
+// $Id: lociterm.js,v 1.17 2023/02/11 03:22:23 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -38,6 +38,7 @@ const Command = {
 	SET_WINDOW_TITLE: '1',
 	SET_PREFERENCES: '2',
 	RECV_CMD: '3',
+	RECONNECT_KEY: '7',
 
 	// server message - these are SENT
 	INPUT: '0',
@@ -67,6 +68,7 @@ class LociTerm {
 		this.webLinksAddon = new WebLinksAddon();
 		this.login = { requested: 0, name: "", password: "", remember: 1 };
 		this.socket = undefined;
+		this.reconnect_key = "";
 		this.themeLoaded = 0;
 		this.url = "";
 		this.nerfbar = new NerfBar(this,"nerfbar");
@@ -86,6 +88,8 @@ class LociTerm {
 			// This will shake an android phone!
 			navigator.vibrate([50,100,150]);
 		});
+
+		this.reconnect_key = localStorage.getItem("reconnect_key");
 
 		window.addEventListener('resize', (e) => this.onWindowResize(e) );
 		this.menuhandler = new MenuHandler(this);
@@ -110,8 +114,13 @@ class LociTerm {
 
 	// Connect to the n'th game on the server's list
 	doConnectGame(n=0) {
-		console.log(`Connecting to game ${n}.`);
-		this.sendMsg(Command.CONNECT_GAME,n);
+		if(this.reconnect_key == "") {
+			console.log(`Connecting to game ${n}.`);
+			this.sendMsg(Command.CONNECT_GAME,n);
+		} else {
+			console.log(`Connecting to uuid ${this.reconnect_key} or game ${n}.`);
+			this.sendMsg(Command.CONNECT_GAME,`${n} ${this.reconnect_key}`);
+		}
 	}
 
 	focus(data) {
@@ -175,7 +184,6 @@ class LociTerm {
 
 	onSocketOpen(e) {
 		console.log("Socket open!" + e);
-		//this.terminal.write(`Connected!\r\n`);
 		// Send the window size to the game side so that it can be made
 		// available to the mud at connection time.
 		this.doWindowResize();
@@ -248,10 +256,23 @@ class LociTerm {
 				this.terminal.write(str);
 				break;
 			case Command.RECV_CMD:
-				let msg = new TextDecoder('utf8').decode(rawbuffer).charAt(1);
+				let msg = new TextDecoder('utf8').decode(rawbuffer).slice(1);
 				let obj = JSON.parse(msg);
 				// Of course, there's nothing implemented yet so...
 				console.warn("Unhandled recv_json: " + msg);
+				break;
+			case Command.RECONNECT_KEY:
+				let old_key = this.reconnect_key;
+				this.reconnect_key = new TextDecoder('utf8').decode(rawbuffer.slice(1));
+				console.log("Recieved reconnect key " + this.reconnect_key);
+				if(this.reconnect_key == old_key) {
+					console.log("keys match, this is a reconnect.");
+					this.terminal.write(`\r\n┅┅┅┅┅ Reconnected. ┅┅┅┅┅\r\n\r\n`);
+					this.doWindowResize();
+					this.paste("\r");  /* at least in LO, \r requests a redraw. */
+				} 
+				localStorage.setItem("reconnect_key",this.reconnect_key);
+				break;	
 			default:
 				console.warn("Unhandled command " + cmd);
 				break;

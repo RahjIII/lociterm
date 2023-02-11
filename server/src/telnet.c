@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.6 2022/07/18 16:02:58 malakai Exp $ */
+/* $Id: telnet.c,v 1.7 2023/02/11 03:22:23 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -42,6 +42,25 @@
 /* local #defines */
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 
+/* these are MTTS bitfield definitions. */
+#define MTTS_ANSI 1
+#define MTTS_VT100 2
+#define MTTS_UTF8 4
+#define MTTS_256_COLOR 8
+#define MTTS_MOUSETRACKING 16
+#define MTTS_OSC_COLOR 32
+#define MTTS_SCREEN_READER 64
+#define MTTS_PROXY 128
+#define MTTS_TRUECOLOR 128
+#define MTTS_MNES 512
+#define MTTS_MSLP 1024
+#define MTTS_SSL 2048
+
+/* sometime, make it so the MTTS reported bitfield is controlable from the
+ * config file.  For now though... */
+#define MTTS_VALUE "943"
+
+
 /* local structs and typedefs */
 
 /* global variable declarations */
@@ -67,7 +86,7 @@ void send_next_ttype(proxy_conn_t *pc) {
 	char *mtts[] = {
 		"lociterm",
 		"XTERM",
-		"MTTS 943",
+		"MTTS " MTTS_VALUE,
 		""
 	};
 
@@ -102,6 +121,10 @@ void loci_environment_init(proxy_conn_t *pc) {
 	char buf[1024];
 
 	if(!pc) return;
+	if(pc->environment) {
+		locid_log("[%d] Environment already exists at loci_environment_init.",pc->id);
+		loci_environment_free(pc);
+	}
 	if(pc->hostname) {
 		pc->environment = g_list_append(pc->environment,
 			loci_new_env_var(TELNET_ENVIRON_VAR,"IPADDRESS",pc->hostname)
@@ -121,8 +144,14 @@ void loci_environment_init(proxy_conn_t *pc) {
 		loci_new_env_var(TELNET_ENVIRON_VAR,"TERMINAL_TYPE","XTERM") 
 	);
 	pc->environment = g_list_append(pc->environment,
-		loci_new_env_var(TELNET_ENVIRON_VAR,"MTTS","193") /* FIXME, should be dynamic. */
+		loci_new_env_var(TELNET_ENVIRON_VAR,"MTTS",MTTS_VALUE) /* FIXME, should be dynamic. */
 	);
+	/* TODO make this controllable from the config file too. */
+	if(pc->useragent) {
+		pc->environment = g_list_append(pc->environment,
+			loci_new_env_var(TELNET_ENVIRON_VAR,"HTTP_USER_AGENT",pc->useragent)
+		);
+	}
 
 	return;
 
@@ -132,6 +161,7 @@ void loci_environment_free(proxy_conn_t *f) {
 	if(!f) return;
 
 	g_list_free_full(f->environment,(GDestroyNotify)loci_free_env_var);
+	f->environment = NULL;
 	return;
 
 }
@@ -160,6 +190,13 @@ void loci_telnet_send_naws(telnet_t *telnet, int width, int height) {
 	telnet_send(telnet,encoding,sizeof(encoding));
 	telnet_finish_sb(telnet);
 	lwsl_user("sent naws (%dx%d)",width,height);
+}
+
+/* retrigger a WILL NEW_ENVIRON */
+void loci_renegotiate_env(proxy_conn_t *pc) {
+	if(pc->game_telnet) {
+		telnet_negotiate(pc->game_telnet, TELNET_WILL, TELNET_TELOPT_NEW_ENVIRON);
+	}
 }
 
 void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_data) {
@@ -248,8 +285,11 @@ telnet_t *loci_telnet_init(proxy_conn_t *pc) {
 	}
 	
 	loci_environment_init(pc);
-
-	pc->game_telnet = telnet_init(fixed_telopts,loci_telnet_handler, 0, (void *)pc);
+	if(pc->game_telnet) {
+		locid_log("[%d] telnet already exists at loci_environment_init.",pc->id);
+	} else {
+		pc->game_telnet = telnet_init(fixed_telopts,loci_telnet_handler, 0, (void *)pc);
+	}
 
 	return(pc->game_telnet);
 }

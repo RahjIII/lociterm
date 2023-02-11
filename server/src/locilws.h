@@ -1,6 +1,6 @@
 /* locilws.h - LociTerm libwebsocket handlers */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: locilws.h,v 1.3 2022/05/08 18:30:10 malakai Exp $ */
+/* $Id: locilws.h,v 1.4 2023/02/11 03:22:23 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -39,12 +39,14 @@ typedef struct proxy_conn {
 	int ttype_state;
 	int width;
 	int height;
+	GList *environment;
+	gchar *useragent;
 	
 	/* game side elements */
 	struct lws *wsi_game; 
 	GQueue *game_q;
 	telnet_t *game_telnet;
-	GList *environment;
+	gchar *uuid;
 
 } proxy_conn_t;
 
@@ -74,7 +76,13 @@ typedef struct proxy_msg {
 /* exported function declarations */
 
 proxy_conn_t *new_proxy_conn(void);
-void free_proxy_conn(proxy_conn_t *f);
+void free_proxy_conn(proxy_conn_t *f);				/* full close */
+void free_proxy_conn_game_side(proxy_conn_t *f);    /* half close */
+void free_proxy_conn_client_side(proxy_conn_t *f);  /* half close */
+
 void empty_proxy_queue(GQueue *q);
+void move_proxy_queue(GQueue *dst, GQueue *src);
+
+proxy_conn_t *find_proxy_conn_by_uuid(char *uuid);
 
 #endif /* LO_LOCILWS_H */

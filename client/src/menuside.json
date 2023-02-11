@@ -599,8 +599,8 @@
 				"send": "gain\n"
 			},
 			{
-				"label": "Skills",
-				"send": "skills \n",
+				"label": "Skills ...",
+				"send": "skills ",
 				"open": "menu_guilds"
 			},
 			{
@@ -706,7 +706,7 @@
 				"send": "quaff "
 			},
 			{
-				"label": "Posiion",
+				"label": "Position",
 				"open": "menu_position"
 			}
 		]
