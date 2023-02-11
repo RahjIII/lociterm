@@ -1,6 +1,6 @@
 /* game.c - LociTerm game side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: game.c,v 1.4 2023/02/11 03:22:23 malakai Exp $*/
+/* $Id: game.c,v 1.5 2023/02/11 18:22:49 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -87,7 +87,11 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 		pc->wsi_game = NULL;
 		/* close the websocket side, rather than hang... */
 		if(pc->wsi_client) {
-			lws_wsi_close(pc->wsi_client, LWS_TO_KILL_ASYNC);
+			loci_client_invalidate_key(pc);
+			/* slower timeout close to let key message get sent. */
+			lws_set_timeout(pc->wsi_client,
+				PENDING_TIMEOUT_KILLED_BY_PROXY_CLIENT_CLOSE, 1
+			); 
 		}
 		break;
 
@@ -124,6 +128,7 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 			break;
 		}
 
+		loci_client_invalidate_key(pc);
 		/* the game side is now gone, but the client side may still have final
 		 * messages to deliver.  The LWS example code would close with
 		 * lws_wsi_close(pc->wsi_client, LWS_TO_KILL_ASYNC) if the client queue

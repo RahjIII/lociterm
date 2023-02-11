@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.17 2023/02/11 03:22:23 malakai Exp $
+// $Id: lociterm.js,v 1.18 2023/02/11 18:22:49 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -267,9 +267,9 @@ class LociTerm {
 				console.log("Recieved reconnect key " + this.reconnect_key);
 				if(this.reconnect_key == old_key) {
 					console.log("keys match, this is a reconnect.");
-					this.terminal.write(`\r\n┅┅┅┅┅ Reconnected. ┅┅┅┅┅\r\n\r\n`);
+					//this.terminal.write(`\r\n┅┅┅┅┅ Reconnected. ┅┅┅┅┅\r\n\r\n`);
 					this.doWindowResize();
-					this.paste("\r");  /* at least in LO, \r requests a redraw. */
+					//this.paste("\r");  /* at least in LO, \r requests a redraw. */
 				} 
 				localStorage.setItem("reconnect_key",this.reconnect_key);
 				break;	
@@ -281,12 +281,20 @@ class LociTerm {
 
 	onSocketClose(e) {
 		console.log("Socket Close." + e);
-		this.terminal.write(`\r\n┅┅┅┅┅ Disconnected ┅┅┅┅┅\r\n`);
+		if(this.reconnect_key != "") {
+			setTimeout(this.connect(),1000);
+		} else {
+			this.terminal.write(`\r\n┅┅┅┅┅ Disconnected ┅┅┅┅┅\r\n`);
+		}
 	}
 
 	onSocketError(e) {
-		this.terminal.write(`\r\n┅┅┅┅┅ Can't reach the Loci server! ┅┅┅┅┅\r\n`);
 		console.log("Socket Error." + e);
+		if(this.reconnect_key != "") {
+			setTimeout(this.connect(),1000);
+		} else {
+			this.terminal.write(`\r\n┅┅┅┅┅ Can't reach the Loci server! ┅┅┅┅┅\r\n`);
+		}
 	}
 
 	loadDefaultTheme() {

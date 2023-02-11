@@ -1,6 +1,6 @@
 /* client.h - LociTerm client side protocols */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: client.h,v 1.4 2023/02/11 03:22:23 malakai Exp $ */
+/* $Id: client.h,v 1.5 2023/02/11 18:22:49 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -31,7 +31,6 @@
 #define SET_PREFERENCES '2'
 #define RECV_CMD '3'
 #define RECONNECT_KEY '7'
-#define INVALIDATE_KEY '8'
 
 // from web client message
 #define INPUT '0'
@@ -54,5 +53,6 @@ int callback_loci_client(
 	struct lws *wsi, enum lws_callback_reasons reason,
 	void *user, void *in, size_t len
 );
+void loci_client_invalidate_key(proxy_conn_t *pc);
 
 #endif /* LO_CLIENT_H */

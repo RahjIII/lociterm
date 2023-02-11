@@ -1,6 +1,6 @@
 /* client.c - LociTerm client side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: client.c,v 1.10 2023/02/11 03:22:23 malakai Exp $*/
+/* $Id: client.c,v 1.11 2023/02/11 18:22:49 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -158,7 +158,7 @@ void loci_client_send_key(proxy_conn_t *pc) {
 
 void loci_client_invalidate_key(proxy_conn_t *pc) {
 	locid_log("[%d] send invalidate key message.",pc->id);
-	loci_client_send_cmd(pc,INVALIDATE_KEY,"",0);
+	loci_client_send_cmd(pc,RECONNECT_KEY,"",0);
 }
 
 /* connect to the mud. */
@@ -202,6 +202,7 @@ int loci_connect_to_game_number(proxy_conn_t *pc, int gameno) {
 
 	if (!lws_client_connect_via_info(&info)) {
 		lwsl_warn("%s: onward game connection failed\n", __func__); 
+		loci_client_invalidate_key(pc);
 		/* return -1 means hang up on the ws client, triggering _CLOSE flow */
 		return -1;
 	}
@@ -334,41 +335,21 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 		break;
 
 	case LWS_CALLBACK_CLOSED:
-		/* dump all of the pending messages destined for the client side onto
-		 * the ground, and clean up our entries in the proxy_conn. */
-		/* empty_proxy_queue(pc->client_q); */  /* FIXME  NO! */
 		pc->wsi_client = NULL;
 		lws_set_opaque_user_data(wsi, NULL);
 
 		/* if the game side has either not opened, or has closed and cleaned
 		 * itself up, we can get rid of the proxy_conn too and be all done. */
 		if (!pc->wsi_game) {
+			/* The game side of the proxy is already gone... */
 			locid_log("[%d] client side full close",pc->id);
 			empty_proxy_queue(pc->client_q); 
 			free_proxy_conn(pc);
 			break;
 		}
 
-		locid_log("[%d] client side half close",pc->id);
-
 		/* The game side of the proxy is still alive... */
-		if(0) {
-			if (!g_queue_is_empty(pc->game_q)) {
-				/* LWS-
-				 * Yes, let him get on with trying to send
-				 * the remaining pieces... but put a time limit
-				 * on how hard he will try now the ws part is
-				 * disappearing... give him 3s
-				 */
-				locid_log("[%d] client slow close",pc->id);
-				lws_set_timeout(pc->wsi_game,
-					PENDING_TIMEOUT_KILLED_BY_PROXY_CLIENT_CLOSE, 3);
-			} else {
-				/* have lws send the close callback to the game side. */
-				locid_log("[%d] client fast close",pc->id);
-				lws_wsi_close(pc->wsi_game, LWS_TO_KILL_ASYNC);
-			}
-		}
+		locid_log("[%d] client side half close",pc->id);
 		break;
 
 	case LWS_CALLBACK_SERVER_WRITEABLE:
