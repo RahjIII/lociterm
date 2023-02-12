@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.19 2023/02/12 02:48:47 malakai Exp $
+// $Id: lociterm.js,v 1.20 2023/02/12 17:45:05 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -46,7 +46,8 @@ const Command = {
 	PAUSE: '2',
 	RESUME: '3',
 	CONNECT_GAME: '5',
-	SEND_CMD: '6'
+	SEND_CMD: '6',
+	DISCONNECT_CMD: '7'
 }
 
 class LociTerm {
@@ -90,7 +91,7 @@ class LociTerm {
 			navigator.vibrate([50,100,150]);
 		});
 
-		this.reconnect_key = localStorage.getItem("reconnect_key");
+		// this.reconnect_key = localStorage.getItem("reconnect_key");
 
 		window.addEventListener('resize', (e) => this.onWindowResize(e) );
 		this.menuhandler = new MenuHandler(this);
@@ -98,6 +99,7 @@ class LociTerm {
 		this.terminal.open(mydiv);
 		this.fitAddon.fit();
 		this.focus();
+		this.connect();
 	}
 
 	// call this as an event listener handler
@@ -110,7 +112,15 @@ class LociTerm {
 	}
 
 	doWindowResize() {
-		this.sendMsg(Command.RESIZE_TERMINAL,`${this.terminal.cols} ${this.terminal.rows}`);
+		/* this test is so a resize wont trigger a reconnect. */
+		if(this.socket != undefined) {
+			if (this.socket.readyState == 1) { 
+				this.sendMsg(Command.RESIZE_TERMINAL,`${this.terminal.cols} ${this.terminal.rows}`);
+				//console.log(`Resize message sent.`);
+				return;
+			} 
+		} 
+		//console.log(`Resize message not sent due to socket not open.`);
 	}
 
 	// Connect to the n'th game on the server's list
@@ -204,6 +214,15 @@ class LociTerm {
 		this.socket.onerror = (e) => this.onSocketError(e);
 	}
 
+	disconnect(how) {
+		if(how == "local") {
+			this.not_so_fast = true;
+			this.socket.close();
+		} else {
+			this.sendMsg(Command.DISCONNECT_CMD,"");
+		}
+	}
+
 	onSocketOpen(e) {
 		console.log("Socket open!" + e);
 		// Send the window size to the game side so that it can be made
@@ -293,7 +312,7 @@ class LociTerm {
 					this.doWindowResize();
 					this.paste("\r");  /* at least in LO, \r requests a redraw. */
 				} 
-				localStorage.setItem("reconnect_key",this.reconnect_key);
+				// localStorage.setItem("reconnect_key",this.reconnect_key);
 				break;	
 			default:
 				console.warn("Unhandled command " + cmd);
@@ -303,7 +322,7 @@ class LociTerm {
 
 	onSocketClose(e) {
 		console.log("Socket Close." + e);
-		if(this.reconnect_key != "") {
+		if(this.reconnect_key != "" && (this.not_so_fast == false)) {
 			// this.terminal.write(`\r\n┅┅┅┅┅ Reconnecting ┅┅┅┅┅\r\n`);
 			this.not_so_fast = true;
 			this.connect();
@@ -313,8 +332,8 @@ class LociTerm {
 	}
 
 	onSocketError(e) {
-		console.log("Socket Error." + e);
-		this.terminal.write(`\r\n┅┅┅┅┅ Can't reach the Loci server! ┅┅┅┅┅\r\n`);
+		//console.log("Socket Error." + e);
+		//this.terminal.write(`\r\n┅┅┅┅┅ Can't reach the Loci server! ┅┅┅┅┅\r\n`);
 	}
 
 	loadDefaultTheme() {

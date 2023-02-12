@@ -21,10 +21,6 @@
 			{
 				"label": "Credits",
 				"open":"menu_credits"
-			},
-			{
-				"label": "Logout",
-				"open":"menu_quit"
 			}
 		]
 	},
@@ -103,16 +99,33 @@
 		"id": "menu_quit",
 		"item" : [
 			{
-				"label": "Rent",
-				"send": "rent\n"
+				"label": "Logout",
+				"send": "logout\n"
 			},
 			{
 				"label": "Camp",
 				"send": "camp\n"
 			},
 			{
-				"label": "Logout",
-				"send": "logout\n"
+				"label": "Rent",
+				"send": "rent\n"
+			},
+			{
+				"label": "Disconnect",
+				"open": "menu_disconnect"
+			}
+		]
+	},
+	{
+		"id": "menu_disconnect",
+		"item" : [
+			{
+				"label": "Client",
+				"disconnect": "local"
+			},
+			{
+				"label": "Game",
+				"disconnect": "remote"
 			}
 		]
 	},
@@ -717,6 +730,10 @@
 			{
 				"label": "Login",
 				"open": "menu_loginbox"
+			},
+			{
+				"label": "Logout",
+				"open":"menu_quit"
 			},
 			{
 				"label": "Settings",

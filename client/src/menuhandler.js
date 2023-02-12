@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.16 2023/01/30 00:01:58 malakai Exp $
+// $Id: menuhandler.js,v 1.17 2023/02/12 17:45:05 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -111,6 +111,11 @@ class MenuHandler {
 	prompt(keys) {
 		this.send(keys);
 		this.lociterm.focus();
+	}
+
+	disconnect(how) {
+		this.done();
+		this.lociterm.disconnect(how);
 	}
 
 	store(key,value) {
@@ -229,6 +234,11 @@ class MenuHandler {
 				// label goes inside the div.
 				if ( item.label != undefined ) {
 					s.innerText = item.label;
+				}
+
+				if ( item.disconnect != undefined ) {
+					s.classList.add('send');
+					s.onclick = () => this.disconnect(item.disconnect);
 				}
 
 				c.appendChild(s);

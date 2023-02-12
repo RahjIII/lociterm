@@ -1,6 +1,6 @@
 /* client.h - LociTerm client side protocols */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: client.h,v 1.5 2023/02/11 18:22:49 malakai Exp $ */
+/* $Id: client.h,v 1.6 2023/02/12 17:45:05 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -39,6 +39,7 @@
 #define RESUME '3'
 #define CONNECT_GAME '5'
 #define SEND_CMD '6'
+#define DISCONNECT_GAME '7'
 
 /* structs and typedefs */
 

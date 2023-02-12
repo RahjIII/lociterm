@@ -199,7 +199,7 @@
 }
 
 .menuside .client {
-	color: #4ea0e4;
+	color: var(--book-cover-color);
 	text-transform: capitalize;
 }
 

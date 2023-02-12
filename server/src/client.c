@@ -1,6 +1,6 @@
 /* client.c - LociTerm client side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: client.c,v 1.11 2023/02/11 18:22:49 malakai Exp $*/
+/* $Id: client.c,v 1.12 2023/02/12 17:45:05 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -110,6 +110,11 @@ int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 			free(uuid);
 			return(ret);
 
+			break;
+		case DISCONNECT_GAME:
+			lws_set_timeout(pc->wsi_game,
+				PENDING_TIMEOUT_KILLED_BY_PROXY_CLIENT_CLOSE, 1
+			); 
 			break;
 		case SEND_CMD:
 			loci_client_json_cmd_parse(pc,in+1,len-1);
