@@ -26,6 +26,7 @@ body  {
   font-size: initial; /* so there is a fallback in case vw doesn't work right. */
   margin: 0px;
   background: rgba(0,0,0,1); 
+  overscroll-behavior-y: contain;
 }
 
 
