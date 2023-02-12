@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.18 2023/02/11 18:22:49 malakai Exp $
+// $Id: lociterm.js,v 1.19 2023/02/12 02:48:47 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -69,6 +69,7 @@ class LociTerm {
 		this.login = { requested: 0, name: "", password: "", remember: 1 };
 		this.socket = undefined;
 		this.reconnect_key = "";
+		this.not_so_fast = false;
 		this.themeLoaded = 0;
 		this.url = "";
 		this.nerfbar = new NerfBar(this,"nerfbar");
@@ -133,13 +134,18 @@ class LociTerm {
 			console.log(`No socket for message '${data}'`);
 			return;
 		}
-		if(this.socket.readyState == 1) {  // OPEN
-			this.socket.send( this.textEncoder.encode(cmd + data) );
-		} else if(this.socket.readyState == 3) {  // CLOSED
-			this.connect();
-		} else {
-			// message is lost..
-			console.log(`Lost message '${data}'`);
+		switch (this.socket.readyState) {
+			case 1:  // OPEN
+				this.socket.send( this.textEncoder.encode(cmd + data) );
+				break;
+			case 3:  // CLOSED
+				this.connect();
+				break;
+			case 0: // CONNECTING
+			case 2: // CLOSING
+			default:
+				console.log(`Lost message '${data}'`);
+				break;
 		}
 	}
 
@@ -161,6 +167,22 @@ class LociTerm {
 
 
 	connect(url=this.url) {
+		if(this.socket != undefined) {
+			if(this.socket.readyState == 1) { // OPEN
+				/* don't re-open on top of soemthing. */
+				this.not_so_fast = false;
+				return;
+			}
+		}
+				
+		if(this.not_so_fast == true) {
+			console.log(`Don't reconnect so fast...`);
+			// this.terminal.write(`\r\n┅┅┅┅┅ Delaying ┅┅┅┅┅\r\n`);
+			this.not_so_fast = false;
+			setTimeout(() => this.connect(url) , 2000.0); 
+			return;
+		}
+
 		if(this.themeLoaded == false) {
 			console.log("Delaying connection for themes to load...");
 			this.terminal.write(`\r`);
@@ -267,9 +289,9 @@ class LociTerm {
 				console.log("Recieved reconnect key " + this.reconnect_key);
 				if(this.reconnect_key == old_key) {
 					console.log("keys match, this is a reconnect.");
-					//this.terminal.write(`\r\n┅┅┅┅┅ Reconnected. ┅┅┅┅┅\r\n\r\n`);
+					// this.terminal.write(`\r\n┅┅┅┅┅ Reconnected. ┅┅┅┅┅\r\n\r\n`);
 					this.doWindowResize();
-					//this.paste("\r");  /* at least in LO, \r requests a redraw. */
+					this.paste("\r");  /* at least in LO, \r requests a redraw. */
 				} 
 				localStorage.setItem("reconnect_key",this.reconnect_key);
 				break;	
@@ -282,7 +304,9 @@ class LociTerm {
 	onSocketClose(e) {
 		console.log("Socket Close." + e);
 		if(this.reconnect_key != "") {
-			setTimeout(this.connect(),1000);
+			// this.terminal.write(`\r\n┅┅┅┅┅ Reconnecting ┅┅┅┅┅\r\n`);
+			this.not_so_fast = true;
+			this.connect();
 		} else {
 			this.terminal.write(`\r\n┅┅┅┅┅ Disconnected ┅┅┅┅┅\r\n`);
 		}
@@ -290,11 +314,7 @@ class LociTerm {
 
 	onSocketError(e) {
 		console.log("Socket Error." + e);
-		if(this.reconnect_key != "") {
-			setTimeout(this.connect(),1000);
-		} else {
-			this.terminal.write(`\r\n┅┅┅┅┅ Can't reach the Loci server! ┅┅┅┅┅\r\n`);
-		}
+		this.terminal.write(`\r\n┅┅┅┅┅ Can't reach the Loci server! ┅┅┅┅┅\r\n`);
 	}
 
 	loadDefaultTheme() {
