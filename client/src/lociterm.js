@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.21 2023/02/15 05:04:59 malakai Exp $
+// $Id: lociterm.js,v 1.22 2023/02/15 05:27:31 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -354,7 +354,7 @@ class LociTerm {
 		if(this.reconnect_key != "" && (this.autoreconnect == true)) {
 			this.reconnect();
 		} else {
-			this.menuhandler.update_connect_message(`🔅Disconnected.`);
+			this.menuhandler.update_connect_message(`🔅Disconnected`);
 			// this.terminal.write(`\r\n┅┅┅┅┅ Disconnected ┅┅┅┅┅\r\n`);
 			this.autoreconnect = true;
 			this.reconnect_delay = 0;
