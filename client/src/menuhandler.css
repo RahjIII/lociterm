@@ -168,14 +168,15 @@
 }
 
 .menuside div {
-	border-style: none;
+	border-style: solid;
 	border-width: 1mm;
-	border-radius: 2.0mm;
+/*	border-radius: 2.0mm; */
 	border-color: var(--book-cover-color);
+	border-radius: calc(var(--finger-size)/3.0);
 /*	background: var(--book-paper-color);*/
 	background: hsla(0,0%,25%,0.80);
 	min-height:	var(--finger-size);
-	padding: 2.0mm;
+	padding: 1.0mm;
 	margin: 0.5mm;
 }
 

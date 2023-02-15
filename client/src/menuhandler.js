@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.17 2023/02/12 17:45:05 malakai Exp $
+// $Id: menuhandler.js,v 1.18 2023/02/15 05:04:59 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -49,6 +49,7 @@ class MenuHandler {
 		this.mydiv.appendChild(this.create_loginbox());
 		this.mydiv.appendChild(this.create_settings());
 		this.mydiv.appendChild(this.create_about());
+		this.mydiv.appendChild(this.create_connect());
 		
 	}
 
@@ -698,6 +699,53 @@ class MenuHandler {
 		cdiv = divstack[divstack.length-1];
 
 		return(overlay);
+	}
+	
+	// Return an overlay popup for the connect window.
+	create_connect() {
+
+		let l;
+		let cdiv;
+		let divstack = [];
+
+		let overlay = document.createElement('div');
+		overlay.id='menu_connect';
+		overlay.classList.add('overlay');
+		divstack.push(overlay);
+		cdiv = overlay;
+
+		l = document.createElement('div');
+		cdiv.appendChild(l);
+		l.classList.add('menupop');
+		divstack.push(l);
+		cdiv = l;
+
+		l = document.createElement('span');
+		cdiv.appendChild(l);
+		l.onclick = (()=> { this.done(); this.lociterm.connect() });
+		l.classList.add('close');
+		l.title = "Connect";
+		l.innerText = "×";
+
+		l = document.createElement('div');
+		l.classList.add('textflow');
+		cdiv.appendChild(l);
+		divstack.push(l);
+		cdiv = l;
+
+		l = document.createElement('p');
+		cdiv.appendChild(l);
+		l.id='connect_status';
+		l.innerText = `TEST`;
+
+		return(overlay);
+	}
+
+	update_connect_message(msg) {
+		let elem;
+		elem = document.getElementById("connect_status");
+		elem.innerText = msg;
+		this.open("menu_connect");
 	}
 
 	event_print(e) {

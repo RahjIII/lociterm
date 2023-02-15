@@ -47,8 +47,8 @@
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
-				"foreground": "#12110e",
-				"background": "#d5d9df",
+				"foreground": "#443311",
+				"background": "#d8d6c6",
 				"cursor": "#181612",
 				"cursorAccent": "#5e5a54" ,
 				"selection": "#5e5a54",

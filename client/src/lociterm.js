@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.20 2023/02/12 17:45:05 malakai Exp $
+// $Id: lociterm.js,v 1.21 2023/02/15 05:04:59 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -70,7 +70,6 @@ class LociTerm {
 		this.login = { requested: 0, name: "", password: "", remember: 1 };
 		this.socket = undefined;
 		this.reconnect_key = "";
-		this.not_so_fast = false;
 		this.themeLoaded = 0;
 		this.url = "";
 		this.nerfbar = new NerfBar(this,"nerfbar");
@@ -92,6 +91,8 @@ class LociTerm {
 		});
 
 		// this.reconnect_key = localStorage.getItem("reconnect_key");
+		this.autoreconnect = true;
+		this.reconnect_delay = 0;
 
 		window.addEventListener('resize', (e) => this.onWindowResize(e) );
 		this.menuhandler = new MenuHandler(this);
@@ -99,7 +100,6 @@ class LociTerm {
 		this.terminal.open(mydiv);
 		this.fitAddon.fit();
 		this.focus();
-		this.connect();
 	}
 
 	// call this as an event listener handler
@@ -135,7 +135,13 @@ class LociTerm {
 	}
 
 	focus(data) {
-		return(this.terminal.focus());
+		this.menuhandler.done();
+		/* if the nerfbar is active, focus it instead of the terminal. */
+		if(this.nerfbar.nerfstate == "active") {
+			return(this.nerfbar.focus());
+		} else {
+			return(this.terminal.focus());
+		}
 	}
 
 	sendMsg(cmd,data) {
@@ -150,11 +156,15 @@ class LociTerm {
 				break;
 			case 3:  // CLOSED
 				this.connect();
-				break;
+				/* no break! */
 			case 0: // CONNECTING
+				this.menuhandler.update_connect_message(`🔄Connecting...`);
+				break;
 			case 2: // CLOSING
+				this.menuhandler.update_connect_message(`🌀Closing...`);
+				break;
 			default:
-				console.log(`Lost message '${data}'`);
+				console.log(`ReadState=${this.socket.readyState}.  Lost message '${data}'`);
 				break;
 		}
 	}
@@ -180,17 +190,8 @@ class LociTerm {
 		if(this.socket != undefined) {
 			if(this.socket.readyState == 1) { // OPEN
 				/* don't re-open on top of soemthing. */
-				this.not_so_fast = false;
 				return;
 			}
-		}
-				
-		if(this.not_so_fast == true) {
-			console.log(`Don't reconnect so fast...`);
-			// this.terminal.write(`\r\n┅┅┅┅┅ Delaying ┅┅┅┅┅\r\n`);
-			this.not_so_fast = false;
-			setTimeout(() => this.connect(url) , 2000.0); 
-			return;
 		}
 
 		if(this.themeLoaded == false) {
@@ -199,38 +200,66 @@ class LociTerm {
 			setTimeout(() => this.connect(url) , 10.0); 
 			return;
 		}
+
 		this.url = url;
-		//this.terminal.write(`\r\nTrying ${url}... `);
+		// this.terminal.write(`\r\nTrying ${url}... `);
 		console.log(`Connecting to ${url} . `);
-		this.socket = new WebSocket(this.url, ['loci-client'],
-			{
-				rejectUnauthorized: false,
-			}
-		);
-		this.socket.binaryType = 'arraybuffer';
-		this.socket.onopen = (e) => this.onSocketOpen(e);
-		this.socket.onmessage = (e) => this.onSocketData(e);
-		this.socket.onclose = (e) => this.onSocketClose(e);
-		this.socket.onerror = (e) => this.onSocketError(e);
+		this.menuhandler.update_connect_message(`🔄Connecting...`);
+		try {
+			this.socket = new WebSocket(this.url, ['loci-client'],
+				{
+					rejectUnauthorized: false,
+				}
+			);
+			this.socket.binaryType = 'arraybuffer';
+			this.socket.onopen = (e) => this.onSocketOpen(e);
+			this.socket.onmessage = (e) => this.onSocketData(e);
+			this.socket.onclose = (e) => this.onSocketClose(e);
+			this.socket.onerror = (e) => this.onSocketError(e);
+		} catch (err) {
+			console.log(`WebSocket Error- ${err.name}-${err.message}`);
+			this.reconnect();
+		}
 	}
 
 	disconnect(how) {
 		if(how == "local") {
-			this.not_so_fast = true;
+			this.autoreconnect = false;
 			this.socket.close();
 		} else {
 			this.sendMsg(Command.DISCONNECT_CMD,"");
 		}
 	}
 
+	reconnect() {
+		if (this.socket != undefined) {
+			if (this.socket.readyState == 1) { 
+				this.reconnect_delay = 0;
+				return;
+			}
+		}
+		console.log(`Reconnect in ${this.reconnect_delay}`);
+		this.menuhandler.update_connect_message(`🔁Trying to reconnect...`);
+		setTimeout(() => this.connect() , this.reconnect_delay); 
+		if(this.reconnect_delay == 0) {
+			this.reconnect_delay = 1000;
+		} else {
+			this.reconnect_delay = Math.min(this.reconnect_delay*2,120000);
+		}
+	}
+
 	onSocketOpen(e) {
 		console.log("Socket open!" + e);
+		this.autoreconnect = true;
+		this.reconnect_delay = 0;
 		// Send the window size to the game side so that it can be made
 		// available to the mud at connection time.
 		this.doWindowResize();
 		// Request connection to the default game.  (doConnectGame takes an
 		// argument... but there's only the default game so far.)
 		this.doConnectGame(0);
+		this.menuhandler.update_connect_message(`🚀Connected!`);
+		this.menuhandler.close("menu_connect");
 	}
 
 	onSocketData(event) {
@@ -321,19 +350,21 @@ class LociTerm {
 	}
 
 	onSocketClose(e) {
-		console.log("Socket Close." + e);
-		if(this.reconnect_key != "" && (this.not_so_fast == false)) {
-			// this.terminal.write(`\r\n┅┅┅┅┅ Reconnecting ┅┅┅┅┅\r\n`);
-			this.not_so_fast = true;
-			this.connect();
+		console.log(`Socket Close`);
+		if(this.reconnect_key != "" && (this.autoreconnect == true)) {
+			this.reconnect();
 		} else {
-			this.terminal.write(`\r\n┅┅┅┅┅ Disconnected ┅┅┅┅┅\r\n`);
+			this.menuhandler.update_connect_message(`🔅Disconnected.`);
+			// this.terminal.write(`\r\n┅┅┅┅┅ Disconnected ┅┅┅┅┅\r\n`);
+			this.autoreconnect = true;
+			this.reconnect_delay = 0;
 		}
 	}
 
 	onSocketError(e) {
-		//console.log("Socket Error." + e);
 		//this.terminal.write(`\r\n┅┅┅┅┅ Can't reach the Loci server! ┅┅┅┅┅\r\n`);
+		this.menuhandler.update_connect_message("😵Socket Error!");
+		console.log(`Socket Error`);
 	}
 
 	loadDefaultTheme() {

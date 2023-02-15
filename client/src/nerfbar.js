@@ -1,6 +1,6 @@
 // nerfbar.js - pitiful line mode support
 // Created: Mon 26 Dec 2022 11:55:45 PM EST
-// $Id: nerfbar.js,v 1.2 2023/01/30 00:01:58 malakai Exp $
+// $Id: nerfbar.js,v 1.3 2023/02/15 05:04:59 malakai Exp $
 
 // Copyright © 2023 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -33,6 +33,7 @@ class NerfBar {
 			this.lociterm.mydiv.appendChild(this.mydiv);
 		}
 		this.mydiv.classList.add('nerfbar');
+		this.focuselement = "";
 		this.create_nerfbar();
 		
 	}
@@ -45,11 +46,6 @@ class NerfBar {
 		let sendkey;
 		let tabkey;
 
-		//label = document.createElement('label');
-		//label.setAttribute("for","nerfinput");
-		//label.innerText = "NerfBar";
-		//box.appendChild(label);
-
 		input = document.createElement('input');
 		input.setAttribute("name","nerfinput");
 		input.setAttribute("type","text");
@@ -59,7 +55,13 @@ class NerfBar {
 		input.placeholder = "Enter a command...";
 		input.id = "nerfinput";
 
+		this.focuselement = input;
+
 		input.onchange = ((e)=>{
+
+			if(document.hasFocus(e.currentTarget) == false) {
+				return;
+			} 
 			this.lociterm.paste(e.srcElement.value);
 			this.lociterm.paste("\n");
 			e.srcElement.value = "";
@@ -70,15 +72,18 @@ class NerfBar {
 				this.lociterm.paste(e.srcElement.value);
 				this.lociterm.paste("\n");
 				e.srcElement.value = "";
+				this.focus();
 				e.preventDefault();
 			}
 			if(e.code == "Tab") {
 				this.lociterm.paste(e.srcElement.value);
 				this.lociterm.paste("\t");
 				e.srcElement.value = "";
+				this.focus();
 				e.preventDefault();
 			}
 		});
+
 		box.appendChild(input);
 
 		tabkey = document.createElement('button');
@@ -87,6 +92,8 @@ class NerfBar {
 			this.lociterm.paste(input.value);
 			this.lociterm.paste("\t");
 			input.value = "";
+			this.focus();
+			e.preventDefault();
 		});
 		tabkey.innerText = "↹";
 		box.appendChild(tabkey);
@@ -97,6 +104,8 @@ class NerfBar {
 			this.lociterm.paste(input.value);
 			this.lociterm.paste("\n");
 			input.value = "";
+			this.focus();
+			e.preventDefault();
 		});
 		sendkey.innerText = "⏎";
 		box.appendChild(sendkey);
@@ -110,6 +119,7 @@ class NerfBar {
 			getComputedStyle(document.documentElement).getPropertyValue('--nerfbar-open-display');
 		this.lociterm.fitAddon.fit();
 		this.lociterm.doWindowResize();
+		this.nerfstate = "active";
 	}
 
 	// make the nerfbar DIE DIE DIE. I hate you, nerfbar.
@@ -118,6 +128,11 @@ class NerfBar {
 			getComputedStyle(document.documentElement).getPropertyValue('--nerfbar-close-display');
 		this.lociterm.fitAddon.fit();
 		this.lociterm.doWindowResize();
+		this.nerfstate = "inactive";
+	}
+
+	focus() {
+		this.focuselement.focus();
 	}
 
 }

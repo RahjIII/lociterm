@@ -21,6 +21,10 @@
   /* font-size: 1.75vw; */
 }
 
+:root {
+	--terminal-height: 1fr;
+}
+
 body  { 
   font-family: LOFont, Glass, monospace;
   font-size: initial; /* so there is a fallback in case vw doesn't work right. */
@@ -33,7 +37,7 @@ body  {
 
 .locilayout {
 	display: grid; 
-	grid-template-rows: 1fr auto;
+	grid-template-rows: var(--terminal-height);
 	align-content: stretch;
 	position: absolute;
 	top: 0;
