@@ -1,8 +1,8 @@
-# $Id: makefile,v 1.7 2022/07/18 16:16:27 lo Exp $
+# $Id: makefile,v 1.8 2023/02/17 19:26:28 malakai Exp $
 #
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.7 2022/07/18 16:16:27 lo Exp $
+# $Id: makefile,v 1.8 2023/02/17 19:26:28 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -30,6 +30,8 @@ SERVERDIR = ./server
 CLIENTDIR = ./client
 NPM = ./client/node_modules
 CERTNAME = loci
+DATEKEY = `date +%y%m%d%H%M`
+TARFILE = ../lociterm.$(DATEKEY).tgz
 
 # #### Recipies Start Here ####
 
@@ -85,3 +87,10 @@ install :
 systemd: 
 	cp server/lociterm.service /etc/systemd/system
 	systemctl enable lociterm.service
+
+.PHONY : tar
+tar :
+	$(info --- Tar file create ----)
+	tar -cvz --exclude-vcs --exclude-from=.exclude  -f $(TARFILE) .
+	@echo
+	@echo ---- Tar File is $(TARFILE) ----

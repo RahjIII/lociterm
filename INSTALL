@@ -23,9 +23,9 @@ sudo make install
 
 To build type `make` in this directory.
 
-Then "make install"- but there's no systemd/sysv startup script yet.
+Then "make install".
 
-"make certs" to make some self signed ones.
+"make certs" to make some self signed ones if you don't have real ones.
 
 "make systemd" to make locid run as lociterm.service
 
