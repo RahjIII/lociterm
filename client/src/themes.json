@@ -4,12 +4,14 @@
 		"fontsize": "16px",
 		"fingersize": "8mm",
 		"nerfbar": "false",
+		"background": "#000000",
 		"xtermoptions": {
+			"minimumContrastRatio": 1,
 			"bellStyle": "sound",
 			"fontSize": "16",
 			"fontFamily": "LOFont,courier",
 			"cursorBlink": true,
-			"screenReaderMode": false,
+			"screenReaderMode": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
@@ -38,12 +40,13 @@
 		"fontsize": "16px",
 		"fingersize": "8mm",
 		"nerfbar": "false",
+		"background": "#d8d6c6",
 		"xtermoptions": {
 			"bellStyle": "sound",
 			"fontSize": "16",
 			"fontFamily": "LOFont,courier",
 			"cursorBlink": true,
-			"screenReaderMode": false,
+			"screenReaderMode": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
@@ -74,13 +77,53 @@
 		}
 	},
 	{
+		"name": "Dyslexic",
+		"fontSize": "16px",
+		"fingersize": "8mm",
+		"nerfbar": "false",
+		"background": "#101010",
+		"xtermoptions": {
+			"bellStyle": "sound",
+			"fontSize": "16",
+			"fontFamily": "Dyslexic,LOFont,courier",
+			"cursorBlink": true,
+			"screenReaderMode": true,
+			"scrollback": 1000,
+			"scrollOnUserInput": true,
+			"minimumContrastRatio": 4.5,
+			"theme": {
+				"cursor": "#dcdccc",
+				"cursorAccent": "#101010",
+				"foreground": "#dcdccc",
+				"background": "#101010",
+				"black": "#3f3f3f",
+				"red": "#B05050",
+				"green": "#60b48a",
+				"yellow": "#dfaf8f",
+				"blue": "#9ab8d7",
+				"magenta": "#dc8cc3",
+				"cyan": "#8cd0d3",
+				"white": "#dcdccc",
+
+				"brightBlack": "#709080",
+				"brightRed": "#dca3a3",
+				"brightGreen": "#72d5a3",
+				"brightYellow": "#f0dfaf",
+				"brightBlue": "#94bff3",
+				"brightMagenta": "#ec93d3",
+				"brightCyan": "#93e0e3",
+				"brightWhite": "#ffffff"
+			}
+		}
+	},
+	{
 		"name": "XTerm",
 		"xtermoptions": {
 			"fontSize": 16,
 			"fontFamily": "courier, LOFont, monospace",
 			"bellStyle": "sound",
 			"cursorBlink": true,
-			"screenReaderMode": false,
+			"screenReaderMode": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
@@ -94,7 +137,7 @@
 			"fontFamily": "VT323, LOFont, Noto Emoji",
 			"fontSize": 24,
 			"cursorBlink": true,
-			"screenReaderMode": false,
+			"screenReaderMode": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
@@ -131,7 +174,7 @@
 			"fontFamily": "VT323, LOFont, Noto Emoji",
 			"fontSize": 24,
 			"cursorBlink": true,
-			"screenReaderMode": false,
+			"screenReaderMode": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
@@ -165,15 +208,20 @@
 		"name": "c64",
 		"fontsize": "16px",
 		"fingersize": "8mm",
+		"background": "#40318D",
 		"xtermoptions": {
+			"minimumContrastRatio": 2,
 			"bellStyle": "sound",
 			"fontSize": "16",
 			"fontFamily": "Commodore, LOFont, Noto Emoji",
 			"cursorBlink": true,
-			"screenReaderMode": false,
+			"screenReaderMode": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
+				"cursor": "#7869C4",
+				"cursorAccent": "#40318D",
+				"foreground": "#7869C4",
 				"background": "#40318D",
 				"black": "#000000",
 				"red": "#883932",

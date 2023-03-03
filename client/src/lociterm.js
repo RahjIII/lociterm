@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.22 2023/02/15 05:27:31 malakai Exp $
+// $Id: lociterm.js,v 1.23 2023/03/03 21:13:09 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -515,6 +515,20 @@ class LociTerm {
 			let select = document.getElementById("theme-select");
 			if(select != undefined) {
 				select.value = theme.locithemeno;
+			}
+		}
+
+		/* Set the main backgound... */
+		if(theme.background != undefined) {
+			document.documentElement.style.setProperty('--background-color', theme.background);
+		} else {
+			/* ... or have the main theme background inherit the xterm background. */
+			if(theme.xtermoptions != undefined) {
+				if(theme.xtermoptions.theme != undefined) {
+					if(theme.xtermoptions.theme.background != undefined) {
+						document.documentElement.style.setProperty('--background-color', theme.xtermoptions.theme.background);
+					}
+				}
 			}
 		}
 

@@ -32,6 +32,8 @@
 	flex-grow: 1;
 	outline-color: var(--book-cover-color);
 	min-height: var(--finger-size);
+	background: var(--book-paper-color);
+	background: var(--book-altpaper-color);
 }
 
 .nerfbar button {

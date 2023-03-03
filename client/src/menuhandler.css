@@ -1,7 +1,10 @@
 :root {
 	--book-cover-color: #7c1f3b;
 	--book-paper-color: #d8d6c6;
+	--book-altpaper-color: #ecebe4;
 	--book-text-color: #443311;
+	--book-link-color: #AA2600;
+	--book-visited-color: #CC2600;
 	--finger-size: 8mm;
 	--font-size: 16px;
 	--menufade-hidden: 0.20;
@@ -33,17 +36,21 @@
 }
 
 #menubox {
-	position: absolute;
-	top: var(--bgridAnchor-top);
 	bottom: var(--bgridAnchor-bottom);
 	left: var(--bgridAnchor-left);
-	right: var(--bgridAnchor-right);
-	z-index: 12;
 	margin: 1em;
-	border-radius: 2mm;
-	visibility: visible;
 	opacity: var(--menufade-hidden);
+	position: absolute;
+	right: var(--bgridAnchor-right);
+	top: var(--bgridAnchor-top);
 	transition: opacity 4s ease-in-out;
+	visibility: visible;
+	z-index: 12;
+	/* background: var(--book-paper-color); */
+	border-color: var(--book-cover-color);
+	border-radius: calc(var(--finger-size)/3.0);
+	border-style: solid;
+	border-width: 1mm;
 }
 
 #menubox:hover {
@@ -150,7 +157,7 @@
 }
 
 .menuside button:hover {
-	color: #ffb76c;
+	color: #red;
 }
 
 .menuside-open {
@@ -168,35 +175,39 @@
 }
 
 .menuside div {
-	border-style: solid;
-	border-width: 1mm;
-/*	border-radius: 2.0mm; */
+	align-content: center;
+	background: var(--book-paper-color);
 	border-color: var(--book-cover-color);
 	border-radius: calc(var(--finger-size)/3.0);
-/*	background: var(--book-paper-color);*/
-	background: hsla(0,0%,25%,0.80);
+	border-style: solid;
+	border-width: 1mm;
+	display: flex;
+	flex-wrap: wrap;
+	margin: 0.5mm;
 	min-height:	var(--finger-size);
 	padding: 1.0mm;
-	margin: 0.5mm;
 }
 
 .menuside div:hover{
-	background: hsla(0,0%,35%,0.80);
+	/* background: hsla(0,0%,35%,0.80); */
+	opacity: 75%;
 }
 
 .menuside div:active{
-	background: hsla(0,0%,45%,0.80);
+	/* background: hsla(0,0%,45%,0.80); */
+	opacity: 75%;
 }
 
 .menuside .open {
-	color:	white;
 	text-transform: capitalize;
+	color: var(--book-text-color);
 }
 
 .menuside .send {
 	font-weight: bold;
-	color: yellow;
+	color: var(--book-link-color);
 	text-transform: capitalize;
+	font-style: italic;
 }
 
 .menuside .client {
@@ -226,22 +237,22 @@
 }
 
 .menupop {
-	position: relative;
-	display: grid;
-	justify-content: center;
 	align-items: center;
-	grid-template-columns: 1fr;
-	margin: calc(var(--finger-size)/2.0);
-	padding: calc(var(--finger-size)/2.0);
-	border-radius: calc(var(--finger-size)/2.0);
 	background: var(--book-paper-color);
-	color: var(--book-text-color);
 	border-color: var(--book-cover-color);
+	border-radius: calc(var(--finger-size)/2.0);
 	border-style: solid;
 	border-width: 1mm;
-	max-width: 80%;
+	color: var(--book-text-color);
+	display: grid;
+	grid-template-columns: 1fr;
+	justify-content: center;
+	margin: calc(var(--finger-size)/2.0);
 	max-height: 80%;
+	max-width: 80%;
 	overflow: auto;
+	padding: calc(var(--finger-size)/2.0);
+	position: relative;
 	/* text-transform: capitalize;*/
 }
 
@@ -266,12 +277,15 @@
 .menupop input,
 .menupop input.checkbox,
 .menupop button {
-	min-height: calc(var(--finger-size)/2.0);
-	min-width: calc(var(--finger-size)/2.0);
+	min-height: calc(var(--finger-size)/1.5);
+	min-width: calc(var(--finger-size)/1.5);
 	font-size: var(--font-size);
 	margin: 1mm;
+	background: var(--book-altpaper-color);
+	border-color: var(--book-cover-color);
+	border-radius: calc(var(--finger-size)/4.0);
+	border-style: solid;
 	color: var(--book-text-color);
-	background: white;
 }
 
 .close {

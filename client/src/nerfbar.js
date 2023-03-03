@@ -1,6 +1,6 @@
 // nerfbar.js - pitiful line mode support
 // Created: Mon 26 Dec 2022 11:55:45 PM EST
-// $Id: nerfbar.js,v 1.3 2023/02/15 05:04:59 malakai Exp $
+// $Id: nerfbar.js,v 1.4 2023/03/03 21:13:09 malakai Exp $
 
 // Copyright © 2023 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -85,18 +85,6 @@ class NerfBar {
 		});
 
 		box.appendChild(input);
-
-		tabkey = document.createElement('button');
-		tabkey.setAttribute("type","button");
-		tabkey.onclick = ((e)=>{
-			this.lociterm.paste(input.value);
-			this.lociterm.paste("\t");
-			input.value = "";
-			this.focus();
-			e.preventDefault();
-		});
-		tabkey.innerText = "↹";
-		box.appendChild(tabkey);
 
 		sendkey = document.createElement('button');
 		sendkey.setAttribute("type","button");

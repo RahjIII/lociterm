@@ -16,6 +16,11 @@
   src: url(./fonts/Glass_TTY_VT220.ttf) format("truetype");
 }
 
+@font-face {
+  font-family: Dyslexic;
+  src: url(./fonts/OpenDyslexicMono-Regular.otf) format("opentype");
+}
+
 
 .scalefont {
   /* font-size: 1.75vw; */
@@ -23,13 +28,14 @@
 
 :root {
 	--terminal-height: 1fr;
+	--background-color: rgba(0,0,0,1);
 }
 
 body  { 
   font-family: LOFont, Glass, monospace;
   font-size: initial; /* so there is a fallback in case vw doesn't work right. */
   margin: 0px;
-  background: rgba(0,0,0,1); 
+  background: var(--background-color);
   overscroll-behavior-y: contain;
 }
 

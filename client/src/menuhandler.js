@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.18 2023/02/15 05:04:59 malakai Exp $
+// $Id: menuhandler.js,v 1.19 2023/03/03 21:13:09 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -685,12 +685,12 @@ class MenuHandler {
 
 		l = document.createElement('p');
 		cdiv.appendChild(l);
-		l.innerText = "Some icons courtesy of Open Iconic (https://useiconic.com/open/); GlassTTY VT220 TrueType font by Viacheslav Slavinsky (http://sensi.org/~svo/glasstty); Noto Emoji font by Google. "
+		l.innerText = "Some icons courtesy of Open Iconic (https://useiconic.com/open/); GlassTTY VT220 TrueType font by Viacheslav Slavinsky (http://sensi.org/~svo/glasstty); Noto Emoji font by Google; OpenDyslexic Font from (https://opendyslexic.org/)."
 		
 		l = document.createElement('p');
 		cdiv.appendChild(l);
 		l.innerText = "Terminal bell sound from Oxegen desktop theme (https://invent.kde.org/plasma/oxygen)."
-		
+
 		l = document.createElement('p');
 		cdiv.appendChild(l);
 		l.innerText = "Thank you to the Multi User Dungeon #coding discord group for your help and encouragement, and to every member of the Last Outpost Honor Guard! "
@@ -705,38 +705,48 @@ class MenuHandler {
 	create_connect() {
 
 		let l;
-		let cdiv;
+		let container;
 		let divstack = [];
 
 		let overlay = document.createElement('div');
 		overlay.id='menu_connect';
 		overlay.classList.add('overlay');
 		divstack.push(overlay);
-		cdiv = overlay;
+		container = overlay;
 
-		l = document.createElement('div');
-		cdiv.appendChild(l);
-		l.classList.add('menupop');
-		divstack.push(l);
-		cdiv = l;
+			l = document.createElement('div');
+			container.appendChild(l);
+			l.classList.add('menupop');
+			divstack.push(container);
+			container = l;
 
-		l = document.createElement('span');
-		cdiv.appendChild(l);
-		l.onclick = (()=> { this.done(); this.lociterm.connect() });
-		l.classList.add('close');
-		l.title = "Connect";
-		l.innerText = "×";
+				l = document.createElement('span');
+				container.appendChild(l);
+				//l.onclick = (()=> { this.done(); this.lociterm.connect() });
+				l.onclick = (()=> { this.done(); });
+				l.classList.add('close');
+				l.title = "Connect";
+				l.innerText = "×";
 
-		l = document.createElement('div');
-		l.classList.add('textflow');
-		cdiv.appendChild(l);
-		divstack.push(l);
-		cdiv = l;
+				l = document.createElement('div');
+				l.classList.add('textflow');
+				container.appendChild(l);
+				divstack.push(container);
+				container = l;
 
-		l = document.createElement('p');
-		cdiv.appendChild(l);
-		l.id='connect_status';
-		l.innerText = `TEST`;
+					l = document.createElement('p');
+					container.appendChild(l);
+					l.id='connect_status';
+					l.innerText = `TEST`;
+					
+				container=divstack.pop();
+
+			// login      NOT RIGHT
+			l = document.createElement('button');
+			container.appendChild(l);
+			l.setAttribute("type","submit");
+			l.innerText = "Reconnect";
+			l.onclick = (()=> { this.done(); this.lociterm.connect() });
 
 		return(overlay);
 	}
