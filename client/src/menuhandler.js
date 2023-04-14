@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.19 2023/03/03 21:13:09 malakai Exp $
+// $Id: menuhandler.js,v 1.20 2023/04/14 17:51:14 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -609,7 +609,7 @@ class MenuHandler {
 		);
 		box.appendChild(field);
 
-		nerf = this.create_nerfbar_select("nerfbar-select","Line Mode",
+		nerf = this.create_generic_select("nerfbar-select","Line Mode",
 			((e)=>{
 				if(e.srcElement.value == 0) {
 					this.lociterm.nerfbar.close();
@@ -622,6 +622,24 @@ class MenuHandler {
 			})
 		);
 		box.appendChild(nerf);
+
+		// a selector for screenreader hinting.  Unfortunately, with the
+		// current version of xterm.js, the use of screenreader mode supersedes
+		// the use of the weblinks module.  You can enable hints for the VI, or
+		// useful clickable links for everyone else.  Its a good idea to leave
+		// the hints on by default, because a VI user is going to have a
+		// tougher time enabling them than a non-VI user will have disabling
+		// them.
+		field = this.create_generic_select("reader-select","Accesibility",
+			((e)=>{
+				let themedelta = [];
+				themedelta.xtermoptions = [];
+				themedelta.xtermoptions.screenReaderMode = (e.srcElement.value === "true");
+				this.lociterm.applyTheme(themedelta);
+			}),
+			{ false: "Clickable Links", true: "ARIA Hints" }
+		);
+		box.appendChild(field);
 
 
 		return(overlay);
@@ -765,14 +783,11 @@ class MenuHandler {
 		this.lociterm.terminal.write(`🌀\r\n`);
 	}
 
-	create_nerfbar_select(named="",labeled="",oninput="") {
+
+	create_generic_select(named="",labeled="",oninput="",optlist={false:"Disabled",true:"Enabled"}) {
 		let mydiv;
 		let label;
 		let select;
-
-		let optlist = { 
-			false: "Disabled", true: "Enabled"
-		};
 
 		mydiv = document.createElement('div');
 

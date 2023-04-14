@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.23 2023/03/03 21:13:09 malakai Exp $
+// $Id: lociterm.js,v 1.24 2023/04/14 17:51:14 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -401,6 +401,14 @@ class LociTerm {
 			defaultTheme.nerfbar = "false";
 		}
 
+		let readermode = (localStorage.getItem("screenReaderMode") === "true");
+		if (readermode != undefined) {
+			defaultTheme.screenReaderMode = readermode;
+			defaultTheme.xtermoptions.screenReaderMode = readermode;
+		} else {
+			defaultTheme.xtermoptions.screenReaderMode = true;
+		}
+
 		let bgridAnchor = localStorage.getItem("bgridAnchor");
 		if (bgridAnchor != undefined) {
 			defaultTheme.bgridAnchor = bgridAnchor;
@@ -453,6 +461,13 @@ class LociTerm {
 			let select = document.getElementById("nerfbar-select");
 			if(select != undefined) {
 				select.value = theme.nerfbar;
+			}
+		}
+		if( (theme.xtermoptions != undefined) && (theme.xtermoptions.screenReaderMode != undefined)) {
+			localStorage.setItem("screenReaderMode",theme.xtermoptions.screenReaderMode);
+			let select = document.getElementById("reader-select");
+			if(select != undefined) {
+				select.value = theme.xtermoptions.screenReaderMode;
 			}
 		}
 
