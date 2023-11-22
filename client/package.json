@@ -1,7 +1,7 @@
 {
   "name": "LociTerm",
   "longname": "Last Outpost Client Interface Terminal",
-  "version": "1.9",
+  "version": "1.10",
   "description": "The preferred game client for The Last Outpost",
   "homepage": "https://www.last-outpost.com/pubcode",
   "author": "Jeff Jahr <rahjiii@jeffrika.com>",
@@ -16,20 +16,21 @@
   },
   "keywords": [],
   "devDependencies": {
-    "copy-webpack-plugin": "^5.1.2",
+    "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.1",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",
     "style-loader": "^3.3.1",
     "webpack": "^5.72.0",
-    "webpack-cli": "^4.9.2",
+    "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.8.1"
   },
   "dependencies": {
-    "xterm": "^5.1.0",
-    "xterm-addon-attach": "^0.7.0",
-    "xterm-addon-fit": "^0.7.0",
-    "xterm-addon-unicode11": "^0.5.0",
-    "xterm-addon-web-links": "^0.8.0"
+    "xterm": "^5.3.0",
+    "xterm-addon-attach": "^0.9.0",
+    "xterm-addon-fit": "^0.8.0",
+    "xterm-addon-image": "^0.5.0",
+    "xterm-addon-unicode11": "^0.6.0",
+    "xterm-addon-web-links": "^0.9.0"
   }
 }

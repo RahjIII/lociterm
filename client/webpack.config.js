@@ -27,14 +27,19 @@ module.exports = {
 			filename: 'index.html',
 			inject: 'head'
 		}),
-		new CopyWebpackPlugin([
-		{
-			from: "./src/manifest.json",
-			to:   "./manifest.json",
-			transform (content, path) {
-				return modify(content)
+		new CopyWebpackPlugin(
+			{
+			patterns: [
+				{
+					from: "./src/manifest.json",
+					to:   "./manifest.json",
+					transform (content, path) {
+						return modify(content)
+					}
+				}
+			]
 			}
-		}])
+		)
 	],
 	mode: 'development',
 	output: {

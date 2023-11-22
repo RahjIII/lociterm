@@ -17,6 +17,8 @@ npm install xterm-addon-web-links -save
 npm install xterm-addon-fit -save
 npm install xterm-addon-attach -save
 npm install xterm-addon-unicode11 -save
+npm install xterm-addon-image -save
+
 
 # I created webpak.config.js by hand from an example.
 vi webpack.config.js
@@ -49,3 +51,17 @@ npm run serve
 npm install -S xterm@beta --legacy-peer-deps
 # this puts it back
 npm install -S xterm@5.1.0
+
+# update packages-
+# show which are out of date
+npm outdated
+npm update
+# if npm outdated still shows outdated packages, install them @latest
+npm outdated
+npm install xterm-addon-attach@latest
+npm install xterm-addon-fit@latest
+npm install xterm-addon-unicode11@latest
+npm install xterm-addon-web-links@latest
+
+
+

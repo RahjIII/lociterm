@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.24 2023/04/14 17:51:14 malakai Exp $
+// $Id: lociterm.js,v 1.25 2023/11/22 14:54:14 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -25,6 +25,7 @@ import { WebLinksAddon } from 'xterm-addon-web-links';
 import { FitAddon } from 'xterm-addon-fit';
 import { AttachAddon } from 'xterm-addon-attach';
 import { Unicode11Addon } from 'xterm-addon-unicode11';
+import { ImageAddon, IImageAddonOptions } from 'xterm-addon-image';
 import { MenuHandler } from './menuhandler.js';
 import { NerfBar } from './nerfbar.js';
 import BellSound from './snd/Oxygen-Im-Contact-In.mp3';
@@ -48,6 +49,21 @@ const Command = {
 	CONNECT_GAME: '5',
 	SEND_CMD: '6',
 	DISCONNECT_CMD: '7'
+}
+
+// IIP support from xterm-addon-image
+// customize as needed (showing addon defaults)
+const customImageSettings = {
+  enableSizeReports: true,    // whether to enable CSI t reports (see below)
+  pixelLimit: 16777216,       // max. pixel size of a single image
+  sixelSupport: true,         // enable sixel support
+  sixelScrolling: true,       // whether to scroll on image output
+  sixelPaletteLimit: 256,     // initial sixel palette size
+  sixelSizeLimit: 25000000,   // size limit of a single sixel sequence
+  storageLimit: 128,          // FIFO storage limit in MB
+  showPlaceholder: true,      // whether to show a placeholder for evicted images
+  iipSupport: true,           // enable iTerm IIP support
+  iipSizeLimit: 20000000      // size limit of a single IIP sequence
 }
 
 class LociTerm {
@@ -79,6 +95,11 @@ class LociTerm {
 		this.terminal.unicode.activeVersion = '11';
 		this.terminal.loadAddon(this.fitAddon);
 		this.terminal.loadAddon(this.webLinksAddon);
+
+		//this.imageAddon = new ImageAddon(customImageSettings);
+		this.imageAddon = new ImageAddon();
+		this.terminal.loadAddon(this.imageAddon);
+
 		this.terminal.onData((e) => this.onTerminalData(e) );
 		this.terminal.onBinary((e) => this.onBinaryData(e) );
 
