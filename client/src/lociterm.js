@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.25 2023/11/22 14:54:14 malakai Exp $
+// $Id: lociterm.js,v 1.26 2024/03/08 15:38:28 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -20,12 +20,14 @@
 // along with LociTerm.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-import { Terminal } from 'xterm';
-import { WebLinksAddon } from 'xterm-addon-web-links';
-import { FitAddon } from 'xterm-addon-fit';
-import { AttachAddon } from 'xterm-addon-attach';
-import { Unicode11Addon } from 'xterm-addon-unicode11';
-import { ImageAddon, IImageAddonOptions } from 'xterm-addon-image';
+import { Terminal } from '@xterm/xterm';
+import { WebLinksAddon } from '@xterm/addon-web-links';
+import { FitAddon } from '@xterm/addon-fit';
+import { AttachAddon } from '@xterm/addon-attach';
+import { Unicode11Addon } from '@xterm/addon-unicode11';
+import { ImageAddon, IImageAddonOptions } from '@xterm/addon-image';
+import { WebglAddon } from '@xterm/addon-webgl';
+
 import { MenuHandler } from './menuhandler.js';
 import { NerfBar } from './nerfbar.js';
 import BellSound from './snd/Oxygen-Im-Contact-In.mp3';
@@ -95,6 +97,12 @@ class LociTerm {
 		this.terminal.unicode.activeVersion = '11';
 		this.terminal.loadAddon(this.fitAddon);
 		this.terminal.loadAddon(this.webLinksAddon);
+
+		this.webgladdon = new WebglAddon();
+		this.webgladdon.onContextLoss(e => {
+			this.webgladdon.dispose();
+		});
+		this.terminal.loadAddon(this.webgladdon);
 
 		//this.imageAddon = new ImageAddon(customImageSettings);
 		this.imageAddon = new ImageAddon();
@@ -481,14 +489,14 @@ class LociTerm {
 			localStorage.setItem("nerfbar",theme.nerfbar);
 			let select = document.getElementById("nerfbar-select");
 			if(select != undefined) {
-				select.value = theme.nerfbar;
+				select.checked = (theme.nerfbar == "true");
 			}
 		}
 		if( (theme.xtermoptions != undefined) && (theme.xtermoptions.screenReaderMode != undefined)) {
 			localStorage.setItem("screenReaderMode",theme.xtermoptions.screenReaderMode);
 			let select = document.getElementById("reader-select");
 			if(select != undefined) {
-				select.value = theme.xtermoptions.screenReaderMode;
+				select.checked = theme.xtermoptions.screenReaderMode;
 			}
 		}
 

@@ -11,6 +11,9 @@
 			"fontSize": "16",
 			"fontFamily": "LOFont,courier",
 			"cursorBlink": true,
+			"cursorStyle": "block",
+			"cursorInactiveStyle": "outline",
+			"screenReaderMode": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
@@ -45,7 +48,7 @@
 			"fontSize": "16",
 			"fontFamily": "LOFont,courier",
 			"cursorBlink": true,
-			"screenReaderMode": false,
+			"screenReaderMode": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
@@ -136,11 +139,12 @@
 			"fontFamily": "VT323, LOFont, Noto Emoji",
 			"fontSize": 24,
 			"cursorBlink": true,
+			"screenReaderMode": false,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
 				"foreground": "#2de55b",
-				"background": "black",
+				"background": "#161917",
 				"cursor": "#33ff66",
 				"cursorAccent": "#24b548" ,
 				"selection": "#33ff66",
@@ -172,6 +176,7 @@
 			"fontFamily": "VT323, LOFont, Noto Emoji",
 			"fontSize": 24,
 			"cursorBlink": true,
+			"screenReaderMode": false,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
@@ -212,6 +217,7 @@
 			"fontSize": "16",
 			"fontFamily": "Commodore, LOFont, Noto Emoji",
 			"cursorBlink": true,
+			"screenReaderMode": false,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {

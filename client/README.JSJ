@@ -64,4 +64,12 @@ npm install xterm-addon-unicode11@latest
 npm install xterm-addon-web-links@latest
 
 
+# Ok, xterm.js is moving to scoped packages, so install with
+npm install --save @xterm/xterm
+npm install --save @xterm/addon-web-links
+npm install --save @xterm/addon-fit
+npm install --save @xterm/addon-attach
+npm install --save @xterm/addon-unicode11
+npm install --save @xterm/addon-image
+npm install --save @xterm/addon-webgl
 

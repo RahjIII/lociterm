@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.20 2023/04/14 17:51:14 malakai Exp $
+// $Id: menuhandler.js,v 1.21 2024/03/08 15:38:28 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -609,35 +609,35 @@ class MenuHandler {
 		);
 		box.appendChild(field);
 
-		nerf = this.create_generic_select("nerfbar-select","Line Mode",
+		nerf = this.create_generic_checkbox("nerfbar-select","Line Mode",
 			((e)=>{
-				if(e.srcElement.value == 0) {
+				if(e.srcElement.checked == false) {
 					this.lociterm.nerfbar.close();
 				} else {
 					this.lociterm.nerfbar.open();
 				}
 				let themedelta = [];
-				themedelta.nerfbar = e.srcElement.value;
+				themedelta.nerfbar = (e.srcElement.checked ? "true":"false")
 				this.lociterm.applyTheme(themedelta);
 			})
 		);
 		box.appendChild(nerf);
 
-		// a selector for screenreader hinting.  Unfortunately, with the
-		// current version of xterm.js, the use of screenreader mode supersedes
-		// the use of the weblinks module.  You can enable hints for the VI, or
-		// useful clickable links for everyone else.  Its a good idea to leave
-		// the hints on by default, because a VI user is going to have a
-		// tougher time enabling them than a non-VI user will have disabling
-		// them.
-		field = this.create_generic_select("reader-select","Accesibility",
+		// A selector for screenreader hinting.  Its a good idea to leave the
+		// hints on by default, because a VI user is going to have a tougher
+		// time enabling them than a non-VI user will have disabling them.
+		// This option exists because a previous verion of xterm.js couldn't do
+		// clickable links and ARIA screen reader hints at the same time.  It
+		// is *still* here because the tooling was already in place, and some
+		// slower web browsers might be sped up by leaving the hints off.
+
+		field = this.create_generic_checkbox("reader-select","Acessablity Hints",
 			((e)=>{
 				let themedelta = [];
 				themedelta.xtermoptions = [];
-				themedelta.xtermoptions.screenReaderMode = (e.srcElement.value === "true");
+				themedelta.xtermoptions.screenReaderMode = (e.srcElement.checked == true);
 				this.lociterm.applyTheme(themedelta);
-			}),
-			{ false: "Clickable Links", true: "ARIA Hints" }
+			})
 		);
 		box.appendChild(field);
 
@@ -810,6 +810,33 @@ class MenuHandler {
 		}
 
 		mydiv.appendChild(select);
+
+		return(mydiv);
+
+	}
+
+	create_generic_checkbox(named="",labeled="",oninput="") {
+		let mydiv;
+		let label;
+		let select;
+
+		mydiv = document.createElement('div');
+		mydiv.classList.add('genericcheckbox');
+
+		select = document.createElement("input");
+		mydiv.appendChild(select);
+		select.setAttribute("type","checkbox");
+		select.setAttribute("name",named);
+		select.checked = true;
+		select.id = named;
+		select.onclick = oninput;
+		mydiv.appendChild(select);
+
+		label = document.createElement('label');
+		label.setAttribute("for",named);
+		label.innerText = labeled;
+		mydiv.appendChild(label);
+
 
 		return(mydiv);
 

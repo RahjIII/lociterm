@@ -1,6 +1,6 @@
 // index.js - LociTerm entry js
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: index.js,v 1.11 2023/01/30 00:01:58 malakai Exp $
+// $Id: index.js,v 1.12 2024/03/08 15:38:28 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -20,8 +20,10 @@
 // along with LociTerm.  If not, see <https://www.gnu.org/licenses/>.
 //
 
+// You can use this local copy of xterm.css that you've made
 // import './xterm.css';
-import 'xterm/css/xterm.css';
+// or use the one that comes stock with xterm
+import '@xterm/xterm/css/xterm.css';
 import './menuhandler.css';
 import './nerfbar.css';
 import './styles.css';
