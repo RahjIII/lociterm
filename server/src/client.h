@@ -1,6 +1,6 @@
 /* client.h - LociTerm client side protocols */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: client.h,v 1.6 2023/02/12 17:45:05 malakai Exp $ */
+/* $Id: client.h,v 1.7 2024/04/06 17:55:12 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -31,6 +31,7 @@
 #define SET_PREFERENCES '2'
 #define RECV_CMD '3'
 #define RECONNECT_KEY '7'
+#define GMCP_OUTPUT '8'
 
 // from web client message
 #define INPUT '0'
@@ -40,6 +41,7 @@
 #define CONNECT_GAME '5'
 #define SEND_CMD '6'
 #define DISCONNECT_GAME '7'
+#define GMCP_INPUT '8'
 
 /* structs and typedefs */
 
@@ -47,7 +49,7 @@
 /* exported global variable declarations */
 
 /* exported function declarations */
-
+void loci_client_send_cmd(proxy_conn_t *pc, char cmd, char *in, size_t len);
 void loci_client_write(proxy_conn_t *pc, char *in, size_t len);
 
 int callback_loci_client(

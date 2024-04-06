@@ -89,7 +89,7 @@
 			"fontSize": "16",
 			"fontFamily": "Dyslexic,LOFont,courier",
 			"cursorBlink": true,
-			"screenReaderMode": false,
+			"screenReaderMode": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"minimumContrastRatio": 4.5,
@@ -125,7 +125,7 @@
 			"fontFamily": "courier, LOFont, monospace",
 			"bellStyle": "sound",
 			"cursorBlink": true,
-			"screenReaderMode": false,
+			"screenReaderMode": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
@@ -139,7 +139,7 @@
 			"fontFamily": "VT323, LOFont, Noto Emoji",
 			"fontSize": 24,
 			"cursorBlink": true,
-			"screenReaderMode": false,
+			"screenReaderMode": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
@@ -176,7 +176,7 @@
 			"fontFamily": "VT323, LOFont, Noto Emoji",
 			"fontSize": 24,
 			"cursorBlink": true,
-			"screenReaderMode": false,
+			"screenReaderMode": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
@@ -217,7 +217,7 @@
 			"fontSize": "16",
 			"fontFamily": "Commodore, LOFont, Noto Emoji",
 			"cursorBlink": true,
-			"screenReaderMode": false,
+			"screenReaderMode": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {

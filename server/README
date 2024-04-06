@@ -14,6 +14,9 @@ http://github.com/elanthis/libtelnet is stuck on version 0.21 and it is buggy.
 
 The seanmiddleditch version won't compile as a library, so rather than manually
 update the deb package version with the two files from Sean's repo, I just
-include those two files locally here and skip the lib.
+include those two files locally here and skip the lib.  The version included is
+0.23 (or as documented in the libtelnet source, in case I forget to update this
+README)
+
 
   --- glib-2.0 ---

@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.26 2024/03/08 15:38:28 malakai Exp $
+// $Id: lociterm.js,v 1.27 2024/04/06 17:55:12 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -30,6 +30,7 @@ import { WebglAddon } from '@xterm/addon-webgl';
 
 import { MenuHandler } from './menuhandler.js';
 import { NerfBar } from './nerfbar.js';
+import { GMCP } from './gmcp.js';
 import BellSound from './snd/Oxygen-Im-Contact-In.mp3';
 
 // shamelessly borrowed from ttyd, as I was considering keeping the ws
@@ -42,6 +43,7 @@ const Command = {
 	SET_PREFERENCES: '2',
 	RECV_CMD: '3',
 	RECONNECT_KEY: '7',
+	GMCP_OUTPUT: '8',
 
 	// server message - these are SENT
 	INPUT: '0',
@@ -50,7 +52,8 @@ const Command = {
 	RESUME: '3',
 	CONNECT_GAME: '5',
 	SEND_CMD: '6',
-	DISCONNECT_CMD: '7'
+	DISCONNECT_CMD: '7',
+	GMCP_INPUT: '8'
 }
 
 // IIP support from xterm-addon-image
@@ -91,6 +94,7 @@ class LociTerm {
 		this.themeLoaded = 0;
 		this.url = "";
 		this.nerfbar = new NerfBar(this,"nerfbar");
+		this.gmcp = new GMCP(this);
 
 		// code. 
 		this.terminal.loadAddon(this.unicode11Addon);
@@ -214,6 +218,11 @@ class LociTerm {
 		this.sendBinaryMsg(Command.SEND_CMD,JSON.stringify(obj));
 	}
 
+	doSendGMCP(module,obj) {
+		let msg = module + " " + JSON.stringify(obj);
+		console.log("GMCP Send: " + module + " [object]");
+		this.sendMsg(Command.GMCP_INPUT,msg);
+	}
 
 	connect(url=this.url) {
 		if(this.socket != undefined) {
@@ -372,6 +381,22 @@ class LociTerm {
 				} 
 				// localStorage.setItem("reconnect_key",this.reconnect_key);
 				break;	
+			case Command.GMCP_OUTPUT: {
+				// the format is the standard GMCP one.  A text field that is
+				// the GMCP module name, followed by a JSON encoded object.
+				// Parse them out here.
+				let msg = new TextDecoder('utf8').decode(rawbuffer).slice(1);
+				let idx = msg.indexOf(" ");
+				let module = msg;
+				let obj = new Object();
+				if(idx != -1) {
+					module = msg.slice(0,idx);
+					obj = JSON.parse(msg.slice(idx));
+				}
+				console.log("GMCP Recv: " + module + " " + JSON.stringify(obj));
+				this.gmcp.parse(module,obj);
+				break;
+			}
 			default:
 				console.warn("Unhandled command " + cmd);
 				break;
@@ -430,13 +455,12 @@ class LociTerm {
 			defaultTheme.nerfbar = "false";
 		}
 
-		let readermode = (localStorage.getItem("screenReaderMode") === "true");
-		if (readermode != undefined) {
-			defaultTheme.screenReaderMode = readermode;
-			defaultTheme.xtermoptions.screenReaderMode = readermode;
-		} else {
-			defaultTheme.xtermoptions.screenReaderMode = true;
+		let readermode = localStorage.getItem("screenReaderMode");
+		if(readermode == null) {
+			readermode = "true";  // default to true if not set.
 		}
+		defaultTheme.screenReaderMode = readermode;
+		defaultTheme.xtermoptions.screenReaderMode = readermode;
 
 		let bgridAnchor = localStorage.getItem("bgridAnchor");
 		if (bgridAnchor != undefined) {
@@ -496,7 +520,9 @@ class LociTerm {
 			localStorage.setItem("screenReaderMode",theme.xtermoptions.screenReaderMode);
 			let select = document.getElementById("reader-select");
 			if(select != undefined) {
-				select.checked = theme.xtermoptions.screenReaderMode;
+				select.checked = (theme.xtermoptions.screenReaderMode)?true:false;
+			} else {
+				select.checked = true;
 			}
 		}
 

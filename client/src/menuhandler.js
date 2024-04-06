@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.21 2024/03/08 15:38:28 malakai Exp $
+// $Id: menuhandler.js,v 1.22 2024/04/06 17:55:12 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -50,6 +50,7 @@ class MenuHandler {
 		this.mydiv.appendChild(this.create_settings());
 		this.mydiv.appendChild(this.create_about());
 		this.mydiv.appendChild(this.create_connect());
+		this.mydiv.appendChild(this.create_oob_message());
 		
 	}
 
@@ -124,6 +125,24 @@ class MenuHandler {
 		localStorage.setItem(key,value);
 	}
 
+	// clears out the current password (in case of login failure. 
+	voidLoginPassword() {
+		document.getElementById("current-password").value = "";
+	}
+
+	// used by gmcp module to see if a username is available.
+	getLoginUsername() {
+		let val =document.getElementById("username").value;
+		return( (val==undefined)?"":val)
+	}
+
+	// used by gmcp module to see if a password is available.
+	getLoginPassword() {
+		let val = document.getElementById("current-password").value;
+		return( (val==undefined)?"":val)
+	}
+
+	// send the login info
 	sendlogin() {
 
 		let remember = document.getElementById("remember").checked;
@@ -131,7 +150,7 @@ class MenuHandler {
 		let password = document.getElementById("current-password").value;
 		if (remember == true) {
 			localStorage.setItem("username",username);
-			localStorage.setItem("password",password);
+			localStorage.setItem("password",btoa(password));  /* slightly obfuscated */
 		} else {
 			document.getElementById("username").value = "";
 			document.getElementById("current-password").value = "";
@@ -139,23 +158,37 @@ class MenuHandler {
 			localStorage.removeItem("password");
 		}
 
-		// this is all VERY hoaky.  But it'll do until I can get it coded up
-		// better, with either a gmcp message or some env vars.
-		
-		if(this.lociterm.socket.readyState != 1) { // open
+		// Check for gmcp auth availability
+		if(this.lociterm.socket.readyState == 1) { // open
+			if(this.lociterm.gmcp.charLoginRequested == true) {
+				this.lociterm.gmcp.sendCharLoginCredentials(username,password);
+				return;
+			}
+		} else {
 			this.lociterm.connect();
+			// Try again sometime maybe.
+			return;
 		}
 
-		if(username != undefined) {
-			setTimeout(
-				()=> this.send(username + "\n"),
-				500
-			);
-			if(password != undefined) {
+		// this is all VERY hoaky.  But it'll do until I can get it coded up
+		// better.
+		if( this.sendTextLogin != undefined) {
+		
+			if(this.lociterm.socket.readyState != 1) { // open
+				this.lociterm.connect();
+			}
+
+			if(username != undefined) {
 				setTimeout(
-					()=> this.send(password + "\n"),
-					750
+					()=> this.send(username + "\n"),
+					500
 				);
+				if(password != undefined) {
+					setTimeout(
+						()=> this.send(password + "\n"),
+						750
+					);
+				}
 			}
 		}
 	}
@@ -398,7 +431,10 @@ class MenuHandler {
 
 		l = document.createElement('span');
 		cdiv.appendChild(l);
-		l.onclick = (()=>this.done());
+		l.onclick = (()=> {
+			this.lociterm.gmcp.charLoginCancel();
+			this.done()
+		} );
 		l.classList.add('close');
 		l.title = "Close menu_loginbox";
 		l.innerText = "×";
@@ -447,7 +483,7 @@ class MenuHandler {
 		l.id = "current-password";
 		l.setAttribute("autocomplete","current-password");
 		l.addEventListener('change',((e)=>{}));
-		let password = localStorage.getItem("password");
+		let password = atob(localStorage.getItem("password")); // slightly obfuscated.
 		if( password != undefined) {
 			l.value = password;
 		}
@@ -478,11 +514,12 @@ class MenuHandler {
 		l = document.createElement('button');
 		cdiv.appendChild(l);
 		l.setAttribute("type","submit");
-		l.innerText = "Login";
+		l.innerText = "OK";
 		l.onclick = (
 			()=> {
 				this.sendlogin();
 				this.close("menu_loginbox")
+				this.lociterm.focus();
 			}
 		);
 
@@ -631,10 +668,10 @@ class MenuHandler {
 		// is *still* here because the tooling was already in place, and some
 		// slower web browsers might be sped up by leaving the hints off.
 
-		field = this.create_generic_checkbox("reader-select","Acessablity Hints",
+		field = this.create_generic_checkbox("reader-select","Accessibility Hints",
 			((e)=>{
 				let themedelta = [];
-				themedelta.xtermoptions = [];
+				themedelta.xtermoptions = {};
 				themedelta.xtermoptions.screenReaderMode = (e.srcElement.checked == true);
 				this.lociterm.applyTheme(themedelta);
 			})
@@ -774,6 +811,55 @@ class MenuHandler {
 		elem = document.getElementById("connect_status");
 		elem.innerText = msg;
 		this.open("menu_connect");
+	}
+
+	create_oob_message() {
+
+		let l;
+		let container;
+		let divstack = [];
+
+		let overlay = document.createElement('div');
+		overlay.id='menu_oob_message';
+		overlay.classList.add('overlay');
+		divstack.push(overlay);
+		container = overlay;
+
+			l = document.createElement('div');
+			container.appendChild(l);
+			l.classList.add('menupop');
+			divstack.push(container);
+			container = l;
+
+				l = document.createElement('span');
+				container.appendChild(l);
+				//l.onclick = (()=> { this.done(); this.lociterm.connect() });
+				l.onclick = (()=> { this.done(); });
+				l.classList.add('close');
+				l.title = "Connect";
+				l.innerText = "×";
+
+				l = document.createElement('div');
+				l.classList.add('textflow');
+				container.appendChild(l);
+				divstack.push(container);
+				container = l;
+
+					l = document.createElement('p');
+					container.appendChild(l);
+					l.id='oob_status';
+					l.innerText = `TEST`;
+					
+				container=divstack.pop();
+
+		return(overlay);
+	}
+
+	update_oob_message(msg) {
+		let elem;
+		elem = document.getElementById("oob_status");
+		elem.innerText = msg;
+		this.open("menu_oob_message");
 	}
 
 	event_print(e) {

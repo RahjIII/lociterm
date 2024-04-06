@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.7 2023/02/11 03:22:23 malakai Exp $ */
+/* $Id: telnet.c,v 1.8 2024/04/06 17:55:12 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -71,11 +71,14 @@ const telnet_telopt_t fixed_telopts[] = {
 	{ TELNET_TELOPT_TTYPE,		TELNET_WILL,	TELNET_DONT },
 	{ TELNET_TELOPT_NEW_ENVIRON,		TELNET_WILL,	TELNET_DO },
 	{ TELNET_TELOPT_NAWS,		TELNET_WILL,	TELNET_DONT },
+	{ TELNET_TELOPT_GMCP,		TELNET_WILL,	TELNET_DO },
 	{ -1, 0 ,0 }
 };
 
 /* function declarations */
 void send_next_ttype(proxy_conn_t *pc);
+void loci_client_gmcp_will(proxy_conn_t *pc);
+void loci_client_gmcp_wont(proxy_conn_t *pc);
 
 /* code starts here. */
 
@@ -217,7 +220,26 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		lwsl_warn("TELNET warning: %s", event->error.msg);
 		break;
 	case TELNET_EV_WILL:
-		lwsl_user("TELNET TELNET_EV_WILL: %d", event->neg.telopt);
+		switch(event->neg.telopt) {
+		case TELNET_TELOPT_GMCP:
+			lwsl_user("TELNET TELNET_EV_WILL TELNET_TELOPT_GMCP");
+			loci_client_gmcp_will(pc);
+			break;
+		default: 
+			lwsl_user("TELNET TELNET_EV_WILL: %d", event->neg.telopt);
+			break;
+		}
+		break;
+	case TELNET_EV_WONT:
+		switch(event->neg.telopt) {
+		case TELNET_TELOPT_GMCP:
+			lwsl_user("TELNET TELNET_EV_WONT TELNET_TELOPT_GMCP");
+			loci_client_gmcp_wont(pc);
+			break;
+		default: 
+			lwsl_user("TELNET TELNET_EV_WONT: %d", event->neg.telopt);
+			break;
+		}
 		break;
 	case TELNET_EV_DO:
 		switch(event->neg.telopt) {
@@ -248,6 +270,10 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		}
 	case TELNET_EV_SUBNEGOTIATION:
 		switch (event->sub.telopt) {
+		case TELNET_TELOPT_GMCP:
+			lwsl_user("TELNET TELNET_EV_SUBNEGOTIATION GMCP");
+			loci_client_send_cmd(pc,GMCP_OUTPUT,event->data.buffer,event->data.size);
+			break;
 		case TELNET_TELOPT_NEW_ENVIRON:
 		case TELNET_TELOPT_TTYPE:
 			/* ignore, handled by its own ev type. */
@@ -299,5 +325,24 @@ void loci_telnet_free(proxy_conn_t *pc) {
 		telnet_free(pc->game_telnet);
 		pc->game_telnet = NULL;
 	}
+}
+
+/* ---- GMCP proxy related stuff. ---- */
+
+void loci_client_gmcp_will(proxy_conn_t *pc) {
+	char module[]="Core.Enable";
+	loci_client_send_cmd(pc,GMCP_OUTPUT,module,strlen(module));
+}
+
+void loci_client_gmcp_wont(proxy_conn_t *pc) {
+	char module[]="Core.Disable";
+	loci_client_send_cmd(pc,GMCP_OUTPUT,module,strlen(module));
+}
+
+void loci_telnet_send_gmcp(telnet_t *telnet, const char *buffer, size_t size) {
+	telnet_begin_sb(telnet,TELNET_TELOPT_GMCP);
+	telnet_send(telnet,buffer,size);
+	telnet_finish_sb(telnet);
+	lwsl_user("sent gmcp message (%ld bytes)",size);
 }
 

@@ -4,8 +4,6 @@
 	See: https://github.com/xtermjs/xterm.js/pull/4265
 	see ./browser/input/CompositionHelper.ts
 
-* Plumb the login window to use env vars instead?
-
 * Server Optional- game security ssl isn't working, fix it.
 
 * Makefile - have make move the existing locid to locid.prev on install to avoid the text file busy problem.
@@ -96,3 +94,4 @@
 
 - Check on eor support. meh not really needed for LO.
 
+- Plumb the login window to use env vars instead? (Added GMCP!)
