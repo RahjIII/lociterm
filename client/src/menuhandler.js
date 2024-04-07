@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.22 2024/04/06 17:55:12 malakai Exp $
+// $Id: menuhandler.js,v 1.23 2024/04/07 16:21:05 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -51,6 +51,8 @@ class MenuHandler {
 		this.mydiv.appendChild(this.create_about());
 		this.mydiv.appendChild(this.create_connect());
 		this.mydiv.appendChild(this.create_oob_message());
+
+		this.loadLogin();
 		
 	}
 
@@ -126,8 +128,8 @@ class MenuHandler {
 	}
 
 	// clears out the current password (in case of login failure. 
-	voidLoginPassword() {
-		document.getElementById("current-password").value = "";
+	voidLoginAutologin() {
+		document.getElementById("autologin").checked = false;
 	}
 
 	// used by gmcp module to see if a username is available.
@@ -142,55 +144,29 @@ class MenuHandler {
 		return( (val==undefined)?"":val)
 	}
 
+	getLoginAutologin() {
+		let val = document.getElementById("autologin").checked;
+		return(val);
+	}
+
 	// send the login info
 	sendlogin() {
 
-		let remember = document.getElementById("remember").checked;
-		let username = document.getElementById("username").value;
-		let password = document.getElementById("current-password").value;
-		if (remember == true) {
-			localStorage.setItem("username",username);
-			localStorage.setItem("password",btoa(password));  /* slightly obfuscated */
-		} else {
-			document.getElementById("username").value = "";
-			document.getElementById("current-password").value = "";
-			localStorage.removeItem("username");
-			localStorage.removeItem("password");
+		if(this.lociterm.socket.readyState != 1) { // open
+			// Try again sometime later maybe.
+			this.lociterm.connect();
 		}
 
 		// Check for gmcp auth availability
-		if(this.lociterm.socket.readyState == 1) { // open
-			if(this.lociterm.gmcp.charLoginRequested == true) {
-				this.lociterm.gmcp.sendCharLoginCredentials(username,password);
-				return;
-			}
-		} else {
-			this.lociterm.connect();
-			// Try again sometime maybe.
+		if( (this.lociterm.gmcp.charLoginRequested == true) ) {
+			let username = document.getElementById("username").value;
+			let password = document.getElementById("current-password").value;
+			this.lociterm.gmcp.sendCharLoginCredentials(username,password);
 			return;
 		}
 
-		// this is all VERY hoaky.  But it'll do until I can get it coded up
-		// better.
-		if( this.sendTextLogin != undefined) {
-		
-			if(this.lociterm.socket.readyState != 1) { // open
-				this.lociterm.connect();
-			}
+		return;
 
-			if(username != undefined) {
-				setTimeout(
-					()=> this.send(username + "\n"),
-					500
-				);
-				if(password != undefined) {
-					setTimeout(
-						()=> this.send(password + "\n"),
-						750
-					);
-				}
-			}
-		}
 	}
 
 
@@ -432,6 +408,7 @@ class MenuHandler {
 		l = document.createElement('span');
 		cdiv.appendChild(l);
 		l.onclick = (()=> {
+			this.saveLogin();
 			this.lociterm.gmcp.charLoginCancel();
 			this.done()
 		} );
@@ -464,11 +441,7 @@ class MenuHandler {
 		l.setAttribute("autocapitalize","none");
 		l.id = "username";
 		l.setAttribute("autocomplete","username");
-		l.addEventListener('change',((e)=>{ }));
-		let username = localStorage.getItem("username");
-		if( username != undefined) {
-			l.value = username;
-		}
+		l.addEventListener('change',((e)=>{this.saveLogin() }));
 
 		// Password
 		l = document.createElement('label');
@@ -482,41 +455,28 @@ class MenuHandler {
 		l.setAttribute("name","password");
 		l.id = "current-password";
 		l.setAttribute("autocomplete","current-password");
-		l.addEventListener('change',((e)=>{}));
-		let password = atob(localStorage.getItem("password")); // slightly obfuscated.
-		if( password != undefined) {
-			l.value = password;
-		}
+		l.addEventListener('change',((e)=>{this.saveLogin()}));
 
+		// add a checkbox.
+		l = this.create_generic_checkbox("remember","Remember Me",
+			((e) => {this.saveLogin()})
+		);
+		cdiv.appendChild(l);
 
-		// rememberme
-		l = document.createElement('div');
-		l.style.display = 'block';
+		// add a checkbox.
+		l = this.create_generic_checkbox("autologin","Auto Login",
+			((e) => {this.saveLogin()})
+		);
 		cdiv.appendChild(l);
-		divstack.push(l);
-		cdiv = l;
-		l = document.createElement('input');
-		cdiv.appendChild(l);
-		l.setAttribute("type","checkbox");
-		l.checked = true;
-		l.setAttribute("name","remember");
-		l.id = "remember";
-		l.innerText = "Remember Me";
-		l.addEventListener('change',((e)=>{}));
-		l = document.createElement('label');
-		cdiv.appendChild(l);
-		l.setAttribute("for","remember");
-		l.innerText = "Remember Me";
-		divstack.pop(); 
-		cdiv = divstack[divstack.length-1];
 
 		// login
 		l = document.createElement('button');
 		cdiv.appendChild(l);
 		l.setAttribute("type","submit");
-		l.innerText = "OK";
+		l.innerText = "Login";
 		l.onclick = (
 			()=> {
+				this.saveLogin();
 				this.sendlogin();
 				this.close("menu_loginbox")
 				this.lociterm.focus();
@@ -524,6 +484,58 @@ class MenuHandler {
 		);
 
 		return(overlay);
+	}
+
+	// init the menu_loginbox from storage.
+	loadLogin() {
+		let remember = document.getElementById("remember");
+		let username = document.getElementById("username");
+		let password = document.getElementById("current-password");
+		let autologin = document.getElementById("autologin");
+
+		try {
+			remember.checked = (localStorage.getItem("remember") == "true")?true:false;
+		} catch {
+			remember.checked = false;
+		}
+
+		try {
+			autologin.checked = (localStorage.getItem("autologin") == "true")?true:false;
+		} catch {
+			autologin.checked = true;
+		}
+
+		try {
+			username.value = localStorage.getItem("username");
+		} catch { 
+			username.value = "";
+		}
+
+		try {
+			password.value = localStorage.getItem("current-password");
+			password.value = atob(password.value);
+		} catch {
+			password.value = "";
+		}
+	}
+
+	saveLogin() {
+		let username = document.getElementById("username");
+		let password = document.getElementById("current-password");
+		let remember = document.getElementById("remember");
+		let autologin = document.getElementById("autologin");
+
+		if(remember.checked == true) {
+			localStorage.setItem("username",username.value);
+			localStorage.setItem("current-password",btoa(password.value));
+			localStorage.setItem("remember",remember.checked);
+			localStorage.setItem("autologin",autologin.checked);
+		} else {
+			localStorage.removeItem("username");
+			localStorage.removeItem("current-password");
+			localStorage.removeItem("remember");
+			localStorage.removeItem("autologin");
+		}
 	}
 
 	create_settings() {

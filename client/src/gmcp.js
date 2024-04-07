@@ -1,6 +1,6 @@
 // gmcp.js - generic mud communication protocol for lociterm
 // Created: Wed Apr  3 05:34:00 PM EDT 2024
-// $Id: gmcp.js,v 1.1 2024/04/06 17:55:12 malakai Exp $
+// $Id: gmcp.js,v 1.2 2024/04/07 16:21:05 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -103,8 +103,13 @@ class GMCP {
 		) {
 			if(this.lociterm.menuhandler.getLoginUsername() != "") {
 				if(this.lociterm.menuhandler.getLoginPassword() != "") {
+					if(this.lociterm.menuhandler.getLoginAutologin() == true) {
 					// ok to send.
 					this.lociterm.menuhandler.sendlogin();
+					} else {
+						// open up the login window for manual login.
+						this.lociterm.menuhandler.open("menu_loginbox")
+					}
 				} else {
 					// open up the login window for password re-entry
 					this.lociterm.menuhandler.open("menu_loginbox")
@@ -129,7 +134,8 @@ class GMCP {
 		if(this.charLoginRequested == true) {
 			console.log("GMCP Login canceled.");
 			this.send("Char.Login.Credentials",{});
-			this.charLoginRequested = false;
+			// No, don't forget about the request in case of a request.
+			// this.charLoginRequested = false;
 		}
 	}
 
@@ -140,8 +146,7 @@ class GMCP {
 		if( (message.success != undefined) &&
 			(message.success == false) 
 		) {
-			// erase the current password.
-			document.getElementById("current-password").value = "";
+			this.lociterm.menuhandler.voidLoginAutologin();
 			console.log("GMCP Login Failed: " + message.message);
 			this.lociterm.menuhandler.update_oob_message(
 				`⛔ ${message.message}`
