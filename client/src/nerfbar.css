@@ -19,6 +19,7 @@
 	padding: 0.5em;
 	align-items: center;
 	border-width: 1mm;
+	z-index: +1;
 }
 
 .nerfbar div {

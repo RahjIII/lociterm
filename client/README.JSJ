@@ -10,6 +10,8 @@ npm install webpack-dev-server --save-dev
 npm install --save-dev style-loader css-loader
 npm install file-loader --save-dev
 # npm install copy-webpack-plugin --save-dev
+# npm install svg-inline-loader --save-dev
+npm install html-inline-loader --save-dev
 
 # --save means the package WILL be in the final dist
 npm install xterm -save

@@ -63,6 +63,11 @@ module.exports = {
 				}
 			},
 			{
+				test: /filters.svg$/i,
+				type: 'asset/source',
+				generator: {}
+			},
+			{
 				test: /\.(ogg|mp3)$/i,
 				type: 'asset/resource',
 				generator: {

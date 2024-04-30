@@ -1,6 +1,6 @@
 // index.js - LociTerm entry js
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: index.js,v 1.12 2024/03/08 15:38:28 malakai Exp $
+// $Id: index.js,v 1.13 2024/04/30 16:53:36 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -31,6 +31,7 @@ import './styles.css';
 import lociThemes from './themes.json';
 
 import { LociTerm } from './lociterm.js';
+
 
 // lociTermBegin();
 

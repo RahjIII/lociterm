@@ -5,6 +5,9 @@
 		"fingersize": "8mm",
 		"nerfbar": "false",
 		"background": "#000000",
+		"crtoptions": {
+			"enabled": false
+		},
 		"xtermoptions": {
 			"minimumContrastRatio": 1,
 			"bellStyle": "sound",
@@ -76,6 +79,9 @@
 				"brightCyan": "#31a388",
 				"brightWhite": "#869897"
 			}
+		},
+		"crtoptions": {
+			"enabled": false
 		}
 	},
 	{
@@ -116,6 +122,9 @@
 				"brightCyan": "#93e0e3",
 				"brightWhite": "#ffffff"
 			}
+		},
+		"crtoptions": {
+			"enabled": false
 		}
 	},
 	{
@@ -130,21 +139,25 @@
 			"scrollOnUserInput": true,
 			"theme": {
 			}
+		},
+		"crtoptions": {
+			"enabled": false
 		}
 	},
 	{
 		"name": "Green",
+		"fontSize": "24px",
 		"xtermoptions": {
 			"bellStyle": "sound",
-			"fontFamily": "VT323, LOFont, Noto Emoji",
-			"fontSize": 24,
+			"fontFamily": "VT323, LOFont",
+			"fontSize": "24",
 			"cursorBlink": true,
 			"screenReaderMode": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
 				"foreground": "#2de55b",
-				"background": "#161917",
+				"background": "black",
 				"cursor": "#33ff66",
 				"cursorAccent": "#24b548" ,
 				"selection": "#33ff66",
@@ -167,13 +180,20 @@
 				"brightCyan": "#23b247",
 				"brightWhite": "#33ff66"
 			}
+		},
+		"crtoptions": {
+			"enabled": true,
+			"monotone": {
+				"enabled": true
+			},
+			"hue_rotate": "0"
 		}
 	},
 	{
 		"name": "Amber",
 		"xtermoptions": {
 			"bellStyle": "sound",
-			"fontFamily": "VT323, LOFont, Noto Emoji",
+			"fontFamily": "VT323, LOFont",
 			"fontSize": 24,
 			"cursorBlink": true,
 			"screenReaderMode": true,
@@ -204,6 +224,13 @@
 				"brightCyan": "#b28223",
 				"brightWhite": "#ffbb33"
 			}
+		},
+		"crtoptions": {
+			"enabled": true,
+			"monotone": {
+				"enabled": true
+			},
+			"hue_rotate": "-90"
 		}
 	},
 	{
@@ -243,6 +270,21 @@
 				"brightCyan": "#787878",
 				"brightWhite": "#9F9F9F"
 			}
+		},
+		"crtoptions": {
+			"enabled": true,
+			"monotone": {
+				"enabled": false
+			},
+			"bubble": {
+				"scale": 1.0
+			},
+			"bloom": {
+				"stdDeviation": 1,
+				"bloom": 0.5,
+				"beam": 1.5
+			},
+			"hue_rotate": "0"
 		}
 	}
 ]

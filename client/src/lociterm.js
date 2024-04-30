@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.27 2024/04/06 17:55:12 malakai Exp $
+// $Id: lociterm.js,v 1.28 2024/04/30 16:53:36 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -31,6 +31,7 @@ import { WebglAddon } from '@xterm/addon-webgl';
 import { MenuHandler } from './menuhandler.js';
 import { NerfBar } from './nerfbar.js';
 import { GMCP } from './gmcp.js';
+import { CRTFilter } from './crtfilter.js';
 import BellSound from './snd/Oxygen-Im-Contact-In.mp3';
 
 // shamelessly borrowed from ttyd, as I was considering keeping the ws
@@ -71,12 +72,35 @@ const customImageSettings = {
   iipSizeLimit: 20000000      // size limit of a single IIP sequence
 }
 
+document.setElementById = (id,val) => {
+
+	let item;
+	try { 
+		item = document.getElementById(id); 
+	} catch {
+		console.log(`Couldn't setElementById ${id}.`);
+		return;
+	}
+	if(item) {
+		if(item.type == 'checkbox') {
+			if(item.checked != val) {
+				item.checked=val;
+			}
+		} else {
+			if(item.value != val) {
+				item.value=val;
+			}
+		}
+	}
+};
+
 class LociTerm {
 
 	constructor(mydiv,lociThemes=[]) {
 
 		// set variables.
 		this.mydiv = mydiv;
+		
 		this.lociThemes = lociThemes;
 		this.terminal = new Terminal({
 			// Unicode11Addon is a proposed api?? 
@@ -95,6 +119,7 @@ class LociTerm {
 		this.url = "";
 		this.nerfbar = new NerfBar(this,"nerfbar");
 		this.gmcp = new GMCP(this);
+		this.crtfilter = new CRTFilter("crtfilter");
 
 		// code. 
 		this.terminal.loadAddon(this.unicode11Addon);
@@ -475,8 +500,12 @@ class LociTerm {
 		} else {
 			defaultTheme.menusideAnchor = "br";
 		}
-		
+
+		this.crtfilter.load();
+		defaultTheme.crtoptions = this.crtfilter.opts;
+
 		this.applyTheme(defaultTheme);
+
 	}
 
 	applyThemeNo(no=-1) {
@@ -492,6 +521,17 @@ class LociTerm {
 		this.themeLoaded = 0;
 		// Apply the lociterm specific theme items.  This should probably be
 		// some kind of loop.
+
+		if(theme.SVGFilter != undefined) {
+			let filter = `url("#${theme.SVGFilter}")`
+			document.documentElement.style.setProperty('--xterm-screen-filter', filter);
+			localStorage.setItem("SVGFilter",theme.SVGFilter);
+		} else {
+			//let filter = "unset";
+			//document.documentElement.style.setProperty('--xterm-screen-filter', filter);
+			//localStorage.removeItem("SVGFilter");
+		}
+
 		if(theme.fingerSize != undefined) {
 			document.documentElement.style.setProperty('--finger-size', theme.fingerSize);
 			localStorage.setItem("fingerSize",theme.fingerSize);
@@ -627,6 +667,14 @@ class LociTerm {
 			localStorage.setItem("locithemename",theme.name);
 			this.themeName = theme.name;
 		}
+		
+		
+		if(theme.crtoptions != undefined) {
+			this.crtfilter.update(this.crtfilter.defaultopts);
+			this.crtfilter.update(theme.crtoptions);
+			this.crtfilter.save();
+		}
+
 		this.themeLoaded = 1;
 	}
 

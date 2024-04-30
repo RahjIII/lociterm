@@ -11,10 +11,12 @@
   src: url(./fonts/DejaVuSansMono.ttf) format("truetype");
 }
 
+/*
 @font-face {
   font-family: Glass;
   src: url(./fonts/Glass_TTY_VT220.ttf) format("truetype");
 }
+*/
 
 @font-face {
   font-family: Dyslexic;
@@ -32,7 +34,7 @@
 }
 
 body  { 
-  font-family: LOFont, Glass, monospace;
+  font-family: LOFont, monospace;
   font-size: initial; /* so there is a fallback in case vw doesn't work right. */
   margin: 0px;
   background: var(--background-color);
@@ -51,6 +53,7 @@ body  {
 	left: 0;
 	right: 0;
 	overflow-y: hidden;
+	overflow-x: hidden;
 }
 
 .terminal-container {
@@ -69,4 +72,24 @@ body  {
 	/*height: 100%; */
 	flex-grow: 1;
 }
+
+:root {
+}
+
+.xterm .xterm-screen {  /* this is the xterm.js div with the terminal text */
+	/* filter: var(--xterm-screen-filter);*/
+}
+
+.xterm .xterm-viewport {  /* this is the xterm.js div with the vert scrollbar */
+	scrollbar-width: none;
+}
+
+.locilayout { /* Includes the lociterm UI items */
+}
+
+.locilayout .terminal-container { /* just the xterm.js stuff. */
+	filter: var(--crtfilter-filter);
+}
+
+
 

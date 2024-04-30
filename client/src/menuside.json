@@ -737,12 +737,26 @@
 			},
 			{
 				"label": "Settings",
-				"open": "menu_settings"
+				"open": "menu_client_settings"
 			},
 			{
 				"label": "About",
 				"open": "menu_about"
 			}
 		]
+	},
+	{
+		"id": "menu_client_settings",
+		"item" : [
+			{
+				"label": "Theme",
+				"open": "menu_settings"
+			},
+			{
+				"label": "CRT Filter",
+				"open": "menu_filters"
+			}
+		]
 	}
+
 ]

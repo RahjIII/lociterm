@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.23 2024/04/07 16:21:05 malakai Exp $
+// $Id: menuhandler.js,v 1.24 2024/04/30 16:53:36 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -28,8 +28,12 @@ import LOIcon from './img/loiconcolor.gif';
 
 import PackageData from '../package.json';
 
-class MenuHandler {
+export function hiya() {
+	console.log("Hiya!");
+}
 
+class MenuHandler {
+	
 	constructor(lociterm) {
 
 		this.lociterm = lociterm;
@@ -48,6 +52,7 @@ class MenuHandler {
 		this.mydiv.appendChild(this.create_menuside());
 		this.mydiv.appendChild(this.create_loginbox());
 		this.mydiv.appendChild(this.create_settings());
+		this.mydiv.appendChild(this.create_filters());
 		this.mydiv.appendChild(this.create_about());
 		this.mydiv.appendChild(this.create_connect());
 		this.mydiv.appendChild(this.create_oob_message());
@@ -694,6 +699,83 @@ class MenuHandler {
 		return(overlay);
 	}
 
+	create_filters() {
+		let item;
+		let menuname = "menu_filters";
+
+		let overlay = document.createElement('div');
+		overlay.id=menuname;
+		overlay.classList.add('overlay');
+
+		let box = document.createElement('div');
+		overlay.appendChild(box);
+		box.classList.add('menupop');
+
+		let l = document.createElement('span');
+		box.appendChild(l);
+		l.onclick = (()=> {
+			this.lociterm.crtfilter.save();
+			this.done("menu_filters")
+		});
+		l.classList.add('close');
+		l.title = "Close menu_filters";
+		l.innerText = "×";
+
+		item = document.createElement('label');
+		item.innerText = "CRT Filter";
+		item.setAttribute("for","filters-select");
+		box.appendChild(item);
+
+		// ------ menu items 
+		// (This manual plumbing is pretty awful.  Fix it sometime.  -jsj)
+
+		item = this.create_generic_checkbox("filters-select","Enabled",
+			((e)=>{
+				this.lociterm.crtfilter.opts.enabled = e.srcElement.checked;
+				this.lociterm.crtfilter.update();
+			})
+		);
+		box.appendChild(item);
+
+		item = this.create_generic_checkbox("monotone-select","Monochrome",
+			((e)=>{
+				this.lociterm.crtfilter.opts.monotone.enabled = e.srcElement.checked;
+				this.lociterm.crtfilter.update();
+			})
+		);
+		box.appendChild(item);
+
+		item = this.create_generic_slider("hue-slider","Phosphor Hue",
+			-90,90,1,0,
+			((e)=>{
+				this.lociterm.crtfilter.opts.hue_rotate = e.srcElement.value;
+				this.lociterm.crtfilter.update();
+			})
+		);
+		box.appendChild(item);
+
+
+		item = this.create_generic_slider("tube-slider","Barrel Distortion",
+			0,256,0.5,0,
+			((e)=>{
+				this.lociterm.crtfilter.opts.barrel.scale = e.srcElement.value;
+				this.lociterm.crtfilter.update();
+			})
+		);
+		box.appendChild(item);
+
+		item = this.create_generic_slider("bloom-bloom-slider","Brightness",
+			-2,5,0.05,1.0,
+			((e)=>{
+				this.lociterm.crtfilter.opts.bloom.bloom = e.srcElement.value;
+				this.lociterm.crtfilter.update();
+			})
+		);
+		box.appendChild(item);
+
+		return(overlay);
+	}
+
 	// Return an overlay popup for the About menu.
 	create_about() {
 
@@ -935,9 +1017,26 @@ class MenuHandler {
 		label.innerText = labeled;
 		mydiv.appendChild(label);
 
-
 		return(mydiv);
 
+	}
+
+	create_generic_slider(named="",labeled="",min=0,max=1,step=0.1,initval=0.5,oninput="") {
+		let div = document.createElement('div');
+		div.classList.add('genericslider');
+		let label = document.createElement('label');
+		div.appendChild(label);
+		label.innerText = labeled;
+		let slider = document.createElement('input');
+		slider.id = named;
+		slider.setAttribute("type","range");
+		slider.setAttribute("min",`${min}`);
+		slider.setAttribute("max",`${max}`);
+		slider.setAttribute("step",`${step}`);
+		slider.value = initval;
+		slider.oninput = oninput;
+		div.appendChild(slider);
+		return(div);
 	}
 
 }
