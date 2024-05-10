@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.28 2024/04/30 16:53:36 malakai Exp $
+// $Id: lociterm.js,v 1.29 2024/05/10 15:03:21 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -521,16 +521,6 @@ class LociTerm {
 		this.themeLoaded = 0;
 		// Apply the lociterm specific theme items.  This should probably be
 		// some kind of loop.
-
-		if(theme.SVGFilter != undefined) {
-			let filter = `url("#${theme.SVGFilter}")`
-			document.documentElement.style.setProperty('--xterm-screen-filter', filter);
-			localStorage.setItem("SVGFilter",theme.SVGFilter);
-		} else {
-			//let filter = "unset";
-			//document.documentElement.style.setProperty('--xterm-screen-filter', filter);
-			//localStorage.removeItem("SVGFilter");
-		}
 
 		if(theme.fingerSize != undefined) {
 			document.documentElement.style.setProperty('--finger-size', theme.fingerSize);

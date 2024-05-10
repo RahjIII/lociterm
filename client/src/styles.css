@@ -91,5 +91,6 @@ body  {
 	filter: var(--crtfilter-filter);
 }
 
-
-
+.menuhandler label {
+	display: grid;
+}

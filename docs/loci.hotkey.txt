@@ -1,0 +1,35 @@
+GMCP Loci.Hotkey
+
+Client must support:  "Loci.Hotkey 1"
+
+	If client claims support, server will send hotkey definition update
+	messages asynchronosly, as they become available, at the server's
+	discretion.  The client SHOULD NOT cache updated definitions betweeen
+	sessions.  
+
+Client to Server: 
+	"Loci.Hotkey.Get" { }
+
+	Request for server to send/resend all of the current hotkey definitions to
+	the client.  May be sent at any time, or not at all.  Intended use is to
+	indicate to server that all previously sent updates may have been lost due
+	to a client reset, and need to be resent.  
+
+Server to Client: 
+	
+	"Loci.Hotkey.Set" { 
+		name: "<keyname>",        // required
+		label: "<display label>"  // required
+	}
+
+	Message from server to client containing a hotkey definition.  May be sent
+	at any time.  name: is a required field.  label: is a UI display name,
+	intended to be used in on-screen buttons.
+
+	"Loci.Hotkey.Reset" {
+		name: "<keyname>"	// optional
+	}
+
+	Message from server to client indicating that the hotkey definintion MUST
+	be reset to the client default value.  if name: not present, ALL
+	definitions MUST be reset to defaults.

@@ -517,19 +517,27 @@
 		"id": "menu_hotkey",
 		"item" : [
 			{
-				"label": "Hotkey f1",
+				"id": "hotkey_f1",
+				"hotkey": true,
+				"label": "Key F1",
 				"send": "\u001B[11~"
 			},
 			{
-				"label": "Hotkey f2",
+				"id": "hotkey_f2",
+				"hotkey": true,
+				"label": "Key F2",
 				"send": "\u001b[12~"
 			},
 			{
-				"label": "Hotkey f3",
+				"id": "hotkey_f3",
+				"hotkey": true,
+				"label": "Key F3",
 				"send": "\u001b[13~"
 			},
 			{
-				"label": "Hotkey f4",
+				"id": "hotkey_f4",
+				"hotkey": true,
+				"label": "Key F4",
 				"send": "\u001b[14~"
 			},
 			{
@@ -542,24 +550,65 @@
 		"id": "menu_hotkey5to8",
 		"item" : [
 			{
-				"label": "Hotkey f5",
+				"id": "hotkey_f5",
+				"hotkey": true,
+				"label": "Key F5",
 				"send": "\u001B[15~"
 			},
 			{
-				"label": "Hotkey f6",
+				"id": "hotkey_f6",
+				"hotkey": true,
+				"label": "Key F6",
 				"send": "\u001b[17~"
 			},
 			{
-				"label": "Hotkey f7",
+				"id": "hotkey_f7",
+				"hotkey": true,
+				"label": "Key F7",
 				"send": "\u001b[18~"
 			},
 			{
-				"label": "Hotkey f8",
+				"id": "hotkey_f8",
+				"hotkey": true,
+				"label": "Key F8",
 				"send": "\u001b[19~"
 			},
 			{
-				"label": "Hotkey f9",
-				"send": "\u001b[20~"
+				"label": "More",
+				"open": "menu_hotkey9to12"
+			}
+		]
+	},
+	{
+		"id": "menu_hotkey9to12",
+		"item" : [
+			{
+				"id": "hotkey_f9",
+				"hotkey": true,
+				"label": "Key F9",
+				"send": "\u001B[20~"
+			},
+			{
+				"id": "hotkey_f10",
+				"hotkey": true,
+				"label": "Key F10",
+				"send": "\u001b[21~"
+			},
+			{
+				"id": "hotkey_f11",
+				"hotkey": true,
+				"label": "Key F11",
+				"send": "\u001b[22~"
+			},
+			{
+				"id": "hotkey_f12",
+				"hotkey": true,
+				"label": "Key F12",
+				"send": "\u001b[23~"
+			},
+			{
+				"label": "Hotkey",
+				"send": "hotkey\n"
 			}
 		]
 	},

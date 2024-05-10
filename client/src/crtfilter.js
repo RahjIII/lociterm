@@ -1,6 +1,6 @@
 // crtfilter.js - create <svg> DOM node with custom filters.
 // Created: Tue Apr 30 11:45:30 AM EDT 2024
-// $Id: crtfilter.js,v 1.1 2024/04/30 16:53:36 malakai Exp $
+// $Id: crtfilter.js,v 1.2 2024/05/10 15:03:21 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -43,8 +43,8 @@ class CRTFilter {
 				red: 0.2,
 				green: 1.0,
 				blue: 0.4,
-				exponent: 0.6,
-				offset: 0.05
+				exponent: 0.8,
+				offset: 0.02
 			},
 			scanline: true,
 			dotstretch: true,
@@ -126,9 +126,12 @@ class CRTFilter {
 			filterstring = "unset";
 		} else {
 			document.setElementById("filters-select", opts.enabled);
+
+			if(opts.monotone && (opts.monotone.enabled != undefined)) {
+				document.setElementById("monotone-select", opts.monotone.enabled);
+			}
 			if(opts.monotone && opts.monotone.enabled) {
 				filterstring += `url(#${this.filterid}_monotone)`;
-				document.setElementById("monotone-select", opts.monotone.enabled);
 				let item = document.getElementById(`${this.filterid}_monotone`);
 				if(opts.monotone.saturation) {
 					item.childNodes[0].setAttribute("saturate",`${opts.monotone.saturation}`);
@@ -138,30 +141,35 @@ class CRTFilter {
 					element.setAttribute(key,value);
 				}
 			}
+
 			if(opts.scanline) {
 				filterstring += ` url(#${this.filterid}_scanline)`;
 			}
+
 			if(opts.dotstretch) {
 				filterstring += ` url(#${this.filterid}_dotstretch)`;
 			}
+
+
 			if(opts.barrel && opts.barrel.enabled) {
 				filterstring += ` url(#${this.filterid}_barrel)`;
 				let item = document.getElementById(`${this.filterid}_barrel`);
 				// showmap and exponent are also variables, but updating them
 				// requires rebuilding the displacement map, and I'm not going
 				// to do that right now.  -jsj
-				if(opts.barrel.scale) { 
+				if(opts.barrel.scale != undefined) { 
 					document.setElementById("tube-slider", opts.barrel.scale);
 					item.childNodes[1].setAttribute("scale",`${opts.barrel.scale}`);
 				}
 			}
+
 			if(opts.bloom && opts.bloom.enabled) {
 				filterstring += ` url(#${this.filterid}_bloom)`;
 				let item = document.getElementById(`${this.filterid}_bloom`);
 				if(opts.bloom.stdDeviation) {
 					item.childNodes[0].setAttribute("stdDeviation",`${opts.bloom.stdDeviation}`);
 				}
-				if(opts.bloom.bloom) { 
+				if(opts.bloom.bloom != undefined) { 
 					document.setElementById("bloom-bloom-slider", opts.bloom.bloom);
 					item.childNodes[1].setAttribute("k2",`${opts.bloom.bloom}`);
 				}
@@ -169,8 +177,12 @@ class CRTFilter {
 					item.childNodes[1].setAttribute("k3",`${opts.bloom.beam}`);
 				}
 			}
-			if(opts.monotone && opts.monotone.enabled && opts.hue_rotate) {
+
+			// hue rotate
+			if(opts.hue_rotate != undefined) {
 				document.setElementById("hue-slider", opts.hue_rotate);
+			}
+			if(opts.monotone && opts.monotone.enabled && opts.hue_rotate) {
 				filterstring += ` hue-rotate(${opts.hue_rotate}deg)`;
 			}
 		}
@@ -226,10 +238,13 @@ class CRTFilter {
 		}
 		canvas.width = width;
 		canvas.height = height;
-		ctx.fillStyle = "#00000000";
-		ctx.fillRect(0,0,width,height);
-		ctx.fillStyle = "#000000c0";
+		//ctx.fillStyle = "#FFFFFF00";
+		//ctx.fillRect(0,0,width,height);
+		ctx.globalCompositeOperation = "darken";
 		for (let y=0; y<=height; y+=2 ) {
+			ctx.fillStyle = "#CCCCCC00";
+			ctx.fillRect(0,y-1,width,1);
+			ctx.fillStyle = "#000000FF"
 			ctx.fillRect(0,y,width,1);
 		}
 		return(canvas.toDataURL());
@@ -333,6 +348,62 @@ class CRTFilter {
 		return(filter);
 	}
 
+	// Construct the scanline filter node.  This filter, for whatever reason,
+	// doesn't really work very well.  It applies sometimes, it doesn't apply
+	// other times.  
+	filter_scanline_badsvg ( filterid, opts ) {
+		let filter = this.createSvgElement('filter');
+		filter.id = `${filterid}_scanline`;
+		
+		filter.appendChild(
+			this.createSvgElement( "feImage" )
+		);
+			
+		filter.appendChild(
+			this.createSvgElement( "feFlood", {
+				"flood-color": "#00000000",
+				x: "-1",
+				y: "-1",
+				width: "2",
+				height: "1",
+				result: "scanline" } 
+			)
+		);
+		filter.appendChild(
+			this.createSvgElement( "feFlood", {
+				"flood-color": "#000000FF",
+				x: "-1",
+				y: "0",
+				width: "2",
+				height: "1",
+				result: "blankline" } 
+			)
+		);
+		filter.appendChild(
+			this.createSvgElement( "feComposite", {
+				"in2": "scanline",
+				"in": "blankline",
+				operator: "over",
+				result: "stripes" }
+			)
+		);
+		filter.appendChild(
+			this.createSvgElement("feTile", {
+				"in": "stripes",
+				"result": "scanlines" }
+			)
+		);
+		filter.appendChild(
+			this.createSvgElement( "feComposite", {
+				"in": "SourceGraphic",
+				"in2": "scanlines",
+				operator: "in" }
+			)
+		);
+		return(filter);
+	}
+
+
 	// Construct the dotstretch filter node.  This applies a little bit of
 	// horizontal blur to a pixel, and sharpens up the scanline a little bit.
 	filter_dotstretch ( filterid, opts ) {
@@ -390,8 +461,8 @@ class CRTFilter {
 		let filter = this.createSvgElement('filter');
 		filter.id = `${filterid}_barrel`;
 
-		let width = 1024;
-		let height = 1024;
+		let width = 512;
+		let height = 512;
 		let scale = (opts.barrel.scale)?opts.barrel.scale:100.0;
 		let exponent = (opts.barrel.exponent)?opts.barrel.exponent:2.0;
 		filter.appendChild(

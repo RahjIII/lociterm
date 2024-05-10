@@ -1,6 +1,6 @@
 // gmcp.js - generic mud communication protocol for lociterm
 // Created: Wed Apr  3 05:34:00 PM EDT 2024
-// $Id: gmcp.js,v 1.2 2024/04/07 16:21:05 malakai Exp $
+// $Id: gmcp.js,v 1.3 2024/05/10 15:03:21 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -28,7 +28,8 @@ class GMCP {
 
 	// register the supported modules here.
 	supportsSet = [
-		"Char.Login 1"
+		"Char.Login 1",
+		"Loci.Hotkey 1"
 	];
 
 	modules = new Map();
@@ -46,6 +47,8 @@ class GMCP {
 		this.modules.set("char.login.default",(m) => this.charLoginDefault(m));
 		this.modules.set("char.login.result",(m) => this.charLoginResult(m));
 		this.modules.set("core.goodbye",(m) => this.coreGoodbye(m));
+		this.modules.set("loci.hotkey.set",(m) => this.lociHotkeySet(m));
+		this.modules.set("loci.hotkey.reset",(m) => this.lociHotkeyReset(m));
 	}
 
 	isEnabled() {
@@ -168,6 +171,52 @@ class GMCP {
 		obj.password = password;
 		this.send("Char.Login.Credentials",obj);
 	}
+
+	// handle a loci.hotkey.set message.
+	lociHotkeySet(message) {
+
+		console.log("GMCP Loci.Hotkey.Set requested.");
+
+		let id = `hotkey_${message.name}`;
+
+		let item = document.getElementById(id);
+		if(item == undefined) {
+			console.log(`GMCP Loci.Hotkey.Set can't find id ${id}`);
+			return;
+		}
+
+		if(message.label != undefined) {
+			item.innerHTML = message.label;
+		}
+
+		return;
+	}
+
+	lociHotkeyReset(message) {
+
+		if(message.name != undefined) {
+			let id = `hotkey_${message.name}`;
+			let item = document.getElementById(id);
+			if(item == undefined) {
+				console.log(`GMCP Loci.Hotkey.Reset can't find id ${id}`);
+				return;
+			}
+			let defaults = this.lociterm.menuhandler.hotkeys[id];
+			if(defaults == undefined) {
+				console.log(`GMCP Loci.Hotkey.Reset can't find defaults for id ${id}`);
+				return;
+			}
+			item.innerHTML = defaults.label;
+			return;
+		} else {
+			// reset everthing.
+			for (let id in this.lociterm.menuhandler.hotkeys ) {
+				let defaults = this.lociterm.menuhandler.hotkeys[id];
+				let item = document.getElementById(id);
+				item.innerHTML = defaults.label;
+			}
+		}
+	} 
 
 }
 

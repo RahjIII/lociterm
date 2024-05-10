@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.24 2024/04/30 16:53:36 malakai Exp $
+// $Id: menuhandler.js,v 1.25 2024/05/10 15:03:21 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -38,6 +38,8 @@ class MenuHandler {
 
 		this.lociterm = lociterm;
 		this.openwindow = [];
+		this.hotkeys = [];
+
 		// make the menuhandler in the menuhandler div that is already on the
 		// page, or if that doesn't exist, create it under this lociterm.  Note
 		// that if you create it under lociterm, the screenreader mode hints
@@ -56,6 +58,7 @@ class MenuHandler {
 		this.mydiv.appendChild(this.create_about());
 		this.mydiv.appendChild(this.create_connect());
 		this.mydiv.appendChild(this.create_oob_message());
+
 
 		this.loadLogin();
 		
@@ -226,6 +229,9 @@ class MenuHandler {
 			for(let j=0; j<side.item.length; j++) {
 				let item = side.item[j];
 				let s = document.createElement('div');
+				if(item.id != undefined) {
+					s.id = item.id
+				}
 
 				// assign the right onclick function to the div..
 				if ( item.send != undefined ) {
@@ -249,6 +255,10 @@ class MenuHandler {
 				// label goes inside the div.
 				if ( item.label != undefined ) {
 					s.innerText = item.label;
+				}
+
+				if (item.hotkey != undefined) {
+					this.hotkeys[item.id] = item;
 				}
 
 				if ( item.disconnect != undefined ) {
@@ -367,7 +377,7 @@ class MenuHandler {
 		label.innerText = labeled;
 
 		select = document.createElement("select");
-		field.appendChild(select);
+		label.appendChild(select);
 		select.setAttribute("name",named);
 		select.id = named;
 		select.oninput = oninput;
@@ -597,7 +607,7 @@ class MenuHandler {
 				this.lociterm.applyTheme(themedelta);
 			}
 		);
-		field.appendChild(fontsize);
+		label.appendChild(fontsize);
 
 		// a range slider for setting the finger size css
 		field = document.createElement('div');
@@ -619,7 +629,7 @@ class MenuHandler {
 				this.lociterm.applyTheme(themedelta);
 			}
 		);
-		field.appendChild(fingersize);
+		label.appendChild(fingersize);
 
 		// a range slider for setting the grid fadeout
 		field = document.createElement('div');
@@ -641,7 +651,7 @@ class MenuHandler {
 				this.lociterm.applyTheme(themedelta);
 			}
 		);
-		field.appendChild(menufade);
+		label.appendChild(menufade);
 
 		// a selector for Icon Anchor
 		field = this.create_anchor_selector("bgridAnchor-select","Button Grid",
@@ -842,7 +852,7 @@ class MenuHandler {
 
 		l = document.createElement('p');
 		cdiv.appendChild(l);
-		l.innerText = "Thank you to the Multi User Dungeon #coding discord group for your help and encouragement, and to every member of the Last Outpost Honor Guard! "
+		l.innerText = "Thank you to the Multi User Dungeon #coding discord group and Nicky N. for your help and encouragement, and to every member of the Last Outpost Honor Guard! "
 
 		divstack.pop(); //imgcontainer
 		cdiv = divstack[divstack.length-1];
@@ -1035,7 +1045,7 @@ class MenuHandler {
 		slider.setAttribute("step",`${step}`);
 		slider.value = initval;
 		slider.oninput = oninput;
-		div.appendChild(slider);
+		label.appendChild(slider);
 		return(div);
 	}
 
