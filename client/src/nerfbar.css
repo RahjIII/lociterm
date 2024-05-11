@@ -5,9 +5,21 @@
 
 #nerfbar {
 	display: var(--nerfbar-close-display);
+	opacity: var(--menufade-hidden);
+	transition: opacity 4s ease-in-out;
 	min-height: var(--finger-size);
 	max-height: var(--finger-size);
 	flex-grow: 3;
+}
+
+#nerfbar:hover {
+	opacity: 1.0;
+	transition: opacity 0.25s ease-in-out;
+}
+
+#nerfbar:active {
+	opacity: 1.0;
+	transition: opacity 0.25s ease-in-out;
 }
 
 .nerfbar {
@@ -25,16 +37,17 @@
 .nerfbar div {
 }
 
-.nerfbar input {
+.nerfbar textarea {
 	font-size: var(--font-size);
 	font-family: inherit;
-	border-style: none;
-	border-width: 0px;
+	border-style: solid;
+	border-width: 1px;
 	flex-grow: 1;
 	outline-color: var(--book-cover-color);
 	min-height: var(--finger-size);
 	background: var(--book-paper-color);
 	background: var(--book-altpaper-color);
+	resize: none;
 }
 
 .nerfbar button {

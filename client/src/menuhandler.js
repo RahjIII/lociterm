@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.25 2024/05/10 15:03:21 malakai Exp $
+// $Id: menuhandler.js,v 1.26 2024/05/11 17:20:21 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -77,12 +77,14 @@ class MenuHandler {
 		var e = document.getElementById(name);
 		this.done();
 		e.style.visibility = 'visible';
+		e.setAttribute("tabindex","0");
 		if(e.classList.contains("menuside")) {
 			//e.style.right = '0%';
 			e.classList.remove("menuside-close");
 			e.classList.add("menuside-open");
 		}
 		this.openwindow[name] =1;
+		e.focus();
 	};
 
 	// always close a single menu item.
@@ -95,6 +97,7 @@ class MenuHandler {
 			e.classList.add("menuside-close");
 		} 
 		this.openwindow[name] =0;
+		e.blur();
 	};
 
 	// open the first menu in the chain
@@ -765,7 +768,7 @@ class MenuHandler {
 		box.appendChild(item);
 
 
-		item = this.create_generic_slider("tube-slider","Barrel Distortion",
+		item = this.create_generic_slider("barrel-slider","Barrel Distortion",
 			0,256,0.5,0,
 			((e)=>{
 				this.lociterm.crtfilter.opts.barrel.scale = e.srcElement.value;
@@ -852,7 +855,7 @@ class MenuHandler {
 
 		l = document.createElement('p');
 		cdiv.appendChild(l);
-		l.innerText = "Thank you to the Multi User Dungeon #coding discord group and Nicky N. for your help and encouragement, and to every member of the Last Outpost Honor Guard! "
+		l.innerText = "Thank you to the Multi User Dungeon #coding discord group for your help and encouragement, Nicky N. for help with the CRT Filters, and to every member of the Last Outpost Honor Guard! "
 
 		divstack.pop(); //imgcontainer
 		cdiv = divstack[divstack.length-1];

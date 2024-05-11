@@ -1,6 +1,6 @@
 // gmcp.js - generic mud communication protocol for lociterm
 // Created: Wed Apr  3 05:34:00 PM EDT 2024
-// $Id: gmcp.js,v 1.3 2024/05/10 15:03:21 malakai Exp $
+// $Id: gmcp.js,v 1.4 2024/05/11 17:20:21 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -186,7 +186,7 @@ class GMCP {
 		}
 
 		if(message.label != undefined) {
-			item.innerHTML = message.label;
+			item.innerText = message.label;
 		}
 
 		return;
@@ -206,14 +206,14 @@ class GMCP {
 				console.log(`GMCP Loci.Hotkey.Reset can't find defaults for id ${id}`);
 				return;
 			}
-			item.innerHTML = defaults.label;
+			item.innerText = defaults.label;
 			return;
 		} else {
 			// reset everthing.
 			for (let id in this.lociterm.menuhandler.hotkeys ) {
 				let defaults = this.lociterm.menuhandler.hotkeys[id];
 				let item = document.getElementById(id);
-				item.innerHTML = defaults.label;
+				item.innerText = defaults.label;
 			}
 		}
 	} 

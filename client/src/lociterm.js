@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.29 2024/05/10 15:03:21 malakai Exp $
+// $Id: lociterm.js,v 1.30 2024/05/11 17:20:21 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -111,6 +111,7 @@ class LociTerm {
 		this.textEncoder = new TextEncoder();
 		this.textDecoder = new TextDecoder();
 		this.resizeTimeout = undefined;
+		this.lastResize = "";
 		this.webLinksAddon = new WebLinksAddon();
 		this.login = { requested: 0, name: "", password: "", remember: 1 };
 		this.socket = undefined;
@@ -162,9 +163,13 @@ class LociTerm {
 
 	// call this as an event listener handler
 	onWindowResize() {
+
+		// fitAddon.fit() seems to mess with focus on android, so re-assert the
+		// focus after.
+		let currentfocus = document.activeElement;
 		this.fitAddon.fit();
-		// the point of this foolisheness is to limit the resize updates being
-		// sent across the network to a more resonable rate.
+		focus(currentfocus);
+
 		clearTimeout(this.resizeTimeout); 
 		this.resizeTimeout = setTimeout(() => this.doWindowResize() , 200.0); 
 	}
@@ -173,8 +178,13 @@ class LociTerm {
 		/* this test is so a resize wont trigger a reconnect. */
 		if(this.socket != undefined) {
 			if (this.socket.readyState == 1) { 
-				this.sendMsg(Command.RESIZE_TERMINAL,`${this.terminal.cols} ${this.terminal.rows}`);
-				//console.log(`Resize message sent.`);
+				let currentSize = `${this.terminal.cols} ${this.terminal.rows}`;
+				if(this.lastResize != currentSize) {
+					this.sendMsg(Command.RESIZE_TERMINAL,currentSize);
+					this.lastResize = currentSize;
+				} else {
+					// this.terminal.write(`\r\nSame Resize supressed.\r\n`);
+				}
 				return;
 			} 
 		} 

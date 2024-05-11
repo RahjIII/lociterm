@@ -1,6 +1,6 @@
 // nerfbar.js - pitiful line mode support
 // Created: Mon 26 Dec 2022 11:55:45 PM EST
-// $Id: nerfbar.js,v 1.4 2023/03/03 21:13:09 malakai Exp $
+// $Id: nerfbar.js,v 1.5 2024/05/11 17:20:21 malakai Exp $
 
 // Copyright © 2023 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -46,19 +46,24 @@ class NerfBar {
 		let sendkey;
 		let tabkey;
 
-		input = document.createElement('input');
+		//input = document.createElement('input');
+		//input.setAttribute("type","text");
+		input = document.createElement('textarea');
 		input.setAttribute("name","nerfinput");
-		input.setAttribute("type","text");
 		input.setAttribute("autocapitalize","none");
 		input.setAttribute("autocomplete","off");
 		input.setAttribute("autococorrect","off");
 		input.placeholder = "Enter a command...";
+		//
+		input.setAttribute("aria-multiline","false");
+		input.setAttribute("rows","1");
+		//
 		input.id = "nerfinput";
 
 		this.focuselement = input;
 
 		input.onchange = ((e)=>{
-
+			
 			if(document.hasFocus(e.currentTarget) == false) {
 				return;
 			} 
@@ -68,7 +73,8 @@ class NerfBar {
 		});
 
 		input.onkeydown = ((e)=>{
-			if(e.code == "Enter") {
+			// e.keyCode==13 works in android IME.  e.code=="Enter" does not.
+			if((e.code == "Enter") || (e.keyCode == 13)) {
 				this.lociterm.paste(e.srcElement.value);
 				this.lociterm.paste("\n");
 				e.srcElement.value = "";

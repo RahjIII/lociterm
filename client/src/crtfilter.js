@@ -1,6 +1,6 @@
 // crtfilter.js - create <svg> DOM node with custom filters.
 // Created: Tue Apr 30 11:45:30 AM EDT 2024
-// $Id: crtfilter.js,v 1.2 2024/05/10 15:03:21 malakai Exp $
+// $Id: crtfilter.js,v 1.3 2024/05/11 17:20:21 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -158,7 +158,7 @@ class CRTFilter {
 				// requires rebuilding the displacement map, and I'm not going
 				// to do that right now.  -jsj
 				if(opts.barrel.scale != undefined) { 
-					document.setElementById("tube-slider", opts.barrel.scale);
+					document.setElementById("barrel-slider", opts.barrel.scale);
 					item.childNodes[1].setAttribute("scale",`${opts.barrel.scale}`);
 				}
 			}
