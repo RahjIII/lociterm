@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.30 2024/05/11 17:20:21 malakai Exp $
+// $Id: lociterm.js,v 1.31 2024/05/11 18:11:45 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -158,6 +158,7 @@ class LociTerm {
 		this.loadDefaultTheme();
 		this.terminal.open(mydiv);
 		this.fitAddon.fit();
+		this.doWindowResize();
 		this.focus();
 	}
 
@@ -327,6 +328,7 @@ class LociTerm {
 		this.reconnect_delay = 0;
 		// Send the window size to the game side so that it can be made
 		// available to the mud at connection time.
+		this.lastResize = "";  // Force it.
 		this.doWindowResize();
 		// Request connection to the default game.  (doConnectGame takes an
 		// argument... but there's only the default game so far.)
