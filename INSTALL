@@ -14,7 +14,8 @@ git clone https://libwebsockets.org/repo/libwebsockets
 cd libwebsockets
 mkdir build
 cd build
-cmake ..
+# this enables permessage deflate
+cmake -DLWS_WITHOUT_EXTENSIONS=0 ..
 make
 sudo make install
 

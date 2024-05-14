@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.9 2023/02/11 03:22:23 malakai Exp $ */
+/* $Id: locid.c,v 1.10 2024/05/14 12:18:53 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -288,6 +288,17 @@ int main(int argc, char **argv) {
 	mount->def = config->default_doc;
 	mount->extra_mimetypes = &pvo_mime;
 
+	/* Enable permessage deflate extension */
+	static const struct lws_extension extensions[] = {
+		{
+			"permessage-deflate",
+			lws_extension_callback_pm_deflate,
+			"permessage-deflate"
+			 "; client_no_context_takeover"
+			 "; client_max_window_bits"
+		},
+		{ NULL, NULL, NULL /* terminator */ }
+	};
 
 	/* init the info struct for lws's context. */
 	memset(&info, 0, sizeof info); /* otherwise uninitialized garbage */
@@ -306,6 +317,9 @@ int main(int argc, char **argv) {
 #endif
 	/* could make this configurable later. */
 	info.retry_and_idle_policy = &retry;
+	/* Enable permessage deflate extension */
+	info.extensions = extensions;
+
 
 	context = lws_create_context(&info);
 	if (!context) {

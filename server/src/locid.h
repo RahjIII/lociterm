@@ -1,8 +1,8 @@
 /* locid.h - LociTerm main and config */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.h,v 1.15 2024/04/07 16:21:05 malakai Exp $ */
+/* $Id: locid.h,v 1.16 2024/05/14 12:18:53 malakai Exp $ */
 
-/* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
+/* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
  * This file is part of LociTerm - Last Outpost Client Implementation Terminal
  *
@@ -32,7 +32,7 @@
 #endif
 
 #ifndef LOCID_MINOR_VER
-#define LOCID_MINOR_VER 12
+#define LOCID_MINOR_VER 14
 #endif
 
 /* structs and typedefs */
