@@ -4,21 +4,26 @@
 	See: https://github.com/xtermjs/xterm.js/pull/4265
 	see ./browser/input/CompositionHelper.ts
 
-* Server Optional- game security ssl isn't working, fix it.
-
-* Makefile - have make move the existing locid to locid.prev on install to avoid the text file busy problem.
-
 * Server lws_daemonize check that.
 
 * Server drop perms after launch?
 
 * Server Get the terminal types and mtts values to be selectable from the config file?
 
-* Client option for keep keyboard open
-
 * Server fix the locid_log function to work better at showing the connection the messages are for.
 
 ------------- DONE! -----------------
+* Makefile - have make move the existing locid to locid.prev on install to avoid the text file busy problem.
+
+- Client option for keep keyboard open?
+	I just can't find any such option in Android. :(
+
+* Enabled and tested MCCP2 game side compression.
+
+* Enabled and tested client side permessage deflate compression.
+
+* Server Optional- game security ssl isn't working, fix it.
+
 * Makefile add a "tar up the distro" method to top level make?
 
 * client - work on the nerfbar some more.  A local line mode editor would be a

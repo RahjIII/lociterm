@@ -14,8 +14,8 @@ git clone https://libwebsockets.org/repo/libwebsockets
 cd libwebsockets
 mkdir build
 cd build
-# note that -DCMAKE_BUILD_TYPE=DEBUG will make a debug image of libwebsockets
-# this enables permessage deflate
+# -DCMAKE_BUILD_TYPE=DEBUG will make a debug image of libwebsockets. Not normally used.
+# -DLWS_WITHOUT_EXTENSIONS=0 enables permessage deflate, and IS REQUIRED.
 cmake -DLWS_WITHOUT_EXTENSIONS=0 ..
 make
 sudo make install

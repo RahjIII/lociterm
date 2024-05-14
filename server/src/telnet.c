@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.8 2024/04/06 17:55:12 malakai Exp $ */
+/* $Id: telnet.c,v 1.9 2024/05/14 21:02:30 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -69,6 +69,7 @@ const telnet_telopt_t fixed_telopts[] = {
 	{ TELNET_TELOPT_ECHO,		TELNET_WONT,	TELNET_DO },
 	{ TELNET_TELOPT_SGA,		TELNET_WILL,	TELNET_DO },
 	{ TELNET_TELOPT_TTYPE,		TELNET_WILL,	TELNET_DONT },
+	{ TELNET_TELOPT_MCCP2,		TELNET_WILL,	TELNET_DO },
 	{ TELNET_TELOPT_NEW_ENVIRON,		TELNET_WILL,	TELNET_DO },
 	{ TELNET_TELOPT_NAWS,		TELNET_WILL,	TELNET_DONT },
 	{ TELNET_TELOPT_GMCP,		TELNET_WILL,	TELNET_DO },

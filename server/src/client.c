@@ -1,6 +1,6 @@
 /* client.c - LociTerm client side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: client.c,v 1.14 2024/05/14 16:57:41 malakai Exp $*/
+/* $Id: client.c,v 1.15 2024/05/14 21:02:30 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -162,7 +162,9 @@ void loci_client_write(proxy_conn_t *pc, char *in, size_t len) {
 
 /* send the reconnection key to the client. */
 void loci_client_send_key(proxy_conn_t *pc) {
-	locid_log("[%d] sent current reconnect key %s.",pc->id,pc->uuid);
+	// printing the whole thing is like putting passwords into the logfile.
+	//locid_log("[%d] sent current reconnect key %s.",pc->id,pc->uuid);
+	locid_log("[%d] sent current reconnect key '%8.8s-...'",pc->id,pc->uuid);
 	loci_client_send_cmd(pc,RECONNECT_KEY,pc->uuid,strlen(pc->uuid));
 }
 
@@ -243,7 +245,7 @@ int loci_connect_to_game_uuid(proxy_conn_t *pc,char *uuid) {
 
 	/* if !found return(-1) */
 	if(!oldpc) {
-		locid_log("[%d] client reconnect %s NOT FOUND.",pc->id,uuid);
+		locid_log("[%d] client reconnect '%8.8s-...' NOT FOUND.",pc->id,uuid);
 		return(-1);
 	}
 
