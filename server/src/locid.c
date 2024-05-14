@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.11 2024/05/14 16:57:41 malakai Exp $ */
+/* $Id: locid.c,v 1.12 2024/05/14 21:56:16 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -203,6 +203,7 @@ int main(int argc, char **argv) {
 	struct lws_context *context;
 	struct lws_http_mount *mount;
 	char *s;
+	char buf[1024];
 	sigset_t mask;
 
 	static const struct lws_protocol_vhost_options pvo_mime = {
@@ -287,6 +288,12 @@ int main(int argc, char **argv) {
 	mount->origin_protocol = LWSMPRO_FILE;
 	mount->def = config->default_doc;
 	mount->extra_mimetypes = &pvo_mime;
+	mount->cache_max_age = 604800;
+	mount->cache_reusable = 1;
+	mount->cache_revalidate = 1;
+	mount->cache_intermediaries = 1;
+	/* this does NOT mean 'do not cache', it means revalidate first. */
+	mount->cache_no = 1;  
 
 	/* Enable permessage deflate extension */
 	static const struct lws_extension extensions[] = {
