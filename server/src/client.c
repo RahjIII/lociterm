@@ -1,6 +1,6 @@
 /* client.c - LociTerm client side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: client.c,v 1.13 2024/04/06 17:55:12 malakai Exp $*/
+/* $Id: client.c,v 1.14 2024/05/14 16:57:41 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -190,8 +190,15 @@ int loci_connect_to_game_number(proxy_conn_t *pc, int gameno) {
 	info.context = lws_get_context(pc->wsi_client);
 	info.port = config->game_port; 
 	info.address = config->game_host;
+	info.host = config->game_host;
 	if(config->game_usessl) {
-		info.ssl_connection = LCCSCF_USE_SSL|LCCSCF_ALLOW_SELFSIGNED|LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK;
+		info.ssl_connection = 
+			LCCSCF_USE_SSL |
+			LCCSCF_ALLOW_SELFSIGNED |
+			LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK |
+			LCCSCF_ALLOW_EXPIRED |
+			LCCSCF_ALLOW_INSECURE;
+
 	} else {
 		info.ssl_connection = 0;
 	}

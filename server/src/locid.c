@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.10 2024/05/14 12:18:53 malakai Exp $ */
+/* $Id: locid.c,v 1.11 2024/05/14 16:57:41 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -263,7 +263,7 @@ int main(int argc, char **argv) {
 	locid_log("Starting %s", config->locid_proxy_name);
 	locid_log("Loaded config file %s", configfilename);
 	locid_log("Mountpoint is %s", config->mountpoint);
-	locid_log("Game is %s %d security %S", 
+	locid_log("Game is %s %d security %s", 
 		config->game_host, config->game_port,
 		config->game_security
 	);
@@ -307,14 +307,14 @@ int main(int argc, char **argv) {
 	info.protocols = protocols;
 	info.vhost_name = config->vhost_name;
 	//info.options = LWS_SERVER_OPTION_HTTP_HEADERS_SECURITY_BEST_PRACTICES_ENFORCE;
-#if defined(LWS_WITH_TLS)
+	info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
+
 	if (!strcasecmp(config->client_security,"ssl")) {
 		lwsl_user("Client side using TLS\n");
-		info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
 		info.ssl_cert_filepath = config->cert_file;
 		info.ssl_private_key_filepath = config->key_file;
 	}
-#endif
+
 	/* could make this configurable later. */
 	info.retry_and_idle_policy = &retry;
 	/* Enable permessage deflate extension */

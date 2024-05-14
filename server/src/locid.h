@@ -1,6 +1,6 @@
 /* locid.h - LociTerm main and config */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.h,v 1.16 2024/05/14 12:18:53 malakai Exp $ */
+/* $Id: locid.h,v 1.17 2024/05/14 16:57:41 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -32,7 +32,7 @@
 #endif
 
 #ifndef LOCID_MINOR_VER
-#define LOCID_MINOR_VER 14
+#define LOCID_MINOR_VER 15
 #endif
 
 /* structs and typedefs */
