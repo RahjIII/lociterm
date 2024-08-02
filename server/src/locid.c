@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.12 2024/05/14 21:56:16 malakai Exp $ */
+/* $Id: locid.c,v 1.13 2024/08/02 20:11:45 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -32,6 +32,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <libwebsockets.h>
+#include <sys/wait.h>
 
 #include "libtelnet.h"
 
@@ -64,6 +65,41 @@ static struct lws_protocols protocols[] = {
 void sigint_handler(int sig)
 {
 	interrupted = 1;
+}
+
+void sigchld_handler(int sig) {
+	while (waitpid((pid_t) (-1), 0, WNOHANG) > 0) {}
+}
+
+void launch_web_browser(struct locid_conf *config) {
+
+	int child=0;
+	int clientssl=0;
+	char url[1024];
+	char err[1024];
+
+	if( !(strcmp(config->client_security ,"ssl") )) {
+		clientssl = 1;
+	}
+
+	g_snprintf(url,sizeof(url),"%s://localhost:%d",
+		(clientssl==1)?"https":"http",
+		config->listening_port
+	);
+
+	locid_log("Running %s %s .",config->client_launcher,url);
+
+	signal(SIGCHLD, sigchld_handler);
+
+	if( (child=fork()) == 0) {
+		/* I am the child. */
+		usleep(500000);  /* take a short nap... */
+		if( (execlp(config->client_launcher,config->client_launcher,url,(char*)NULL) == -1) ) {
+			g_snprintf(err,sizeof(err),"Couldn't exec '%s %s'",config->client_launcher,url);
+			perror(err);
+			exit(errno);
+		}
+	}
 }
 
 char *get_proxy_name(void) {
@@ -145,6 +181,7 @@ struct locid_conf *new_config(char *filename) {
 	c->default_doc = get_conf_string(gkf, "locid", "default_doc", "index.html");
 
 	c->client_security = get_conf_string(gkf,"client","security","none");
+	c->client_launcher = get_conf_string(gkf,"client","launcher","xdg-open");
 
 	c->game_usessl = 0;
 	c->game_security = get_conf_string(gkf,"game","security","none");
@@ -199,6 +236,7 @@ int main(int argc, char **argv) {
 	/* local variables. */
 	char *configfilename = NULL;
 	int debug = 0;
+	int launch = 0;
 	struct lws_context_creation_info info;
 	struct lws_context *context;
 	struct lws_http_mount *mount;
@@ -216,9 +254,10 @@ int main(int argc, char **argv) {
 	/* ...and begin. */
 
 	while(1) {
-		char *short_options = "hc:dv";
+		char *short_options = "hlc:dv";
 		static struct option long_options[] = {
 			{"help", no_argument,0,'h'},
+			{"launch", no_argument,0,'l'},
 			{"version", no_argument,0,'v'},
 			{"config",required_argument,0,'c'},
 			{"debug", no_argument,0,'d'},
@@ -235,6 +274,9 @@ int main(int argc, char **argv) {
 			case 'd':
 				debug = 1;
 				break;
+			case 'l':
+				launch = 1;
+				break;
 			case 'v':
 				s = get_proxy_name();
 				fprintf(stdout,"%s\n",s);
@@ -246,6 +288,7 @@ int main(int argc, char **argv) {
 				fprintf(stdout,"\t-c / --config   : specify location of config file\n");
 				fprintf(stdout,"\t-d / --debug    : run in debug mode\n");
 				fprintf(stdout,"\t-h / --help     : this message\n");
+				fprintf(stdout,"\t-l / --launch   : launch a browser\n");
 				fprintf(stdout,"\t-v / --version  : show the version\n");
 				exit(EXIT_SUCCESS);
 		}
@@ -264,10 +307,14 @@ int main(int argc, char **argv) {
 	locid_log("Starting %s", config->locid_proxy_name);
 	locid_log("Loaded config file %s", configfilename);
 	locid_log("Mountpoint is %s", config->mountpoint);
-	locid_log("Game is %s %d security %s", 
+	locid_log("Game 0 is %s %d security %s", 
 		config->game_host, config->game_port,
 		config->game_security
 	);
+	locid_log("LociTerm server listening on port %d.", 
+		config->listening_port
+	);
+	config->launch_browser = launch;
 
 	/* begin websocket init */
 	// int lwslogs = LLL_ERR | LLL_WARN | LLL_NOTICE;
@@ -339,6 +386,10 @@ int main(int argc, char **argv) {
 	sigaddset(&mask,SIGPIPE);
 	sigprocmask(SIG_SETMASK,&mask,NULL);
 	signal(SIGINT, sigint_handler);
+
+	if(config->launch_browser == 1) {
+		launch_web_browser(config);
+	}
 
 	/* end websocket init */
 
