@@ -28,7 +28,7 @@
 	border-color: var(--book-cover-color);
 	border-style: solid;
 	border-radius: calc(var(--finger-size)/2.0);
-	padding: 0.5em;
+	padding: 0.25em;
 	align-items: center;
 	border-width: 1mm;
 	z-index: +1;
@@ -48,9 +48,26 @@
 	background: var(--book-paper-color);
 	background: var(--book-altpaper-color);
 	resize: none;
+	border-radius: calc(var(--finger-size)/3.0);
 }
 
-.nerfbar button {
+.nerfbutton {
 	min-height: var(--finger-size);
 	min-width: var(--finger-size);
+	font-size: calc(var(--finger-size)*.75);
+	border-radius: calc(var(--finger-size)/3.0);
+	color: var(--book-cover-color);
+	border-style: solid;
+	border-width: 1px;
+	border-color: var(--book-paper-color);
+	background: none;
+	flex-grow: 0;
+	display: flex;
+	justify-content: center;
+}
+
+.nerfbutton:hover {
+	background: var(--book-altpaper-color);
+	border-color: var(--book-cover-color);
+	border-style: solid;
 }

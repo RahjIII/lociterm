@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.26 2024/05/11 17:20:21 malakai Exp $
+// $Id: menuhandler.js,v 1.27 2024/09/13 14:32:58 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -25,6 +25,7 @@ import Menubox from './menubox.json';
 import Menuside from './menuside.json';
 import Icons from './icons.svg';
 import LOIcon from './img/loiconcolor.gif';
+import TerminalIcon from './img/bezeltermicon192.png';
 
 import PackageData from '../package.json';
 
@@ -39,6 +40,7 @@ class MenuHandler {
 		this.lociterm = lociterm;
 		this.openwindow = [];
 		this.hotkeys = [];
+		this.openHandler = new Map();
 
 		// make the menuhandler in the menuhandler div that is already on the
 		// page, or if that doesn't exist, create it under this lociterm.  Note
@@ -75,7 +77,12 @@ class MenuHandler {
 	// always open a single menu item.
 	open(name) {
 		var e = document.getElementById(name);
+		let call = undefined;
 		this.done();
+		if(e == null) {
+			console.log(`couldn't open menu '${name}'?`);
+			return;
+		}
 		e.style.visibility = 'visible';
 		e.setAttribute("tabindex","0");
 		if(e.classList.contains("menuside")) {
@@ -85,6 +92,9 @@ class MenuHandler {
 		}
 		this.openwindow[name] =1;
 		e.focus();
+		if( (call = this.openHandler.get(name)) ) {
+			call(name);
+		}
 	};
 
 	// always close a single menu item.
@@ -269,6 +279,11 @@ class MenuHandler {
 					s.onclick = () => this.disconnect(item.disconnect);
 				}
 
+				if ( item.reconnect != undefined ) {
+					s.classList.add('send');
+					s.onclick = () => this.lociterm.reconnect();
+				}
+
 				c.appendChild(s);
 			}
 
@@ -402,9 +417,10 @@ class MenuHandler {
 		let l;
 		let cdiv;
 		let divstack = [];
+		let id = "menu_loginbox";
 
 		let overlay = document.createElement('div');
-		overlay.id='menu_loginbox';
+		overlay.id=id;
 		overlay.classList.add('overlay');
 		divstack.push(overlay);
 		cdiv = overlay;
@@ -434,9 +450,26 @@ class MenuHandler {
 		l.title = "Close menu_loginbox";
 		l.innerText = "×";
 
-		l = document.createElement('img');
+		l = document.createElement('figure');
 		cdiv.appendChild(l);
+		divstack.push(l);
+		cdiv = l;
+
+		l = document.createElement('img');
+		l.classList.add('siteicon');
+		l.id=`${overlay.id}_icon`;
 		l.src = LOIcon;
+		l.onerror = ((e)=>{ e.currentTarget.src = TerminalIcon; });
+		cdiv.appendChild(l);
+
+		l = document.createElement('figcaption');
+		l.classList.add('gamehost');
+		l.id=`${overlay.id}_gamehost`;
+		l.innerText = "";
+		cdiv.appendChild(l);
+
+		divstack.pop(); 
+		cdiv = divstack[divstack.length-1];
 
 		divstack.pop(); //imgcontainer
 		cdiv = divstack[divstack.length-1];
@@ -498,6 +531,30 @@ class MenuHandler {
 				this.sendlogin();
 				this.close("menu_loginbox")
 				this.lociterm.focus();
+			}
+		);
+
+		// This'll make it so that when the login window is opened, it'll do a
+		// check to see if the reconnect key has an icon set up in it.  Then
+		// player will see the game's site icon (or the default one) when they
+		// log in. 
+		this.openHandler.set(overlay.id,
+			(id) => {
+				if(this.lociterm.reconnect_key) {
+					let icon = document.getElementById(`${id}_icon`);
+					if(this.lociterm.reconnect_key.icon) {
+						icon.src = this.lociterm.reconnect_key.icon;
+					} else {
+						icon.src = TerminalIcon;
+					}
+					let fig = document.getElementById(`${id}_gamehost`);
+					if(this.lociterm.reconnect_key.host) {
+						fig.innerText = `(${this.lociterm.reconnect_key.host} `;
+						fig.innerText += `:${this.lociterm.reconnect_key.port})`;
+					} else {
+						fig.innerText = "";
+					}
+				}
 			}
 		);
 
@@ -1052,6 +1109,47 @@ class MenuHandler {
 		return(div);
 	}
 
+	create_generic_window(id="",named="",onclose="") {
+
+		let l;
+		let cdiv;
+		let divstack = [];
+
+		let overlay = document.createElement('div');
+		overlay.id=id;
+		overlay.classList.add('overlay');
+		divstack.push(overlay);
+		cdiv = overlay;
+
+		l = document.createElement('div');
+		cdiv.appendChild(l);
+		l.id = `${id}_borders`;
+		l.classList.add('menupop');
+		divstack.push(l);
+		cdiv = l;
+
+		l = document.createElement('span');
+		cdiv.appendChild(l);
+		l.id = `${id}_close`;
+		if(onclose == "") {
+			l.onclick = (()=>this.done());
+		} else {
+			l.onclick = onclose;
+		}
+		l.classList.add('close');
+		l.title = `Close ${named}`;
+		l.innerText = "×";
+
+		let content = document.createElement('div');
+		cdiv.appendChild(content);
+		content.id = `${id}_content`;
+
+		let ret = [];
+		ret[0] = overlay;
+		ret[1] = content;
+
+		return(ret);
+	}
 }
 
 export { MenuHandler };

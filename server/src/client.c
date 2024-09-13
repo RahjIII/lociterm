@@ -1,6 +1,6 @@
 /* client.c - LociTerm client side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: client.c,v 1.15 2024/05/14 21:02:30 malakai Exp $*/
+/* $Id: client.c,v 1.16 2024/09/13 14:32:58 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -21,19 +21,13 @@
  */
 
 #include <libwebsockets.h>
-#include <string.h>
-#include <signal.h>
-#include <string.h>
 #include <glib.h>
 #include <json-c/json.h>
 
-#include "libtelnet.h"
-
-#include "locid.h"
-#include "locilws.h"
 #include "debug.h"
-#include "game.h"
-#include "telnet.h"
+#include "proxy.h"
+#include "connect.h"
+#include "gamedb.h"
 
 #include "client.h"
 
@@ -42,13 +36,66 @@
 /* local function declarations */
 int loci_client_parse(proxy_conn_t *pc, char *in, size_t len);
 void loci_client_send_cmd(proxy_conn_t *pc, char cmd, char *in, size_t len);
-int loci_connect_to_game(proxy_conn_t *pc, int gameno, char *uuid);
 int loci_client_json_cmd_parse(proxy_conn_t *pc,char *in, size_t len);
 void loci_client_send_key(proxy_conn_t *pc);
+void loci_client_game_list(proxy_conn_t *pc, char *msg);
+void loci_client_more_info(proxy_conn_t *pc, char *msg);
 
 /* locals */
 
 /* functions */
+
+client_conn_t *new_client_conn() {
+	client_conn_t *n;
+
+	n = (client_conn_t *)malloc(sizeof(client_conn_t));
+	/* lws example code always does this memset to clear its embedded struct lws's. Doesn't
+	 * hurt to do it to the whole game_conn_t.*/
+	memset(n, 0, sizeof(*n));  
+
+	n->wsi_client = NULL;
+	n->client_q = g_queue_new();
+	n->client_state = PRXY_INIT;
+	n->hostname = NULL;
+	n->width = 80;
+	n->height = 25;
+	n->useragent = NULL;
+	n->requested_game = NULL;
+
+	n->pc = NULL;
+
+	return(n);
+
+}
+
+void free_client_conn(client_conn_t *f) {
+
+	if(f->wsi_client) {
+		lws_set_opaque_user_data(f->wsi_client, NULL);
+		lws_wsi_close(f->wsi_client, LWS_TO_KILL_SYNC);
+		f->wsi_client = NULL;
+	}
+
+	if(f->client_q) {
+		empty_proxy_queue(f->client_q);
+		g_queue_free(f->client_q);
+		f->client_q = NULL;
+	}
+	if(f->hostname) free(f->hostname);
+	f->hostname = NULL;
+	
+	if(f->useragent) g_free(f->useragent);
+	f->useragent = NULL;
+
+	if(f->requested_game) json_object_put(f->requested_game);
+	f->requested_game = NULL;
+
+	f->pc = NULL;
+	free(f);
+	return;
+
+}
+
 
 /* reads loci client protocol messages and acts on them. */
 int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
@@ -60,74 +107,70 @@ int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 	char *uuid;
 	int ret;
 
+	char *msg = in+1;
+	size_t msglen = len-1;
+
 	if (!in || !len) {
 		return(-1);
 	}
 
 	switch (*in) {
 		case INPUT:
-			if(pc->wsi_game) {
-				telnet_send_text(pc->game_telnet,in+1,len-1);
-			}
+			loci_game_send(pc,msg,msglen);
 			break;
 		case GMCP_INPUT:
-			if(pc->wsi_game) {
-				loci_telnet_send_gmcp(pc->game_telnet,in+1,len-1);
-			}
+			loci_game_send_gmcp(pc,msg,msglen);
 			break;
 		case RESIZE_TERMINAL:
 			width = 80;
 			height =25;
 			s = (char *)malloc(len);
 			memset(s, 0, len);  
-			memcpy(s,in+1,len-1);
+			memcpy(s,msg,msglen);
 			if( (sscanf(s,"%d %d",&width,&height)==2) ) {
-				pc->width = width;
-				pc->height = height;
+				pc->client->width = width;
+				pc->client->height = height;
 			}
 			free(s);
-			if(pc->wsi_game) {
-				loci_telnet_send_naws(pc->game_telnet,pc->width,pc->height);
-			}
-			lwsl_user("[%d] Terminal resized (%dx%d)",pc->id,pc->width,pc->height);
-
+			loci_game_send_naws(pc);
+			lwsl_user("[%d] Terminal resized (%dx%d)",pc->id,pc->client->width,pc->client->height);
 			break;
-		case CONNECT_GAME:
-			/* The message provides a number for 'connect to nth game', but
-			 * it's not really implemented yet.  Always connect to game 0. */
+
+		case CONNECT_VERBOSE: {
+			/* the msg is a null terminated json encoded blob of data.  See
+			 * loci_connect_verbose() for the expected content of that blob. */
 			s = (char *)malloc(len);
 			memset(s, 0, len);  
-			memcpy(s,in+1,len-1);
-			uuid = (char *)malloc(len);
-			*uuid = '\0';
-			if( (sscanf(s,"%d %s",&gameno,uuid)>=1) ) {
-				if(*uuid) {
-					ret = loci_connect_to_game(pc,gameno,uuid);
-				} else {
-					/* But I don't care, he gets the default game */
-					ret = loci_connect_to_game(pc,gameno,NULL);
-				}
-			} else {
-				locid_log("[%d] bad client CONNECT_GAME request.");
-				ret = -1;
-			}
+			memcpy(s,msg,msglen);
+			ret = loci_connect_verbose(pc,s);
 			free(s);
-			free(uuid);
 			return(ret);
-
-			break;
+		} break;
 		case DISCONNECT_GAME:
-			lws_set_timeout(pc->wsi_game,
-				PENDING_TIMEOUT_KILLED_BY_PROXY_CLIENT_CLOSE, 1
-			); 
+			locid_debug(DEBUG_CLIENT,pc,"client requested game close.");
+			loci_game_shutdown(pc);
 			break;
 		case SEND_CMD:
-			loci_client_json_cmd_parse(pc,in+1,len-1);
+			loci_client_json_cmd_parse(pc,msg,msglen);
 			break;
+		case GAME_LIST:
+			s = (char *)malloc(len);
+			memset(s, 0, len);  
+			memcpy(s,msg,msglen);
+			loci_client_game_list(pc,s);
+			free(s);
+			return(0);
+		case MORE_INFO:
+			s = (char *)malloc(len);
+			memset(s, 0, len);  
+			memcpy(s,msg,msglen);
+			loci_client_more_info(pc,s);
+			free(s);
+			return(0);
 		case PAUSE:
 		case RESUME:
 		default:
-			locid_log("[%d] unimplemented client command.",pc->id);
+			locid_debug(DEBUG_CLIENT,pc,"unimplemented client command.");
 			return(-1);
 	}
 	return(*in);
@@ -148,9 +191,9 @@ void loci_client_send_cmd(proxy_conn_t *pc, char cmd, char *in, size_t len) {
 	/* The rest is the message. */
 	memcpy(data+1,in,len);
 	/* put it on the client q and request service. */
-	g_queue_push_tail(pc->client_q,msg);
-	if(pc->wsi_client) {
-		lws_callback_on_writable(pc->wsi_client);
+	g_queue_push_tail(pc->client->client_q,msg);
+	if(pc->client->wsi_client) {
+		lws_callback_on_writable(pc->client->wsi_client);
 	}
 	return;
 }
@@ -162,137 +205,55 @@ void loci_client_write(proxy_conn_t *pc, char *in, size_t len) {
 
 /* send the reconnection key to the client. */
 void loci_client_send_key(proxy_conn_t *pc) {
-	// printing the whole thing is like putting passwords into the logfile.
-	//locid_log("[%d] sent current reconnect key %s.",pc->id,pc->uuid);
-	locid_log("[%d] sent current reconnect key '%8.8s-...'",pc->id,pc->uuid);
-	loci_client_send_cmd(pc,RECONNECT_KEY,pc->uuid,strlen(pc->uuid));
+
+	json_object *r;
+	json_object *db;
+	char *jstr;
+
+	r = json_object_new_object();
+	json_object_object_add(r,"reconnect",
+		json_object_new_string(loci_get_game_uuid(pc))
+	);
+
+	db = pc->game_db_entry;
+	if(db) {
+		json_object_object_add(r,"host",json_object_get(json_object_object_get(db,"host")));
+		json_object_object_add(r,"port",json_object_get(json_object_object_get(db,"port")));
+		json_object_object_add(r,"ssl",json_object_get(json_object_object_get(db,"ssl")));
+		json_object_object_add(r,"icon",json_object_get(json_object_object_get(db,"icon")));
+	}
+
+	jstr = json_object_to_json_string(r);
+
+	loci_client_send_cmd(pc,CONNECT_VERBOSE,jstr,strlen(jstr));
+	locid_debug(DEBUG_CLIENT,pc,"sent reconnect '%s'",jstr);
+	json_object_put(r);
+
 }
 
-void loci_client_invalidate_key(proxy_conn_t *pc) {
-	locid_log("[%d] send invalidate key message.",pc->id);
-	loci_client_send_cmd(pc,RECONNECT_KEY,"",0);
+
+void loci_client_send_connectmsg(proxy_conn_t *pc, char *state, char *msg) {
+
+	json_object *r;
+	json_object *db;
+	char *jstr;
+
+	r = json_object_new_object();
+	if(state) {
+		json_object_object_add(r,"state",json_object_new_string(state));
+	}
+	if(msg) {
+		json_object_object_add(r,"msg",json_object_new_string(msg));
+	}
+	jstr = json_object_to_json_string(r);
+
+	loci_client_send_cmd(pc,CONNECT_VERBOSE,jstr,strlen(jstr));
+	locid_debug(DEBUG_CLIENT,pc,"sent connectmsg '%s'",jstr);
+	json_object_put(r);
+
 }
 
-/* connect to the mud. */
-int loci_connect_to_game_number(proxy_conn_t *pc, int gameno) {
 
-	struct lws_client_connect_info info;
-
-	if(pc->wsi_game != NULL) {
-		lwsl_warn("%s: client requested a second connection?\n", __func__); 
-		return(0);
-	}
-
-	locid_log("[%d] client requested gameno %d.",pc->id,gameno);
-
-	/* lws example code likes to clear out structures before use */
-	memset(&info, 0, sizeof(info));
-
-	info.method = "RAW";
-	info.context = lws_get_context(pc->wsi_client);
-	info.port = config->game_port; 
-	info.address = config->game_host;
-	info.host = config->game_host;
-	if(config->game_usessl) {
-		info.ssl_connection = 
-			LCCSCF_USE_SSL |
-			LCCSCF_ALLOW_SELFSIGNED |
-			LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK |
-			LCCSCF_ALLOW_EXPIRED |
-			LCCSCF_ALLOW_INSECURE;
-
-	} else {
-		info.ssl_connection = 0;
-	}
-
-	info.local_protocol_name = "loci-game";
-	/* also mark this onward conn with the proxy_conn.  This is take from
-	 * the lws example code.  probably should be lws_set_opaque_user_data()
-	 * instead for clarity and consistency, but whatever. */
-	info.opaque_user_data = pc;
-	/* if the connect_via_info call succeeds, it'll set the wsi into the
-	 * location pointed to by info.pwsi, in this case, the wsi_game field
-	 * of the proxy_conn. */
-	info.pwsi = &pc->wsi_game;
-
-	/* Perhaps also a good spot to send "opening..." to the client. */
-	// buflen = sprintf(buf,"Trying %s %d...",info.address,info.port);
-	// loci_client_write(pc,buf,buflen);
-
-	if (!lws_client_connect_via_info(&info)) {
-		lwsl_warn("%s: onward game connection failed\n", __func__); 
-		loci_client_invalidate_key(pc);
-		/* return -1 means hang up on the ws client, triggering _CLOSE flow */
-		return -1;
-	}
-
-	loci_client_send_key(pc);
-
-	return(0);
-}
-
-/* reconnect to the mud. */
-int loci_connect_to_game_uuid(proxy_conn_t *pc,char *uuid) {
-
-	proxy_conn_t *oldpc;
-
-	if(!uuid || !*uuid) {
-		return(-1);
-	}
-
-
-	oldpc = find_proxy_conn_by_uuid(uuid);
-
-	/* if !found return(-1) */
-	if(!oldpc) {
-		locid_log("[%d] client reconnect '%8.8s-...' NOT FOUND.",pc->id,uuid);
-		return(-1);
-	}
-
-	/* patch the found old pc gameside into this client pc */
-	locid_log("[%d] client reconnect %s found id %d",pc->id,uuid,oldpc->id);
-	pc->wsi_game = oldpc->wsi_game;
-	oldpc->wsi_game = NULL;
-	lws_set_opaque_user_data(pc->wsi_game,pc);
-
-	/* copy in the queues */
-	move_proxy_queue(pc->game_q,oldpc->game_q);
-	move_proxy_queue(pc->client_q,oldpc->client_q);
-
-	if(pc->uuid) g_free(pc->uuid);
-	pc->uuid = oldpc->uuid;
-	oldpc->uuid = NULL;
-
-	/* close out the old proxyconn */
-	if(oldpc->wsi_client) {
-		lws_wsi_close(oldpc->wsi_client, LWS_TO_KILL_SYNC);
-	}
-
-	loci_client_send_key(pc);
-	loci_renegotiate_env(pc);
-
-	return(0);
-}
-
-int loci_connect_to_game(proxy_conn_t *pc, int gameno, char *uuid) {
-	
-	int ret;
-
-	if(pc->wsi_game != NULL) {
-		lwsl_warn("%s: client requested a second connection?\n", __func__); 
-		return(0);
-	}
-
-	if( !uuid || (*uuid == '\0')) {
-		return(loci_connect_to_game_number(pc,gameno));
-	}
-	ret = loci_connect_to_game_uuid(pc,uuid);	
-	if (ret == -1 ) {
-		return(loci_connect_to_game_number(pc,gameno));
-	} 
-	return(ret);
-
-}
 
 
 /* main LWS callback for the webclient side of the proxy. */
@@ -313,6 +274,13 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 	 * NULL on the first time this is called, but that's ok.)*/
 	pc = (proxy_conn_t *)lws_get_opaque_user_data(wsi);
 
+	locid_debug(DEBUG_EVENTNO,pc,"event: %d.",reason);
+
+	/* any event triggers a timeout check. */
+	if(pc && (get_game_state(pc) == PRXY_BLOCKING) ) {
+		security_enforcement(pc);
+	}
+
 	switch (reason) {
 	case LWS_CALLBACK_ESTABLISHED:
 		/* A web client has called into the proxy for the first time, and
@@ -320,32 +288,33 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 
 		/* create a new proxy connection object and add it as the user data for this wsi */
 		pc = new_proxy_conn(); 
+		set_client_state(pc,PRXY_UP);
 		lws_set_opaque_user_data(wsi, pc);
 
 		/* Save this wsi in the proxy con structure as the client side, so that
 		 * it can be looked up by callbacks made the game side wsi... */
-		pc->wsi_client = wsi;
+		pc->client->wsi_client = wsi;
 
-		lws_get_peer_simple(pc->wsi_client,buf,sizeof(buf));
-		pc->hostname = strdup(buf);
-		locid_log("[%d] Establishing client connection from %s",pc->id, pc->hostname);
+		lws_get_peer_simple(pc->client->wsi_client,buf,sizeof(buf));
+		pc->client->hostname = strdup(buf);
+		locid_log("Establishing client connection from %s", pc->client->hostname);
 
 		/* grab a string copy of the peer's address */
-		if(lws_hdr_copy(pc->wsi_client,buf,sizeof(buf),WSI_TOKEN_X_FORWARDED_FOR) > 0) {
-			locid_log("[%d] Using x-forwarded-for as the hostname: '%s'",pc->id, buf);
-			if(pc->hostname) free(pc->hostname);
-			pc->hostname = strdup(buf);
+		if(lws_hdr_copy(pc->client->wsi_client,buf,sizeof(buf),WSI_TOKEN_X_FORWARDED_FOR) > 0) {
+			locid_log("Using x-forwarded-for as the hostname: '%s'", buf);
+			if(pc->client->hostname) free(pc->client->hostname);
+			pc->client->hostname = strdup(buf);
 		}
 
-		if(lws_hdr_copy(pc->wsi_client,buf,sizeof(buf),WSI_TOKEN_HTTP_USER_AGENT) > 0) {
-			locid_log("[%d] User Agent: '%s'",pc->id, buf);
-			if(pc->useragent) {
-				g_free(pc->useragent);
+		if(lws_hdr_copy(pc->client->wsi_client,buf,sizeof(buf),WSI_TOKEN_HTTP_USER_AGENT) > 0) {
+			locid_log("User Agent: '%s'", buf);
+			if(pc->client->useragent) {
+				g_free(pc->client->useragent);
 			}
-			pc->useragent = strdup(buf);
+			pc->client->useragent = strdup(buf);
 		}
 
-		loci_telnet_init(pc);
+		/* lociterm1.x loci_telnet_init(pc); */
 
 		/* loci_connect_to_game(pc,0); */
 		/* Don't open up the connection to the game until the client
@@ -353,29 +322,42 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 		 * send up any login or environment */
 		break;
 
+	case LWS_CALLBACK_WS_PEER_INITIATED_CLOSE:
+		set_client_state(pc,PRXY_DOWN);
+		break;
+
 	case LWS_CALLBACK_CLOSED:
-		pc->wsi_client = NULL;
+		pc->client->wsi_client = NULL;
 		lws_set_opaque_user_data(wsi, NULL);
+		set_client_state(pc,PRXY_DOWN);
 
 		/* if the game side has either not opened, or has closed and cleaned
 		 * itself up, we can get rid of the proxy_conn too and be all done. */
-		if (!pc->wsi_game) {
+		if (get_game_state(pc) <= PRXY_DOWN) {
 			/* The game side of the proxy is already gone... */
-			locid_log("[%d] client side full close",pc->id);
-			empty_proxy_queue(pc->client_q); 
+			locid_debug(DEBUG_CLIENT,pc,"client side full close");
+			empty_proxy_queue(pc->client->client_q); 
+			set_client_state(pc,PRXY_INIT);
 			free_proxy_conn(pc);
 			break;
 		}
 
 		/* The game side of the proxy is still alive... */
-		locid_log("[%d] client side half close",pc->id);
+		locid_debug(DEBUG_CLIENT,pc,"client side half close");
 		break;
 
 	case LWS_CALLBACK_SERVER_WRITEABLE:
-		if (!pc || g_queue_is_empty(pc->client_q))
+		/* this callback happens every three seconds while client is open, no matter what. */
+
+		if(get_game_state(pc) == PRXY_BLOCKING) {
+			locid_debug(DEBUG_CLIENT,pc,"Game side is blocking on security check.");
+			break;
+		}
+
+		if (!pc || g_queue_is_empty(pc->client->client_q))
 			break;
 		
-		msg = g_queue_pop_head(pc->client_q);
+		msg = g_queue_pop_head(pc->client->client_q);
 		data = ((uint8_t *)&msg[1]) + LWS_PRE;
 
 		/* notice we allowed for LWS_PRE in the payload already */
@@ -384,12 +366,12 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 		free(msg);
 
 		if (m < a) {
-			lwsl_err("ERROR %d writing to ws\n", m);
+			locid_debug(DEBUG_LWS,pc,"ERROR %d writing to ws", m);
 			return -1;
 		}
 
 		/* and repeat while the queue contains messages. */
-		if (!(g_queue_is_empty(pc->client_q))) {
+		if (!(g_queue_is_empty(pc->client->client_q))) {
 			lws_callback_on_writable(wsi);
 		}
 		break;
@@ -406,6 +388,9 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 		break;
 
 	default:
+		if(pc) {
+			locid_debug(DEBUG_CLIENT,pc,"unhandled client callback %d.",reason);
+		}
 		break;
 	}
 
@@ -415,4 +400,45 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 /* parse verbose json data send from the web client.  */
 int loci_client_json_cmd_parse(proxy_conn_t *pc,char *str, size_t len) {
 	return(0);
+}
+
+
+
+/* msg is just ignored for now. Could be a subcommand later*/
+void loci_client_game_list(proxy_conn_t *pc, char *msg) {
+
+	json_object *jobj;
+	char *jstr;
+
+	jobj = game_db_get_server_list();
+	jstr = json_object_to_json_string(jobj);
+
+	loci_client_send_cmd(pc,GAME_LIST,jstr,strlen(jstr));
+	json_object_put(jobj);
+
+	return;
+}
+
+/* msg is a jobj string of host/port/ssl. */
+void loci_client_more_info(proxy_conn_t *pc, char *msg) {
+
+	json_object *request;
+
+	if(!(request = json_tokener_parse(msg))) {
+		locid_debug(DEBUG_CLIENT,pc,"%s Bad more_info request %s", pc->client->hostname,msg);
+		return;
+	}
+
+	char *host = json_object_get_string(json_object_object_get(request,"host"));
+	int port = json_object_get_int(json_object_object_get(request,"port"));
+	int ssl = json_object_get_boolean(json_object_object_get(request,"ssl"));
+
+	json_object *jobj = game_db_mssplookup(host,port,ssl);
+
+	char *jstr = json_object_to_json_string(jobj);
+
+	loci_client_send_cmd(pc,MORE_INFO,jstr,strlen(jstr));
+	json_object_put(jobj);
+
+	return;
 }

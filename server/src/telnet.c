@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.9 2024/05/14 21:02:30 malakai Exp $ */
+/* $Id: telnet.c,v 1.10 2024/09/13 14:32:58 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -33,13 +33,14 @@
 
 #include "locid.h"
 #include "debug.h"
-#include "locilws.h"
+#include "proxy.h"
 #include "client.h"
 #include "game.h"
+#include "gamedb.h"
 
 #include "telnet.h"
 
-/* local #defines */
+/* ---- local #defines */
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 
 /* these are MTTS bitfield definitions. */
@@ -68,11 +69,13 @@
 const telnet_telopt_t fixed_telopts[] = {
 	{ TELNET_TELOPT_ECHO,		TELNET_WONT,	TELNET_DO },
 	{ TELNET_TELOPT_SGA,		TELNET_WILL,	TELNET_DO },
+	{ TELNET_TELOPT_EOR,		TELNET_WILL,	TELNET_DO },
 	{ TELNET_TELOPT_TTYPE,		TELNET_WILL,	TELNET_DONT },
 	{ TELNET_TELOPT_MCCP2,		TELNET_WILL,	TELNET_DO },
 	{ TELNET_TELOPT_NEW_ENVIRON,		TELNET_WILL,	TELNET_DO },
 	{ TELNET_TELOPT_NAWS,		TELNET_WILL,	TELNET_DONT },
 	{ TELNET_TELOPT_GMCP,		TELNET_WILL,	TELNET_DO },
+	{ TELNET_TELOPT_MSSP,		TELNET_WILL,	TELNET_DO },
 	{ -1, 0 ,0 }
 };
 
@@ -80,6 +83,8 @@ const telnet_telopt_t fixed_telopts[] = {
 void send_next_ttype(proxy_conn_t *pc);
 void loci_client_gmcp_will(proxy_conn_t *pc);
 void loci_client_gmcp_wont(proxy_conn_t *pc);
+json_object *mssp_to_json(struct mssp_t *mssp);
+int set_echosga(int state, int telopt, int yesno);
 
 /* code starts here. */
 
@@ -94,12 +99,12 @@ void send_next_ttype(proxy_conn_t *pc) {
 		""
 	};
 
-	if(pc->ttype_state == ARRAY_SIZE(mtts)-1) {
-		telnet_ttype_is(pc->game_telnet,mtts[pc->ttype_state-1]);
-		pc->ttype_state = 0;
+	if(pc->game->ttype_state == ARRAY_SIZE(mtts)-1) {
+		telnet_ttype_is(pc->game->game_telnet,mtts[pc->game->ttype_state-1]);
+		pc->game->ttype_state = 0;
 	} else {
-		telnet_ttype_is(pc->game_telnet,mtts[pc->ttype_state]);
-		pc->ttype_state++;
+		telnet_ttype_is(pc->game->game_telnet,mtts[pc->game->ttype_state]);
+		pc->game->ttype_state++;
 	}
 
 }
@@ -117,6 +122,7 @@ void loci_free_env_var(struct telnet_environ_t *f) {
 	if(!f) return;
 	if(f->var) free(f->var);
 	if(f->value) free(f->value);
+	free(f);
 }
 
 /* creates a reasonable set of telnet env vars for the connection. */
@@ -124,20 +130,14 @@ void loci_environment_init(proxy_conn_t *pc) {
 
 	char buf[1024];
 
-	if(!pc) return;
 	if(pc->environment) {
-		locid_log("[%d] Environment already exists at loci_environment_init.",pc->id);
+		locid_debug(DEBUG_TELNET,pc,"Environment already exists, reseting");
 		loci_environment_free(pc);
-	}
-	if(pc->hostname) {
-		pc->environment = g_list_append(pc->environment,
-			loci_new_env_var(TELNET_ENVIRON_VAR,"IPADDRESS",pc->hostname)
-		);
 	}
 	pc->environment = g_list_append(pc->environment,
 		loci_new_env_var(TELNET_ENVIRON_VAR,"CLIENT_NAME",LOCID_SHORTNAME)
 	);
-	snprintf(buf,sizeof(buf),"%d.%d",LOCID_MAJOR_VER,LOCID_MINOR_VER);
+	snprintf(buf,sizeof(buf),"%s",LOCITERM_VERSION);
 	pc->environment = g_list_append(pc->environment,
 		loci_new_env_var(TELNET_ENVIRON_VAR,"CLIENT_VERSION",buf)
 	);
@@ -146,15 +146,24 @@ void loci_environment_init(proxy_conn_t *pc) {
 	);
 	pc->environment = g_list_append(pc->environment,
 		loci_new_env_var(TELNET_ENVIRON_VAR,"TERMINAL_TYPE","XTERM") 
-	);
+	); 
+	/* TODO, MTTS should be dynamic. */
 	pc->environment = g_list_append(pc->environment,
-		loci_new_env_var(TELNET_ENVIRON_VAR,"MTTS",MTTS_VALUE) /* FIXME, should be dynamic. */
+		loci_new_env_var(TELNET_ENVIRON_VAR,"MTTS",MTTS_VALUE)
 	);
-	/* TODO make this controllable from the config file too. */
-	if(pc->useragent) {
-		pc->environment = g_list_append(pc->environment,
-			loci_new_env_var(TELNET_ENVIRON_VAR,"HTTP_USER_AGENT",pc->useragent)
-		);
+
+	if(pc->client) {
+		if(pc->client->useragent) {
+			/* TODO make this controllable from the config file too. */
+			pc->environment = g_list_append(pc->environment,
+				loci_new_env_var(TELNET_ENVIRON_VAR,"HTTP_USER_AGENT",pc->client->useragent)
+			);
+		}
+		if(pc->client->hostname) {
+			pc->environment = g_list_append(pc->environment,
+				loci_new_env_var(TELNET_ENVIRON_VAR,"IPADDRESS",pc->client->hostname)
+			);
+		}
 	}
 
 	return;
@@ -162,9 +171,8 @@ void loci_environment_init(proxy_conn_t *pc) {
 }
 
 void loci_environment_free(proxy_conn_t *f) {
-	if(!f) return;
 
-	g_list_free_full(f->environment,(GDestroyNotify)loci_free_env_var);
+	g_list_free_full(g_steal_pointer (&(f->environment)), (GDestroyNotify)loci_free_env_var);
 	f->environment = NULL;
 	return;
 
@@ -172,7 +180,7 @@ void loci_environment_free(proxy_conn_t *f) {
 
 void loci_send_env_var(struct telnet_environ_t *env, telnet_t *telnet) {
 
-	lwsl_user("ENV send: %s = %s",env->var,env->value);
+	locid_debug(DEBUG_TELNET,NULL,"ENV send: %s = %s",env->var,env->value);
 
 	telnet_begin_newenviron(telnet,TELNET_ENVIRON_IS);
 	telnet_newenviron_value(telnet,env->type,env->var);
@@ -193,24 +201,46 @@ void loci_telnet_send_naws(telnet_t *telnet, int width, int height) {
 	telnet_begin_sb(telnet,TELNET_TELOPT_NAWS);
 	telnet_send(telnet,encoding,sizeof(encoding));
 	telnet_finish_sb(telnet);
-	lwsl_user("sent naws (%dx%d)",width,height);
+	locid_debug(DEBUG_TELNET,NULL,"sent naws (%dx%d)",width,height);
 }
 
 /* retrigger a WILL NEW_ENVIRON */
 void loci_renegotiate_env(proxy_conn_t *pc) {
-	if(pc->game_telnet) {
-		telnet_negotiate(pc->game_telnet, TELNET_WILL, TELNET_TELOPT_NEW_ENVIRON);
+	if(pc && pc->game && pc->game->game_telnet) {
+		telnet_negotiate(pc->game->game_telnet, TELNET_WILL, TELNET_TELOPT_NEW_ENVIRON);
 	}
 }
 
 void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_data) {
 
-	proxy_conn_t *pc = (proxy_conn_t *)user_data;
+	game_conn_t *gc = (game_conn_t *)user_data;
+	proxy_conn_t *pc = gc->pc;
+	
+	locid_debug(DEBUG_EVENTNO,pc,"event %d", event->type);
 
 	switch (event->type) {
 	case TELNET_EV_DATA:
+		if(!(gc->data_sent)) {
+			gc->data_sent = 1;
+			loci_client_send_echosga(pc);
+		}
 		loci_client_write(pc,event->data.buffer,event->data.size);
 		break;
+	case TELNET_EV_IAC: {
+		switch(event->iac.cmd) {
+		case TELNET_AYT:
+			loci_game_write(pc,"\r\n[YES]\r\n",9);
+			break;
+		case TELNET_GA:
+		case TELNET_EOR:
+			/* ignore line termination signals. */
+			break;
+		default:
+			locid_debug(DEBUG_TELNET,pc,"Recieved IAC %d",event->iac.cmd);
+			break;
+		}
+		break;
+	}
 	case TELNET_EV_SEND:
 		loci_game_write(pc,event->data.buffer,event->data.size);
 		break;
@@ -221,66 +251,104 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		lwsl_warn("TELNET warning: %s", event->error.msg);
 		break;
 	case TELNET_EV_WILL:
+		security_checked(pc,CHECK_TELNET);
 		switch(event->neg.telopt) {
+		case TELNET_TELOPT_ECHO:
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WILL TELNET_TELOPT_ECHO");
+			gc->echo_opt = 1;
+			loci_client_send_echosga(pc);
+			break;
+		case TELNET_TELOPT_SGA:
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WILL TELNET_TELOPT_SGA");
+			gc->sga_opt = 1;
+			loci_client_send_echosga(pc);
+			break;
+		case TELNET_TELOPT_MSDP:
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WILL TELNET_TELOPT_MSDP");
+			security_checked(pc,CHECK_MUD);
+			break;
+		case TELNET_TELOPT_MCCP2:
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WILL TELNET_TELOPT_MCCP2");
+			security_checked(pc,CHECK_MUD);
+			break;
 		case TELNET_TELOPT_GMCP:
-			lwsl_user("TELNET TELNET_EV_WILL TELNET_TELOPT_GMCP");
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WILL TELNET_TELOPT_GMCP");
+			security_checked(pc,CHECK_MUD);
 			loci_client_gmcp_will(pc);
 			break;
 		default: 
-			lwsl_user("TELNET TELNET_EV_WILL: %d", event->neg.telopt);
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WILL: %d", event->neg.telopt);
 			break;
 		}
 		break;
 	case TELNET_EV_WONT:
+		security_checked(pc,CHECK_TELNET);
 		switch(event->neg.telopt) {
+		case TELNET_TELOPT_ECHO:
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WONT TELNET_TELOPT_ECHO");
+			gc->echo_opt = 0;
+			loci_client_send_echosga(pc);
+			break;
+		case TELNET_TELOPT_SGA:
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WONT TELNET_TELOPT_SGA");
+			gc->sga_opt = 0;
+			loci_client_send_echosga(pc);
+			break;
 		case TELNET_TELOPT_GMCP:
-			lwsl_user("TELNET TELNET_EV_WONT TELNET_TELOPT_GMCP");
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WONT TELNET_TELOPT_GMCP");
 			loci_client_gmcp_wont(pc);
 			break;
 		default: 
-			lwsl_user("TELNET TELNET_EV_WONT: %d", event->neg.telopt);
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WONT: %d", event->neg.telopt);
 			break;
 		}
 		break;
 	case TELNET_EV_DO:
+		security_checked(pc,CHECK_TELNET);
 		switch(event->neg.telopt) {
 		case TELNET_TELOPT_NAWS:
-			lwsl_user("TELNET TELNET_EV_DO TELNET_TELOPT_NAWS");
-			loci_telnet_send_naws(pc->game_telnet, pc->width, pc->height);
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_DO TELNET_TELOPT_NAWS");
+			loci_telnet_send_naws(gc->game_telnet, pc->client->width, pc->client->height);
 			break;
 		case TELNET_TELOPT_NEW_ENVIRON:
-			lwsl_user("TELNET TELNET_EV_DO TELNET_TELOPT_NEW_ENVIRON");
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_DO TELNET_TELOPT_NEW_ENVIRON");
 			break;
 		case TELNET_TELOPT_TTYPE:
-			lwsl_user("TELNET TELNET_EV_DO TELNET_TELOPT_TTYPE");
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_DO TELNET_TELOPT_TTYPE");
 			break;
 		default:
-			lwsl_user("TELNET TELNET_EV_DO: unhandled %d", event->neg.telopt);
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_DO: unhandled %d", event->neg.telopt);
 			break;
 		}
 		break;
 	case TELNET_EV_DONT:
+		security_checked(pc,CHECK_TELNET);
 		switch(event->neg.telopt) {
 		case TELNET_TELOPT_TTYPE:
-			lwsl_user("TELNET TELNET_EV_DONT TELNET_TELOPT_TTYPE");
-			pc->ttype_state = 0;
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_DONT TELNET_TELOPT_TTYPE");
+			gc->ttype_state = 0;
 			break;
 		default:
-			lwsl_user("TELNET TELNET_EV_DONT: unhandled %d", event->neg.telopt);
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_DONT: unhandled %d", event->neg.telopt);
 			break;
 		}
 	case TELNET_EV_SUBNEGOTIATION:
+		security_checked(pc,CHECK_TELNET);
 		switch (event->sub.telopt) {
 		case TELNET_TELOPT_GMCP:
-			lwsl_user("TELNET TELNET_EV_SUBNEGOTIATION GMCP");
+			security_checked(pc,CHECK_MUD);
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_SUBNEGOTIATION GMCP");
 			loci_client_send_cmd(pc,GMCP_OUTPUT,event->data.buffer,event->data.size);
 			break;
 		case TELNET_TELOPT_NEW_ENVIRON:
 		case TELNET_TELOPT_TTYPE:
 			/* ignore, handled by its own ev type. */
 			break;
+		case TELNET_TELOPT_MSSP:
+			security_checked(pc,CHECK_MSSP);
+			break;
 		default:
-			lwsl_user("TELNET TELNET_EV_SUBNEGOTIATION: %d", event->sub.telopt);
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_SUBNEGOTIATION: %d", event->sub.telopt);
 			break;
 		}
 		break;
@@ -290,41 +358,52 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		}
 		break;
 	case TELNET_EV_ENVIRON:
-		lwsl_user("TELNET TELNET_EV_ENVIRON: (%ld requests) (cmd %d)", event->environ.size, event->environ.cmd);
+		locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_ENVIRON: (%ld requests) (cmd %d)", event->environ.size, event->environ.cmd);
 		if(event->environ.cmd == TELNET_ENVIRON_SEND) {
 			if(event->environ.size == 0) {
 				/* send 'em all */
-				lwsl_user("Send all env vars.");
-				g_list_foreach(pc->environment,(GFunc)loci_send_env_var,pc->game_telnet);
+				locid_debug(DEBUG_TELNET,pc,"Send all env vars.");
+				g_list_foreach(pc->environment,(GFunc)loci_send_env_var,gc->game_telnet);
 			}
 		}
 		break;
+	case TELNET_EV_MSSP: {
+		security_checked(pc,CHECK_MUD);
+		security_checked(pc,CHECK_MSSP);
+		locid_debug(DEBUG_MSSP,pc,"MSSP event, size %d items.",event->mssp.size);
+		if(pc->mssp) {
+			locid_debug(DEBUG_MSSP,pc,"Already had mssp data in pc?  Replacing...");
+			json_object_put(pc->mssp);
+		}
+		pc->mssp = mssp_to_json(&(event->mssp));
+		game_db_update_mssp(pc);
+		break;
+	}
 	default:
-		lwsl_user("TELNET unhandled: %d", event->type);
+		locid_debug(DEBUG_TELNET,pc,"TELNET unhandled: %d", event->type);
 		break;
 	}
 }
 
-
-telnet_t *loci_telnet_init(proxy_conn_t *pc) {
-	if(!pc) {
+telnet_t *loci_telnet_init(game_conn_t *gc) {
+	if(!gc) {
 		return(NULL);
 	}
 	
-	loci_environment_init(pc);
-	if(pc->game_telnet) {
-		locid_log("[%d] telnet already exists at loci_environment_init.",pc->id);
+	loci_environment_init(gc->pc);
+	if(gc->game_telnet) {
+		locid_debug(DEBUG_TELNET,gc->pc,"game_telnet already exists! re-using");
 	} else {
-		pc->game_telnet = telnet_init(fixed_telopts,loci_telnet_handler, 0, (void *)pc);
+		gc->game_telnet = telnet_init(fixed_telopts,loci_telnet_handler, 0 , (void *)gc);
 	}
 
-	return(pc->game_telnet);
+	return(gc->game_telnet);
 }
 
-void loci_telnet_free(proxy_conn_t *pc) {
-	if(pc && pc->game_telnet) {
-		telnet_free(pc->game_telnet);
-		pc->game_telnet = NULL;
+void loci_telnet_free(game_conn_t *gc) {
+	if(gc && gc->game_telnet) {
+		telnet_free(gc->game_telnet);
+		gc->game_telnet = NULL;
 	}
 }
 
@@ -344,6 +423,45 @@ void loci_telnet_send_gmcp(telnet_t *telnet, const char *buffer, size_t size) {
 	telnet_begin_sb(telnet,TELNET_TELOPT_GMCP);
 	telnet_send(telnet,buffer,size);
 	telnet_finish_sb(telnet);
-	lwsl_user("sent gmcp message (%ld bytes)",size);
+	locid_debug(DEBUG_TELNET,NULL,"sent gmcp message (%ld bytes)",size);
 }
 
+/* process a libtelnet mssp block into json object */
+json_object *mssp_to_json(struct mssp_t *mssp) {
+	
+	json_object *blob;
+
+	blob = json_object_new_object();
+
+	for(int i=0;i<(mssp->size);i++) {
+		struct telnet_environ_t *t = &(mssp->values[i]);
+		locid_debug(DEBUG_MSSP,NULL,"%d: '%s' = '%s'",
+			i,
+			t->var,
+			t->value
+		);
+		/* to hell with handling MSSP array type for now. */
+		/* to hell with inferring MSSP types for now. */
+		json_object_object_add(blob,t->var,json_object_new_string(t->value));
+	}
+	locid_debug(DEBUG_MSSP,NULL,"%s",json_object_to_json_string(blob));
+	return(blob);
+}
+
+int set_echosga(int state, int telopt, int yesno) {
+
+	int newstate = state;
+
+	switch (telopt) {
+	case TELNET_TELOPT_ECHO:
+		newstate = ( (state & 0x2) | (yesno & 0x1) );
+		break;
+	case TELNET_TELOPT_SGA:
+		newstate = ( (state & 0x1) | (yesno & 0x2) );
+		break;
+	default:
+		break;
+	}
+
+	return(newstate);
+}

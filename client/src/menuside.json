@@ -100,7 +100,8 @@
 		"item" : [
 			{
 				"label": "Logout",
-				"send": "logout\n"
+				"send": "logout\n",
+				"disconnect": "remote"
 			},
 			{
 				"label": "Camp",
@@ -790,13 +791,42 @@
 			},
 			{
 				"label": "About",
+				"open": "menu_about_which"
+			}
+		]
+	},
+	{	"id" : "menu_about_which",
+		"item" : [
+			{
+				"label": "LociTerm",
 				"open": "menu_about"
+			},
+			{
+				"label": "Game",
+				"open": "menu_game_about"
+			}
+		]
+	},
+	{
+		"id" : "menu_login",
+		"item" : [
+			{
+				"label": "User Name",
+				"open": "menu_loginbox"
+			},
+			{
+				"label": "New Server",
+				"open": "menu_connect_direct"
 			}
 		]
 	},
 	{
 		"id": "menu_client_settings",
 		"item" : [
+			{
+				"label": "Game Server",
+				"open": "menu_game_select"
+			},
 			{
 				"label": "Theme",
 				"open": "menu_settings"

@@ -1,6 +1,6 @@
 /* debug.c - Debugging and loggin code for LociTerm */
 /* Created: Wed Mar  3 11:09:27 PM EST 2021 malakai */
-/* $Id: debug.c,v 1.5 2023/02/11 03:22:23 malakai Exp $*/
+/* $Id: debug.c,v 1.6 2024/09/13 14:32:58 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -30,6 +30,8 @@
 #include <errno.h>
 
 #include "debug.h"
+
+unsigned int global_debug_facility = DEBUG_OFF;
 
 FILE *locid_logfile;
 
@@ -87,4 +89,41 @@ int lwsl_timestamp(int level, char *p, size_t len) {
 /* ...cause we'll be using this logger instead. */
 void locid_log_lws(int level, char *str) {
 	locid_log("%d:%s",level,str);
+}
+
+void locid_Debug(const char *caller, int facility, proxy_conn_t *pc, char *str, ...) {
+
+	va_list ap;
+	char vbuf[LOG_BUF_LEN];
+	char *v,*eov;
+
+	if(((facility) & global_debug_facility) == 0) { 
+		return;
+	}
+
+	v = vbuf;
+	eov = vbuf + sizeof(vbuf)-1;
+
+	if(pc) {
+		v += g_snprintf(v,eov-v,"[%d] ",pc->id);
+	}
+	if(caller) {
+		v += g_snprintf(v,eov-v,"%s(): ",caller);
+	}
+
+	va_start(ap,str);
+	g_vsnprintf(v,eov-v,str,ap);
+	va_end(ap);
+
+	locid_log("%s",vbuf);
+
+	if(global_debug_facility & DEBUG_BREAK) {
+		locid_breakpoint(facility);
+	}
+}
+
+int locid_breakpoint(int code) {
+	static int count = 0;
+	count++;
+	return(count);
 }

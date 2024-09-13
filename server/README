@@ -4,13 +4,31 @@ cd src; make
 the binary will be in src/locid
 
 ------ requirements --------
-  --- libwebsocket ---
-Requires libwebsocket to be built and installed locally.
+(libwebsocket)* (libtelnet)* glib-2.0 sqlite3 json-c
 
-  --- libtelnet (kinda) ---
-This code includes libtelnet from https://github.com/seanmiddleditch/libtelnet
-because the libtelnet that is packaged with debian from
-http://github.com/elanthis/libtelnet is stuck on version 0.21 and it is buggy.
+  --- libwebsocket ---
+Wed Aug  7 12:38:20 PM EDT 2024
+
+Requires libwebsocket to be built and installed locally on debian systems with
+these options provided to cmake, to enable IPV6 and websocket per-message
+compression.
+
+git clone https://libwebsockets.org/repo/libwebsockets
+(or.. 
+	git remote update
+	git status
+	git pull
+)
+cmake -DLWS_IPV6=1 -DLWS_WITH_ZLIB=ON -DLWS_WITHOUT_EXTENSIONS=OFF ..
+make
+sudo make install
+
+
+  --- libtelnet ---
+Lociterm includes libtelnet from https://github.com/seanmiddleditch/libtelnet
+in its source distribution because the libtelnet that is packaged with debian
+from http://github.com/elanthis/libtelnet is stuck on version 0.21 and it is
+buggy.
 
 The seanmiddleditch version won't compile as a library, so rather than manually
 update the deb package version with the two files from Sean's repo, I just
@@ -18,5 +36,16 @@ include those two files locally here and skip the lib.  The version included is
 0.23 (or as documented in the libtelnet source, in case I forget to update this
 README)
 
-
   --- glib-2.0 ---
+On Debian based sytems- 
+apt-get install libglib2.0-dev
+
+
+  --- sqlite3 ---
+On Debian based sytems- 
+apt-get install libsqlite3-dev
+
+ --- libjson-c-dev ---
+On Debian based sytems- 
+apt-get install libsqlite3-dev
+

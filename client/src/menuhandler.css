@@ -268,6 +268,14 @@
 	overflow: auto;
 }
 
+.menupop figure {
+	display: flex;
+	justify-items: center;
+	margin: 0em;
+	flex-direction: column;
+	align-items: center;
+}
+
 .menupop .textflow {
 	display: block;
 	padding: 1mm;
@@ -278,12 +286,58 @@
 	justify-content: center;
 }
 
+.imgcontainer .siteicon {
+	width: calc(var(--finger-size) * 4.0);
+	max-width: calc(var(--finger-size) * 4.0);
+	max-height: calc(var(--finger-size) * 4.0);
+	aspect-ratio: auto;
+}
+
+.gameabout {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.gameabout a {
+	min-height: var(--finger-size);
+	color: var(--book-link-color);
+}
+
+.gameabout figure {
+	display: grid;
+	justify-items: center;
+}
+
+.gameabout button {
+	width: 90%;
+}
+
+.gameabout div {
+}
+
+.gamename {
+	font-weight: bold;
+	font-size: calc(var(--font-size) * 1.1);
+	color: var(--book-cover-color);
+	margin: 0.5em;
+	text-transform: capitalize;
+}
+
+.gamehost {
+	font-weight: normal;
+	font-style: normal;
+	font-size: calc(var(--font-size)*.66);
+	margin: 0.5em;
+	text-transform: capitalize;
+}
+
 .menupop select,
 .menupop input,
 .menupop input.checkbox,
 .menupop button {
-	min-height: calc(var(--finger-size)/1.5);
-	min-width: calc(var(--finger-size)/1.5);
+	min-height: calc(var(--finger-size)/1.0);
+	min-width: calc(var(--finger-size)/1.0);
 	font-size: var(--font-size);
 	margin: 1mm;
 	background: var(--book-altpaper-color);
@@ -297,9 +351,14 @@
 	position: absolute;
 	right: 2mm;
 	top: 0;
-	font-size: calc(var(--font-size) * 2.0);
+	font-size: var(--finger-size);
 	font-weight: bold;
 	color: var(--book-cover-color);
+	min-height: var(--finger-size);
+	min-width: var(--finger-size);
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 .close:hover,
@@ -320,3 +379,24 @@
 	min-height: var(--finger-size);
 }
 
+.menupop .gamelist {
+	border-color: var(--book-cover-color);
+	border-radius: calc(var(--finger-size)/4.0);
+	border-style: solid;
+	background: var(--book-altpaper-color);
+	max-height: calc(var(--finger-size)*8);
+	min-height: calc(var(--finger-size)*2);
+	min-width: 16em;
+	overflow-y: auto;
+	margin: 1mm;
+	margin-bottom: 1em;
+}
+
+.gamelist tr {
+	height: calc(var(--finger-size));
+	text-transform: capitalize;
+}
+
+.gamelist tr:nth-child(even) {
+	background: var(--book-paper-color);
+}

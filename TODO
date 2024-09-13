@@ -1,4 +1,45 @@
 ------- TODO TODO TODO TODO --------------
+
+* Suggested games and result should always be logged by server (not a debug)
+
+* config option for verbose suggestion failure message to client.
+
+* CLI db administration mode.
+
+* DB - save first few K of data, for admin review later?
+
+* Figure out how to alter the tables without whacking them.
+
+* Config option for how frequently to re-check MSSP.
+
+* One time 'suggestion disclaimer' window.
+
+* try to fix TAB and SHIFT TAB in the ui.
+
+* support for CHARSET telnet option, to send UTF-8
+
+* Filter out unsupported GMCP messages at the locid level.  No reason to send
+  those to the client, and some games are very bad about it.
+
+* see about ?host=x;port=x;ssl=x in URL?
+
+* controlable contrast ratio in theme? (can xtermjs do it after setup?)  
+	See xtermoptions.minimumContrastRatio
+
+* Work on selectable / alternate menubox layouts for 10-way direction muds.
+
+* put SSL port into the game about.
+
+* terminal reset- put cursor on last line of screen? (read rows from xtermjs, move cursor there.)
+
+* idea- could do a pure cli lociterm too, for kicks. :)
+
+* There is a bug in libwebsockets, if ip6 hostname resolves but port only open
+  on ipv4, lws will kill the connection 15 seconds after connecting to ipv4.
+
+* Server Get the terminal types and mtts values to be selectable from the
+  config file?
+
 * android ime-
 	Remains an open issue. :( 
 	See: https://github.com/xtermjs/xterm.js/pull/4265
@@ -8,11 +49,53 @@
 
 * Server drop perms after launch?
 
-* Server Get the terminal types and mtts values to be selectable from the config file?
+------------- DONE! -----------------
++ put some color in the terminal icon
+
++ negotiate EOR.  Its just a good thing to do.
+
++ BUG - game about sometimes doesnt show the right game right after a suggestion
+
++ BUG - game server seclect sometimes dosent show the right green-checked game after a suggestsion or a reload.
+
+? BUG - client send terminal name sometimes???
+
++ use open method to set the fields in the suggest host window
+
++ make the GMCP login icon show the game icon if it exists.
+
++ BUG - changing theme to one without line mode turns it off on line mode clients.
+
+- button paste command should also past into command history?  Meh..
+
+* Change the version numbers, make them consisted between client and server.
+
+* nerfbar needs (local?) up and down arrrow history.
+
+* Choose-a-server needs client interface.  Client needs to save the chosen server.
+
+*** reconnect bug, telnet is getting reset
+
+* local echo mode might want to preferentially focus() (and enable?) the nerfbar.
+
+* Server should tell client about need for local echo?  Server should provide 'local' echo?
+
+* Suggestions into DB.
+
+* Connect check against db.
+
+* MSSP data into DB on connect.
+
+* security checks into config file for suggest-a-game.  none,telnet,mud,mssp
+
+* security checks working
+
+* get sqlite linked in
+
+* figure out libtelnet mssp handling.
 
 * Server fix the locid_log function to work better at showing the connection the messages are for.
 
-------------- DONE! -----------------
 * Makefile - have make move the existing locid to locid.prev on install to avoid the text file busy problem.
 
 - Client option for keep keyboard open?

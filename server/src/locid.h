@@ -1,6 +1,6 @@
 /* locid.h - LociTerm main and config */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.h,v 1.18 2024/08/02 20:11:45 malakai Exp $ */
+/* $Id: locid.h,v 1.19 2024/09/13 14:32:58 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -23,16 +23,14 @@
 #ifndef LO_LOCID_H
 #define LO_LOCID_H
 
+#include <glib.h>
+
 /* global #defines */
 #define LOCID_SHORTNAME "locid"
 #define LOCID_LONGNAME "Last Outpost Client Implementation Demon"
 
-#ifndef LOCID_MAJOR_VER
-#define LOCID_MAJOR_VER 1
-#endif
-
-#ifndef LOCID_MINOR_VER
-#define LOCID_MINOR_VER 16
+#ifndef LOCITERM_VERSION
+#define LOCITERM_VERSION "2.0.0-dev"
 #endif
 
 /* structs and typedefs */
@@ -49,19 +47,26 @@ struct locid_conf {
 	char *game_security;
 	char *game_host;
 	char *game_service;
+	char *game_name;
 	char *cert_file;
 	char *key_file;
 	char *chain_file;
 	char *locid_proxy_name;
 	int game_port;
 	int game_usessl;
-	int launch_browser;
+	int client_localmode;
+	int db_inuse;
+	char *db_engine;
+	char *db_location;
+	int db_suggestions;
+	GList *db_banned_ports;
+	int db_min_protocol;
 };
 
 /* exported global variable declarations */
 extern struct locid_conf *config;
 
 /* exported function declarations */
-
+char *get_proxy_name(void);
 
 #endif /* LO_LOCID_H */

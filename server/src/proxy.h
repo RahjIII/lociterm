@@ -1,6 +1,6 @@
-/* locilws.h - LociTerm libwebsocket handlers */
+/* proxy.h - LociTerm protocol bridge  */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: locilws.h,v 1.4 2023/02/11 03:22:23 malakai Exp $ */
+/* $Id: proxy.h,v 1.1 2024/09/13 14:32:58 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -19,36 +19,52 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with LociTerm.  If not, see <https://www.gnu.org/licenses/>.
  */
+#ifndef LO_PROXY_H
+#define LO_PROXY_H
 
-
-#ifndef LO_LOCILWS_H
-#define LO_LOCILWS_H
+#include <glib.h>
+#include <json-c/json.h>
+#include "libtelnet.h"
 
 /* global #defines */
 
 /* structs and typedefs */
 
-/* one of these created for each pending message that is to be forwarded */
+typedef enum {
+	PRXY_NULL,
+	PRXY_INIT,
+	PRXY_DOWN,
+	PRXY_CONNECTING,
+	PRXY_UP,
+	PRXY_BLOCKING,
+	PRXY_RECONNECTING,
+	PRXY_CLOSING,
+	PRXY_STATE_MAX
+} proxy_state_t;
+
+#define CHECK_TELNET (1<<0)
+#define CHECK_MUD (1<<1)
+#define CHECK_MSSP (1<<2)
+
+/* declared here, but defined further down. */
+typedef struct client_conn client_conn_t;
+typedef struct game_conn game_conn_t;
+
+/* Main structure for a proxy connection. */
 typedef struct proxy_conn {
 
 	int id;
-	/* client side elements */
-	struct lws *wsi_client;
-	GQueue *client_q;
-	char *hostname;
-	int ttype_state;
-	int width;
-	int height;
-	GList *environment;
-	gchar *useragent;
-	
-	/* game side elements */
-	struct lws *wsi_game; 
-	GQueue *game_q;
-	telnet_t *game_telnet;
-	gchar *uuid;
+	client_conn_t *client;
+	game_conn_t *game;
+
+	json_object *game_db_entry;     /* contains hostname, port, ssl, ... */
+	json_object *mssp;				/* TEMPORARY MSSP data recieved from game. */
+
+	GList *environment;				/* proxied environment variables */
+
 
 } proxy_conn_t;
+
 
 typedef struct proxy_msg {
 	size_t			len;
@@ -77,12 +93,29 @@ typedef struct proxy_msg {
 
 proxy_conn_t *new_proxy_conn(void);
 void free_proxy_conn(proxy_conn_t *f);				/* full close */
-void free_proxy_conn_game_side(proxy_conn_t *f);    /* half close */
-void free_proxy_conn_client_side(proxy_conn_t *f);  /* half close */
 
 void empty_proxy_queue(GQueue *q);
 void move_proxy_queue(GQueue *dst, GQueue *src);
 
 proxy_conn_t *find_proxy_conn_by_uuid(char *uuid);
 
-#endif /* LO_LOCILWS_H */
+proxy_state_t get_game_state(proxy_conn_t *pc);
+proxy_state_t get_client_state(proxy_conn_t *pc);
+void set_game_state(proxy_conn_t *pc, proxy_state_t state);
+void set_client_state(proxy_conn_t *pc, proxy_state_t state);
+int security_checked(proxy_conn_t *pc,int security_flags);
+void security_require(proxy_conn_t *pc,int security_flags,int pulses);
+void security_enforcement(proxy_conn_t *pc);
+
+const char *loci_get_client_hostname(proxy_conn_t *pc);
+const char *loci_get_game_uuid(proxy_conn_t *pc);
+
+void loci_client_shutdown(proxy_conn_t *pc);
+void loci_client_send_echosga(proxy_conn_t *pc);
+void loci_client_invalidate_key(proxy_conn_t *pc);
+void loci_game_send(proxy_conn_t *pc, const char *buffer, size_t size);
+void loci_game_send_gmcp(proxy_conn_t *pc, const char *buffer, size_t size);
+void loci_game_send_naws(proxy_conn_t *pc);
+void loci_game_shutdown(proxy_conn_t *pc);
+void free_proxyconns(void);
+#endif /* LO_PROXY_H */

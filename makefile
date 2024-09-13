@@ -1,8 +1,8 @@
-# $Id: makefile,v 1.8 2023/02/17 19:26:28 malakai Exp $
+# $Id: makefile,v 1.9 2024/09/13 14:32:58 malakai Exp $
 #
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.8 2023/02/17 19:26:28 malakai Exp $
+# $Id: makefile,v 1.9 2024/09/13 14:32:58 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -22,6 +22,10 @@
 # along with LociTerm.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+# This one location controls the version string that appears in the client,
+# server, and archive files!
+LOCITERM_VERSION = 2.0.0
+#
 
 # #### Variable definitions ####
 BUILD = ./dist
@@ -31,7 +35,7 @@ CLIENTDIR = ./client
 NPM = ./client/node_modules
 CERTNAME = loci
 DATEKEY = `date +%y%m%d%H%M`
-TARFILE = ../lociterm.$(DATEKEY).tgz
+TARFILE = ../lociterm_$(LOCITERM_VERSION).tgz
 
 # #### Recipies Start Here ####
 
@@ -41,12 +45,13 @@ all : $(BUILD) $(NPM) server client
 
 .PHONY : server
 server : $(BUILD)
-	cd $(SERVERDIR)/src; make
+	cd $(SERVERDIR)/src; make "LOCITERM_VERSION = $(LOCITERM_VERSION)"
 	cp $(SERVERDIR)/src/build/locid $(BUILD)/bin
 	cp $(SERVERDIR)/locid.conf $(BUILD)/etc
 
 .PHONY : client 
 client : $(NPM) $(BUILD)
+	cd $(CLIENTDIR); npm version --allow-same-version $(LOCITERM_VERSION)
 	cd $(CLIENTDIR); npm run build
 	cp -r $(CLIENTDIR)/dist/* $(BUILD)/var/www/loci
 
@@ -72,8 +77,8 @@ cert : $(BUILD)
 # Cleaning up...
 .PHONY : clean
 clean : 
-	cd server; make clean
-	cd client; npm run build
+	cd $(SERVERDIR)/src; make clean
+	cd $(CLIENTDIR); npm run clean
 
 .PHONY : install
 install :

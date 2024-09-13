@@ -1,8 +1,8 @@
-/* telnet.h - LociTerm libtelnet handlers */
-/* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.h,v 1.5 2024/09/13 14:32:59 malakai Exp $ */
+/* connect.h - <comment goes here> */
+/* Created: Sun Aug  4 10:09:40 PM EDT 2024 malakai */
+/* $Id: connect.h,v 1.1 2024/09/13 14:32:58 malakai Exp $ */
 
-/* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
+/* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
  * This file is part of LociTerm - Last Outpost Client Implementation Terminal
  *
@@ -21,29 +21,20 @@
  */
 
 
-#ifndef LO_TELNET_H
-#define LO_TELNET_H
+#ifndef LOCI_CONNECT_H
+#define LOCI_CONNECT_H
 
 /* global #defines */
-/* these are some extra telnet telopt definitions that don't already appear in
- * libtelnet. */
-#define TELNET_TELOPT_GMCP 201
-#define TELNET_TELOPT_MSDP 69
 
 /* structs and typedefs */
 
 /* exported global variable declarations */
 
-
 /* exported function declarations */
+int loci_connect_verbose(proxy_conn_t *pc, char *msg);
+int loci_connect_requested_game(proxy_conn_t *pc);
+int loci_connect_to_game_host(proxy_conn_t *pc, char *hostname, int port, int ssl);
+int loci_connect_to_game_uuid(proxy_conn_t *pc,char *uuid);
 
-void free_telopts(telnet_telopt_t *t);
-telnet_t *loci_telnet_init(game_conn_t *gc);
-void loci_telnet_free(game_conn_t *gc);
-void loci_telnet_send_naws(telnet_t *telnet, int width, int height);
-void loci_telnet_send_gmcp(telnet_t *telnet, const char *buffer, size_t size);
-void loci_environment_init(proxy_conn_t *pc);
-void loci_environment_free(proxy_conn_t *pc);
-void loci_renegotiate_env(proxy_conn_t *pc);
 
-#endif /* LO_TELNET_H */
+#endif /* LOCI_CONNECT_H */

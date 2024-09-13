@@ -1,6 +1,6 @@
 /* game.h - <comment goes here> */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: game.h,v 1.2 2022/05/02 03:18:36 malakai Exp $ */
+/* $Id: game.h,v 1.3 2024/09/13 14:32:58 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -26,9 +26,32 @@
 /* global #defines */
 
 /* structs and typedefs */
+typedef struct game_conn {
 
+	struct lws *wsi_game; 			/* LWS wsi for game raw socket */
+	proxy_state_t game_state;		/* current loci interface state */
+	GQueue *game_q;					/* Game side data queue */
+	telnet_t *game_telnet;			/* telnet protocol tracker */
+	gchar *uuid;					/* reconnect key for this game connection. */
+
+	int check_wait;					/* Protocol verification timer */
+	int check_protocol;				/* Protocol verification flags */
+
+	int ttype_state;				/* */
+	int echo_opt;					/* Is game server providing echo? */
+	int sga_opt;					/* Is game server supressing the GA protocol? */
+	int data_sent;
+
+	proxy_conn_t *pc;				/* pointer to parent proxy context. */
+	
+} game_conn_t;
 
 /* exported global variable declarations */
+
+/* exported function declarations */
+game_conn_t *new_game_conn(void);
+void free_game_conn(game_conn_t *f);
+
 
 void loci_game_write(proxy_conn_t *pc, char *in, size_t len);
 

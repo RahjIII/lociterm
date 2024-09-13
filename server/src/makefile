@@ -1,6 +1,6 @@
 # makefile - LociTerm locid server
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.7 2024/05/14 12:18:53 malakai Exp $
+# $Id: makefile,v 1.8 2024/09/13 14:32:58 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -25,10 +25,15 @@
 # reboot.
 LOCI = locid
 
+# Ideally, this should match the LOCITERM_VERSION in the toplevel makefile.
+# This is only here so that if you make only the server, there's at least some
+# version number.
+LOCITERM_VERSION ?= 2.0.0-dev
+
 # List the LOCI .c files here.  Order doesn't matter.  Dont worry
 # about header file dependencies, this makefile will figure them out
 # automatically.
-LOCI_CFILES = locid.c debug.c locilws.c client.c game.c telnet.c libtelnet.c
+LOCI_CFILES = locid.c debug.c proxy.c client.c game.c connect.c telnet.c libtelnet.c gamedb.c
 
 # The list of HFILES, (required for making the ctags database) is generated
 # automatically from the LOCI_CFILES list.  However, not everything in LOCI_CFILES
@@ -38,15 +43,31 @@ ADDITIONAL_HFILES =
 MISSING_HFILES = 
 
 # CDEBUG, use -g for gdb symbols.  For gprof, add -pg and -no-pie.
+# For ASAN add -fsanitize=address (uses a much larger memory footprint)
+# use 'break __sanitizer::Die' inside of gdb to stop on a san error
 #CDEBUG = -g -Og
-CDEBUG = -g 
+#CDEBUG = -g 
+CDEBUG = -g  -fsanitize=address
+
+# CDEFINES, for passing version number in through makefiles.
+CDEFINES = -D'LOCITERM_VERSION="$(LOCITERM_VERSION)"'
 
 # #### Flags and linklibs definitions ####
 
-CFLAGS = -I/usr/local/include -Wall -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable `pkg-config --cflags glib-2.0` `pkg-config --cflags libwebsockets` -DHAVE_ZLIB
+CFLAGS = -I/usr/local/include -Wall -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable -DHAVE_ZLIB
+CFLAGS += `pkg-config --cflags glib-2.0`
+CFLAGS += `pkg-config --cflags libwebsockets`
+CFLAGS += `pkg-config --cflags json-c`
+CFLAGS += `pkg-config --cflags sqlite3`
+
+
 
 LDFLAGS = -L/usr/local/lib
-LINKLIBS = `pkg-config --libs libwebsockets` `pkg-config --libs glib-2.0` -lz
+LINKLIBS = -lz
+LINKLIBS += `pkg-config --libs libwebsockets` 
+LINKLIBS += `pkg-config --libs glib-2.0`
+LINKLIBS += `pkg-config --libs json-c`
+LINKLIBS += `pkg-config --libs sqlite3`
 
 # #### ############################################# ###
 # ####         Makefile magic begins here.           ###
@@ -101,14 +122,14 @@ $(RUN) :
 
 # Linking the LOCI binary...
 $(BUILD)/$(LOCI) : $(LOCI_OFILES)
-	$(CC) $(CDEBUG) $(LDFLAGS) $^ -o $(@) $(LINKLIBS)
+	$(CC) $(CDEBUG) $(CDEFINES) $(LDFLAGS) $^ -o $(@) $(LINKLIBS)
 
 # check the .h dependency rules in the .d files made by gcc
 -include $(LOCI_DFILES)
 
 # Build the .o's from the .c files, building .d's as you go.
 $(BUILD)/%.o : %.c
-	$(CC) $(CDEBUG) $(CFLAGS) -MMD -c $< -o $(@)
+	$(CC) $(CDEBUG) $(CDEFINES) $(CFLAGS) -MMD -c $< -o $(@)
 
 # Updating the tags file...
 tags : $(HFILES) $(CFILES)

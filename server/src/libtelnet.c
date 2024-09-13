@@ -703,7 +703,7 @@ static int _mssp_telnet(telnet_t *telnet, char* buffer, size_t size) {
 	next_type = buffer[0];
 	for (i = 0, c = buffer + 1; c < buffer + size;) {
 		/* search for end marker */
-		while (c < buffer + size && (unsigned)*c != TELNET_MSSP_VAR &&
+		while (c < buffer + size -1 && (unsigned)*c != TELNET_MSSP_VAR &&
 				(unsigned)*c != TELNET_MSSP_VAL) {
 			*out++ = *c++;
 		}

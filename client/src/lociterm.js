@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.31 2024/05/11 18:11:45 malakai Exp $
+// $Id: lociterm.js,v 1.32 2024/09/13 14:32:58 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -32,6 +32,7 @@ import { MenuHandler } from './menuhandler.js';
 import { NerfBar } from './nerfbar.js';
 import { GMCP } from './gmcp.js';
 import { CRTFilter } from './crtfilter.js';
+import { ConnectGame } from './connect.js';
 import BellSound from './snd/Oxygen-Im-Contact-In.mp3';
 
 // shamelessly borrowed from ttyd, as I was considering keeping the ws
@@ -39,22 +40,29 @@ import BellSound from './snd/Oxygen-Im-Contact-In.mp3';
 // implemented.
 const Command = {
 	// client message - these are RECEIVED
-	OUTPUT: '0',
-	SET_WINDOW_TITLE: '1',
-	SET_PREFERENCES: '2',
-	RECV_CMD: '3',
-	RECONNECT_KEY: '7',
-	GMCP_OUTPUT: '8',
+	OUTPUT: 0,
+	SET_WINDOW_TITLE: 1,
+	SET_PREFERENCES: 2,
+	RECV_CMD: 3,
+	RECONNECT_KEY_OLD: 7,
+	GMCP_OUTPUT: 8,
+	CONNECT_VERBOSE: 9,
+	ECHO_MODE: 10,
+	GAME_LIST: 11,
+	MORE_INFO: 12,
 
 	// server message - these are SENT
-	INPUT: '0',
-	RESIZE_TERMINAL: '1',
-	PAUSE: '2',
-	RESUME: '3',
-	CONNECT_GAME: '5',
-	SEND_CMD: '6',
-	DISCONNECT_CMD: '7',
-	GMCP_INPUT: '8'
+	INPUT: 0,
+	RESIZE_TERMINAL: 1,
+	PAUSE: 2,
+	RESUME: 3,
+	CONNECT_GAME: 5,
+	SEND_CMD: 6,
+	DISCONNECT_CMD: 7,
+	GMCP_INPUT: 8,
+	CONNECT_VERBOSE: 9,
+	GAME_LIST: 11,
+	MORE_INFO: 12
 }
 
 // IIP support from xterm-addon-image
@@ -119,6 +127,7 @@ class LociTerm {
 		this.themeLoaded = 0;
 		this.url = "";
 		this.nerfbar = new NerfBar(this,"nerfbar");
+		this.echo_mode = 0;
 		this.gmcp = new GMCP(this);
 		this.crtfilter = new CRTFilter("crtfilter");
 
@@ -127,6 +136,7 @@ class LociTerm {
 		this.terminal.unicode.activeVersion = '11';
 		this.terminal.loadAddon(this.fitAddon);
 		this.terminal.loadAddon(this.webLinksAddon);
+		this.terminal.options.convertEol = true;
 
 		this.webgladdon = new WebglAddon();
 		this.webgladdon.onContextLoss(e => {
@@ -138,6 +148,7 @@ class LociTerm {
 		this.imageAddon = new ImageAddon();
 		this.terminal.loadAddon(this.imageAddon);
 
+		this.terminal.onKey((e) => this.onKey(e) );
 		this.terminal.onData((e) => this.onTerminalData(e) );
 		this.terminal.onBinary((e) => this.onBinaryData(e) );
 
@@ -149,12 +160,17 @@ class LociTerm {
 			navigator.vibrate([50,100,150]);
 		});
 
-		// this.reconnect_key = localStorage.getItem("reconnect_key");
+		try { 
+			this.reconnect_key = JSON.parse(localStorage.getItem("reconnect_key"));
+		} catch {
+			this.reconnect_key = {};
+		}
 		this.autoreconnect = true;
 		this.reconnect_delay = 0;
 
 		window.addEventListener('resize', (e) => this.onWindowResize(e) );
 		this.menuhandler = new MenuHandler(this);
+		this.connectgame = new ConnectGame(this,this.menuhandler);
 		this.loadDefaultTheme();
 		this.terminal.open(mydiv);
 		this.fitAddon.fit();
@@ -192,8 +208,29 @@ class LociTerm {
 		//console.log(`Resize message not sent due to socket not open.`);
 	}
 
-	// Connect to the n'th game on the server's list
-	doConnectGame(n=0) {
+	// Connect using a connect_verbose message.
+	doConnectGame() {
+		let request = {};
+		if(this.reconnect_key != "") {
+			try {request.reconnect = this.reconnect_key.reconnect;} catch {};
+			try {request.host = this.reconnect_key.host;} catch {};
+			try {request.port = this.reconnect_key.port;} catch {};
+			try {request.ssl = this.reconnect_key.ssl;} catch {};
+		} else if(this.connectgame.in_use) {
+			request.host = this.connectgame.hostname;
+			request.port = this.connectgame.port;
+			request.ssl = this.connectgame.ssl;
+		}
+		if(request.host) {
+			this.menuhandler.update_oob_message(`🔀Trying ${request.host} ${request.port}...`);
+		} else {
+			this.menuhandler.update_oob_message(`🔀Connecting...`);
+		}
+		console.log(`Sending connect_verbose: ${JSON.stringify(request)}`);
+		this.sendMsg(Command.CONNECT_VERBOSE,JSON.stringify(request));
+	}
+
+	doConnectGameOld() {
 		if(this.reconnect_key == "") {
 			console.log(`Connecting to game ${n}.`);
 			this.sendMsg(Command.CONNECT_GAME,n);
@@ -201,6 +238,27 @@ class LociTerm {
 			console.log(`Connecting to uuid ${this.reconnect_key} or game ${n}.`);
 			this.sendMsg(Command.CONNECT_GAME,`${n} ${this.reconnect_key}`);
 		}
+	}
+
+	// ask server to send us a list of games.  request is ignored for now.
+	requestGameList(request) {
+		request = new Object();	 // ignore the request for now.
+		console.log(`Sending GAME_LIST : ${JSON.stringify(request)}`);
+		this.sendMsg(Command.GAME_LIST,JSON.stringify(request));
+	}
+
+	// ask server to send us MSSP data for host/port/ssl. 
+	requestGameInfo(request) {
+		let msg = new Object();
+		try {
+			msg.host = request.host;
+			msg.port = request.port;
+			msg.ssl = request.ssl;
+		} catch {
+			msg = {};
+		}
+		console.log(`Sending MORE_INFO : ${JSON.stringify(msg)}`);
+		this.sendMsg(Command.MORE_INFO,JSON.stringify(msg));
 	}
 
 	focus(data) {
@@ -221,7 +279,10 @@ class LociTerm {
 		}
 		switch (this.socket.readyState) {
 			case 1:  // OPEN
-				this.socket.send( this.textEncoder.encode(cmd + data) );
+				// lame trick to leave space for a byte at index 0
+				let msg = this.textEncoder.encode('0' + data)
+				msg[0] = cmd;
+				this.socket.send( msg );
 				break;
 			case 3:  // CLOSED
 				this.connect();
@@ -238,16 +299,38 @@ class LociTerm {
 		}
 	}
 
+	onKey() {
+		// Kinda hokey, but if the xtermjs temrinal gets a keystroke while the
+		// client is in line mode, try and activate the nerfbar instead.
+		if(this.echo_mode != 3) {
+			this.focus();
+		}
+	}
+
 	onTerminalData(data) {
-		this.sendMsg(Command.INPUT,data);
+		/* char at a time mode */
+		if(this.echo_mode == 3) {
+			this.sendMsg(Command.INPUT,data);
+			return;
+		} else {
+			this.focus();
+		}
 	}
 
 	onBinaryData(data) {
-		this.sendBinaryMsg(Command.INPUT,data);
+		//this.sendBinaryMsg(Command.INPUT,data);
+		this.sendMsg(Command.INPUT,data);
 	}
 
 	paste(data) {
 		this.sendMsg(Command.INPUT,data);
+		if(this.echo_mode !=3 ) {
+			if(data.endsWith("\r")) {
+				this.terminal.writeln(data);
+			} else {
+				this.terminal.write(data);
+			}
+		}
 	}
 
 	doSendCMD(obj) {
@@ -256,7 +339,8 @@ class LociTerm {
 
 	doSendGMCP(module,obj) {
 		let msg = module + " " + JSON.stringify(obj);
-		console.log("GMCP Send: " + module + " [object]");
+		//console.log("GMCP Send: " + module + " [object]");
+		console.log(`GMCP Send: ${msg}`);
 		this.sendMsg(Command.GMCP_INPUT,msg);
 	}
 
@@ -324,16 +408,21 @@ class LociTerm {
 
 	onSocketOpen(e) {
 		console.log("Socket open!" + e);
+		this.menuhandler.update_connect_message(`🚀Connected!`);
 		this.autoreconnect = true;
 		this.reconnect_delay = 0;
 		// Send the window size to the game side so that it can be made
 		// available to the mud at connection time.
 		this.lastResize = "";  // Force it.
 		this.doWindowResize();
-		// Request connection to the default game.  (doConnectGame takes an
-		// argument... but there's only the default game so far.)
-		this.doConnectGame(0);
-		this.menuhandler.update_connect_message(`🚀Connected!`);
+
+		// might want to open the game chooser insted of connecting to game.
+		if(this.connectgame.wants_to_select == true) {
+			this.menuhandler.open("menu_game_select");
+		} else {
+			// Request connection to the current game.
+			this.doConnectGame(0);
+		}
 		this.menuhandler.close("menu_connect");
 	}
 
@@ -343,7 +432,7 @@ class LociTerm {
 		let rawbuffer = event.data;
 		let rawbytes = new Uint8Array(rawbuffer);
 
-		let cmd = new TextDecoder('utf8').decode(rawbuffer).charAt(0);
+		let cmd = rawbytes[0];
 
 		switch(cmd) {
 			case Command.OUTPUT:
@@ -406,18 +495,37 @@ class LociTerm {
 				// Of course, there's nothing implemented yet so...
 				console.warn("Unhandled recv_json: " + msg);
 				break;
-			case Command.RECONNECT_KEY:
-				let old_key = this.reconnect_key;
-				this.reconnect_key = new TextDecoder('utf8').decode(rawbuffer.slice(1));
-				console.log("Recieved reconnect key " + this.reconnect_key);
-				if(this.reconnect_key == old_key) {
-					console.log("keys match, this is a reconnect.");
-					// this.terminal.write(`\r\n┅┅┅┅┅ Reconnected. ┅┅┅┅┅\r\n\r\n`);
-					this.doWindowResize();
-					this.paste("\r");  /* at least in LO, \r requests a redraw. */
-				} 
-				// localStorage.setItem("reconnect_key",this.reconnect_key);
+
+			case Command.CONNECT_VERBOSE: {
+				let msg = new TextDecoder('utf8').decode(rawbuffer).slice(1);
+				console.log(`Recieved connect_verbose '${msg}'`);
+				let robj = JSON.parse(msg);
+				if( robj.reconnect) {
+					if ((robj.reconnect == "invalidate")) {
+						delete this.reconnect_key.reconnect;
+					} else {
+						this.reconnect_key = robj;
+					}
+				}
+				if (robj.state) {
+					if(robj.state == "reconnected") {
+						this.doWindowResize();
+						this.paste("\x12");  /* at least in LO, ctrl-r requests a redraw. */
+						//this.terminal.write(`\r\n┅┅┅┅┅ Reconnected. ┅┅┅┅┅\r\n\r\n`);
+					}
+					if(robj.msg && (robj.msg != "")) {
+						this.menuhandler.update_oob_message(`🤖 ${robj.msg}`);
+					} else {
+						this.menuhandler.close("menu_oob_message");
+					}
+				}
+				let sobj = {};
+				sobj.host = this.reconnect_key.host;
+				sobj.port = this.reconnect_key.port;
+				sobj.ssl = this.reconnect_key.ssl;
+				localStorage.setItem("reconnect_key",JSON.stringify(sobj));
 				break;	
+			}
 			case Command.GMCP_OUTPUT: {
 				// the format is the standard GMCP one.  A text field that is
 				// the GMCP module name, followed by a JSON encoded object.
@@ -428,10 +536,52 @@ class LociTerm {
 				let obj = new Object();
 				if(idx != -1) {
 					module = msg.slice(0,idx);
-					obj = JSON.parse(msg.slice(idx));
+					try {
+						obj = JSON.parse(msg.slice(idx));
+					} catch {
+						console.log(`GMCP Recv: ${module} and unparsable crap: '${msg.slice(idx)}'`);
+					}
 				}
 				console.log("GMCP Recv: " + module + " " + JSON.stringify(obj));
 				this.gmcp.parse(module,obj);
+				break;
+			}
+			case Command.ECHO_MODE: {
+				let obj;
+				let msg = new TextDecoder('utf8').decode(rawbuffer).slice(1);
+				try { obj = JSON.parse(msg); } catch { obj = 0; }
+				console.log(`ECHO_MODE: ${obj}`);
+				this.echo_mode = obj;
+				if (this.echo_mode == 3) {
+					/* honor the user's preference. */
+					let nerfbar = localStorage.getItem("nerfbar");
+					if(nerfbar == "true") {
+						this.nerfbar.open();
+					} else {
+						this.nerfbar.close();
+					}
+				} else {
+					/* open the nerfbar. */
+					this.nerfbar.open();
+					this.nerfbar.nofade();
+				}
+				this.focus();
+				break;
+			}
+			case Command.GAME_LIST: {
+				let obj;
+				let msg = new TextDecoder('utf8').decode(rawbuffer).slice(1);
+				console.log(`GAME_LIST: ${msg}`);
+				try { obj = JSON.parse(msg); } catch { obj = 0; }
+				this.connectgame.update_game_select(obj);
+				break;
+			}
+			case Command.MORE_INFO: {
+				let obj;
+				let msg = new TextDecoder('utf8').decode(rawbuffer).slice(1);
+				console.log(`MORE_INFO: ${msg}`);
+				try { obj = JSON.parse(msg); } catch { obj = {}; }
+				this.connectgame.update_game_about(obj);
 				break;
 			}
 			default:
@@ -442,7 +592,11 @@ class LociTerm {
 
 	onSocketClose(e) {
 		console.log(`Socket Close`);
-		if(this.reconnect_key != "" && (this.autoreconnect == true)) {
+		if( (this.reconnect_key) && 
+			(this.reconnect_key.reconnect) &&
+			(this.reconnect_key.reconnect != "") &&
+			(this.autoreconnect == true) 
+		) {
 			this.reconnect();
 		} else {
 			this.menuhandler.update_connect_message(`🔅Disconnected`);
@@ -547,15 +701,21 @@ class LociTerm {
 			localStorage.setItem("menuFade",theme.menuFade);
 		}
 		if(theme.nerfbar != undefined) {
-			if(theme.nerfbar == "true") {
-				this.nerfbar.open();
-			} else {
-				this.nerfbar.close();
-			}
 			localStorage.setItem("nerfbar",theme.nerfbar);
 			let select = document.getElementById("nerfbar-select");
 			if(select != undefined) {
 				select.checked = (theme.nerfbar == "true");
+			}
+			if(this.echo_mode == 3) {
+				if(theme.nerfbar == "true") {
+					this.nerfbar.open();
+				} else {
+					this.nerfbar.close();
+				}
+			} else {
+				/* open the nerfbar. */
+				this.nerfbar.open();
+				this.nerfbar.nofade();
 			}
 		}
 		if( (theme.xtermoptions != undefined) && (theme.xtermoptions.screenReaderMode != undefined)) {

@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.13 2024/08/02 20:11:45 malakai Exp $ */
+/* $Id: locid.c,v 1.14 2024/09/13 14:32:58 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -37,9 +37,10 @@
 #include "libtelnet.h"
 
 #include "debug.h"
-#include "locilws.h"
+#include "proxy.h"
 #include "client.h"
 #include "game.h"
+#include "gamedb.h"
 
 #include "locid.h"
 
@@ -104,10 +105,9 @@ void launch_web_browser(struct locid_conf *config) {
 
 char *get_proxy_name(void) {
 	char buf[8192];
-	sprintf(buf,"%s-%d.%d",
+	sprintf(buf,"%s-%s",
 		LOCID_SHORTNAME,
-		LOCID_MAJOR_VER,
-		LOCID_MINOR_VER
+		LOCITERM_VERSION
 	);
 	return(strdup(buf));
 }
@@ -154,6 +154,7 @@ struct locid_conf *new_config(char *filename) {
 	struct locid_conf *c;
 	GKeyFile *gkf;
 	struct servent *srv;
+	char *tmpstr;
 
 	c = (struct locid_conf *)malloc(sizeof(struct locid_conf));
 
@@ -197,12 +198,54 @@ struct locid_conf *new_config(char *filename) {
 			c->game_port = 4000;
 		}
 	}
+	c->game_name = get_conf_string(gkf,"game","name","Default Game");
 
 	c->cert_file = get_conf_string(gkf,"ssl","cert","cert.pem");
 	c->key_file = get_conf_string(gkf,"ssl","key","key.pem");
 	c->chain_file = get_conf_string(gkf,"ssl","chain","");
 	c->locid_proxy_name = get_proxy_name();
 
+	c->db_engine = get_conf_string(gkf, "game-db", "engine", "sqlite3");
+	c->db_location = get_conf_string(gkf, "game-db", "location", "locid.db");
+
+	tmpstr = get_conf_string(gkf, "game-db", "suggestions", "open");
+	if (!strcasecmp(tmpstr,"open")) {
+		c->db_suggestions = DBSTATUS_APPROVED;
+	} else if (!strcasecmp(tmpstr,"queued")) {
+		c->db_suggestions = DBSTATUS_NOT_CHECKED;
+	} else {
+		c->db_suggestions = DBSTATUS_BANNED;
+	}
+	free(tmpstr);
+
+	tmpstr = get_conf_string(gkf, "game-db", "min_protocol", "mud");
+	if (!strcasecmp(tmpstr,"mssp")) {
+		c->db_min_protocol = CHECK_MSSP;
+	} else if (!strcasecmp(tmpstr,"mud")) {
+		c->db_min_protocol = CHECK_MUD;
+	} else if (!strcasecmp(tmpstr,"telnet")) {
+		c->db_min_protocol = CHECK_TELNET;
+	} else if (!strcasecmp(tmpstr,"none")) {
+		c->db_min_protocol = 0;
+	} else {
+		/* make an unknown value default to CHECK MUD */
+		c->db_suggestions = CHECK_MUD;
+	}
+	free(tmpstr);
+
+	c->db_banned_ports = NULL;
+	tmpstr = get_conf_string(gkf, "game-db", "banned_ports", 
+		"7,9,19,20,21,22,25,26,80,110,143,465"
+	);
+	int bport;
+	char *d = tmpstr;
+	while(d && sscanf(d,"%d",&bport) ) {
+		int *lport = (int*)malloc(1*sizeof(int));
+		*lport = bport;
+		c->db_banned_ports = g_list_append(c->db_banned_ports,lport);
+		if( (d=strchr(d,','))) d++;
+	}
+	free(tmpstr);
 
 	g_key_file_free(gkf);
 	return(c);
@@ -218,13 +261,20 @@ void free_config(struct locid_conf *c) {
 	if(c->origin) free(c->origin);
 	if(c->default_doc) free(c->default_doc);
 	if(c->client_security) free(c->client_security);
+	if(c->client_launcher) free(c->client_launcher);
 	if(c->game_security) free(c->game_security);
 	if(c->game_host) free(c->game_host);
 	if(c->game_service) free(c->game_service);
+	if(c->game_name) free(c->game_name);
 	if(c->cert_file) free(c->cert_file);
 	if(c->key_file) free(c->key_file);
 	if(c->chain_file) free(c->chain_file);
 	if(c->locid_proxy_name) free(c->locid_proxy_name);
+	if(c->db_engine) free(c->db_engine);
+	if(c->db_location) free(c->db_location);
+	if(c->db_banned_ports) {
+		g_list_free_full(c->db_banned_ports,free);
+	}
 
 	free(c);
 }
@@ -236,7 +286,7 @@ int main(int argc, char **argv) {
 	/* local variables. */
 	char *configfilename = NULL;
 	int debug = 0;
-	int launch = 0;
+	int localmode = 0;
 	struct lws_context_creation_info info;
 	struct lws_context *context;
 	struct lws_http_mount *mount;
@@ -275,7 +325,7 @@ int main(int argc, char **argv) {
 				debug = 1;
 				break;
 			case 'l':
-				launch = 1;
+				localmode = 1;
 				break;
 			case 'v':
 				s = get_proxy_name();
@@ -311,19 +361,34 @@ int main(int argc, char **argv) {
 		config->game_host, config->game_port,
 		config->game_security
 	);
-	locid_log("LociTerm server listening on port %d.", 
-		config->listening_port
-	);
-	config->launch_browser = launch;
+	config->client_localmode = localmode;
 
 	/* begin websocket init */
-	// int lwslogs = LLL_ERR | LLL_WARN | LLL_NOTICE;
 	if(debug) {
-		int lwslogs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_CLIENT | LLL_HEADER | LLL_INFO;
+		//int lwslogs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_CLIENT | LLL_HEADER | LLL_INFO | LLL_DEBUG;
+		// enable lws library debug messages.
+		//int lwslogs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE;
+		int lwslogs = LLL_ERR | LLL_WARN;
 		lws_set_log_level(lwslogs, (lws_log_emit_t)locid_log_lws);
+
+		// enable locid debug messages.  See debug.h for value of DEBUG_ON
+		global_debug_facility = DEBUG_ON;
 	} else {
 		int lwslogs = LLL_ERR | LLL_WARN;
 		lws_set_log_level(lwslogs, (lws_log_emit_t)locid_log_lws);
+	}
+
+	/* init the database? */
+	if(strcasecmp(config->db_engine,"none")) {
+		config->db_inuse = 1;
+		locid_log("Using %s database",config->db_engine);
+		if ( (game_db_init(config->db_location) == -1) ) {
+			locid_log("Unable to open game-db location '%s'.",config->db_location);
+			exit(EXIT_FAILURE);
+		}
+		locid_log("Banned port list contains %d ports.",g_list_length(config->db_banned_ports));
+	} else {
+		config->db_inuse = 0;
 	}
 
 	/* init the mountpoint struct for lws's built in http server. */
@@ -356,6 +421,9 @@ int main(int argc, char **argv) {
 
 	/* init the info struct for lws's context. */
 	memset(&info, 0, sizeof info); /* otherwise uninitialized garbage */
+	if(config->client_localmode == 1) {
+		info.iface = "lo"; /* local interface only. */
+	}
 	info.port = config->listening_port;
 	info.mounts = mount;
 	info.protocols = protocols;
@@ -381,13 +449,18 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+
+	locid_log("LociTerm server listening on port %d.", 
+		config->listening_port
+	);
+
 	/* turn on the signal handler. */
 	sigemptyset(&mask);
 	sigaddset(&mask,SIGPIPE);
 	sigprocmask(SIG_SETMASK,&mask,NULL);
 	signal(SIGINT, sigint_handler);
 
-	if(config->launch_browser == 1) {
+	if(config->client_localmode == 1) {
 		launch_web_browser(config);
 	}
 
@@ -400,6 +473,8 @@ int main(int argc, char **argv) {
 
 	/* exit and cleanup */
 	lws_context_destroy(context);
+	free_proxyconns();
+	if(mount) free(mount);
 	free_config(config);
 	locid_log("Shutdown complete.");
 }
