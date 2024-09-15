@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.32 2024/09/13 14:32:58 malakai Exp $
+// $Id: lociterm.js,v 1.33 2024/09/15 16:39:29 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -118,6 +118,7 @@ class LociTerm {
 		this.unicode11Addon = new Unicode11Addon();
 		this.textEncoder = new TextEncoder();
 		this.textDecoder = new TextDecoder();
+		this.sendq = [];
 		this.resizeTimeout = undefined;
 		this.lastResize = "";
 		this.webLinksAddon = new WebLinksAddon();
@@ -211,6 +212,20 @@ class LociTerm {
 	// Connect using a connect_verbose message.
 	doConnectGame() {
 		let request = {};
+
+		// This wants_to_select logic is important, because if the client would
+		// automatically try and connect to a game that is down, the
+		// 'disconnect' message will keep withdrawing the
+		// select-a-different-game window, and the player ends up stuck.   So
+		// if wants_to_select is true, DONT try to connect to a game just yet.
+		if(this.connectgame.wants_to_select == true) {
+			this.menuhandler.open("menu_game_select");
+			this.connectgame.wants_to_select = false;
+			return;
+		}
+
+		// The client might have a reconnect key that it wants to send up to
+		// the server, or it might be trying to use a connectgame suggestion.
 		if(this.reconnect_key != "") {
 			try {request.reconnect = this.reconnect_key.reconnect;} catch {};
 			try {request.host = this.reconnect_key.host;} catch {};
@@ -221,6 +236,7 @@ class LociTerm {
 			request.port = this.connectgame.port;
 			request.ssl = this.connectgame.ssl;
 		}
+		this.connectgame.in_use = false;
 		if(request.host) {
 			this.menuhandler.update_oob_message(`🔀Trying ${request.host} ${request.port}...`);
 		} else {
@@ -277,24 +293,38 @@ class LociTerm {
 			console.log(`No socket for message '${data}'`);
 			return;
 		}
+
+		if(data != undefined) {
+			// ' ' + is a lame trick to leave space for a byte at index 0
+			let msg = this.textEncoder.encode(' ' + data)
+			// change the ' ' into the command byte.
+			msg[0] = cmd;
+			this.sendq.push(msg);
+		} else {
+			console.log(`send retry`);
+		}
+
 		switch (this.socket.readyState) {
 			case 1:  // OPEN
-				// lame trick to leave space for a byte at index 0
-				let msg = this.textEncoder.encode('0' + data)
-				msg[0] = cmd;
-				this.socket.send( msg );
+				while(this.sendq[0] != undefined) {
+					this.socket.send( this.sendq[0] );
+					this.sendq = this.sendq.slice(1);
+				}
 				break;
 			case 3:  // CLOSED
 				this.connect();
 				/* no break! */
 			case 0: // CONNECTING
 				this.menuhandler.update_connect_message(`🔄Connecting...`);
+				setTimeout( ()=>{this.sendMsg();} , 5 );
 				break;
 			case 2: // CLOSING
+				// if for some reason
 				this.menuhandler.update_connect_message(`🌀Closing...`);
-				break;
+				/* no break! */
 			default:
-				console.log(`ReadState=${this.socket.readyState}.  Lost message '${data}'`);
+				console.log(`ReadState=${this.socket.readyState}.  Lost ${this.sendq.length} messages`);
+				this.sendq = [];
 				break;
 		}
 	}
@@ -416,14 +446,10 @@ class LociTerm {
 		this.lastResize = "";  // Force it.
 		this.doWindowResize();
 
-		// might want to open the game chooser insted of connecting to game.
-		if(this.connectgame.wants_to_select == true) {
-			this.menuhandler.open("menu_game_select");
-		} else {
-			// Request connection to the current game.
-			this.doConnectGame(0);
-		}
+		// Request connection to the current game.
+		this.doConnectGame(0);
 		this.menuhandler.close("menu_connect");
+
 	}
 
 	onSocketData(event) {
@@ -508,10 +534,14 @@ class LociTerm {
 					}
 				}
 				if (robj.state) {
+					// reset the gcmp login mode.
+					try { this.gmcp.charLoginRequested = false } catch {};
+
 					if(robj.state == "reconnected") {
 						this.doWindowResize();
 						this.paste("\x12");  /* at least in LO, ctrl-r requests a redraw. */
 						//this.terminal.write(`\r\n┅┅┅┅┅ Reconnected. ┅┅┅┅┅\r\n\r\n`);
+
 					}
 					if(robj.msg && (robj.msg != "")) {
 						this.menuhandler.update_oob_message(`🤖 ${robj.msg}`);

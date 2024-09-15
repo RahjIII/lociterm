@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.10 2024/09/13 14:32:58 malakai Exp $ */
+/* $Id: telnet.c,v 1.11 2024/09/15 16:39:29 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -245,10 +245,10 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		loci_game_write(pc,event->data.buffer,event->data.size);
 		break;
 	case TELNET_EV_ERROR:
-		lwsl_err("TELNET error: %s", event->error.msg);
+		locid_debug(DEBUG_TELNET,pc,"TELNET_EV_ERROR: %s",event->error.msg);
 		break;
 	case TELNET_EV_WARNING:
-		lwsl_warn("TELNET warning: %s", event->error.msg);
+		locid_debug(DEBUG_TELNET,pc,"TELNET_EV_WARNING: %s",event->error.msg);
 		break;
 	case TELNET_EV_WILL:
 		security_checked(pc,CHECK_TELNET);

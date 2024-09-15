@@ -1,6 +1,6 @@
 # makefile - LociTerm locid server
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.8 2024/09/13 14:32:58 malakai Exp $
+# $Id: makefile,v 1.9 2024/09/15 16:39:29 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -46,8 +46,8 @@ MISSING_HFILES =
 # For ASAN add -fsanitize=address (uses a much larger memory footprint)
 # use 'break __sanitizer::Die' inside of gdb to stop on a san error
 #CDEBUG = -g -Og
-#CDEBUG = -g 
-CDEBUG = -g  -fsanitize=address
+CDEBUG = -g 
+# CDEBUG = -g  -fsanitize=address
 
 # CDEFINES, for passing version number in through makefiles.
 CDEFINES = -D'LOCITERM_VERSION="$(LOCITERM_VERSION)"'

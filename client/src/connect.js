@@ -1,6 +1,6 @@
 // connect.js - direct connection window
 // Created: Mon Aug  5 08:54:28 AM EDT 2024
-// $Id: connect.js,v 1.1 2024/09/13 14:32:58 malakai Exp $
+// $Id: connect.js,v 1.2 2024/09/15 16:39:29 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -116,17 +116,26 @@ class ConnectGame {
 
 		this.elementid = elementid;
 
-		let overlay = document.createElement('div');
-		overlay.id=elementid;
-		overlay.classList.add('overlay');
-		divstack.push(overlay);
-		cdiv = overlay;
+		let divs = this.menuhandler.create_generic_window(
+			elementid,
+			"Suggest Game",
+			(()=> {
+				this.in_use = false;
+				this.menuhandler.done(elementid);
+			} 
+			)
+		);
+
+		let overlay = divs[0];
+		let content = divs[1];
+
+		cdiv = content;
 
 		l = document.createElement('form');
 		cdiv.appendChild(l);
 		l.setAttribute("actions","");
 		l.setAttribute("method","dialog");
-		l.classList.add('menupop');
+		//l.classList.add('menupop');
 		divstack.push(l);
 		cdiv = l;
 
@@ -135,16 +144,6 @@ class ConnectGame {
 		l.classList.add('imgcontainer');
 		divstack.push(l);
 		cdiv = l;
-
-		l = document.createElement('span');
-		cdiv.appendChild(l);
-		l.onclick = (()=> {
-			this.in_use = false;
-			this.menuhandler.done(elementid);
-		} );
-		l.classList.add('close');
-		l.title = `Close ${elementid}`;
-		l.innerText = "×";
 
 		l = document.createElement('label');
 		cdiv.appendChild(l);
@@ -180,7 +179,6 @@ class ConnectGame {
 		l.onclick = (
 			()=> {
 				this.menuhandler.close(this.elementid);
-				this.in_use = true;
 				let server = {};
 				if( (this.host == "") || (this.port =="") || (this.port == 0) ) {
 					this.host == "";
@@ -191,6 +189,7 @@ class ConnectGame {
 					server.hostname = this.hostname;
 					server.port = this.port;
 					server.ssl = this.ssl;
+					this.in_use = true;
 				}
 				// Disable autologin.  This is to avoid giving old creds to a new server. 
 				this.menuhandler.voidLoginAutologin();
@@ -253,7 +252,7 @@ class ConnectGame {
 		cdiv.appendChild(l);
 		l.onclick = (()=> {
 			this.in_use = false;
-			this.wants_to_connect = false;
+			this.wants_to_select = false;
 			this.menuhandler.done(elementid);
 		} );
 		l.classList.add('close');
@@ -286,6 +285,7 @@ class ConnectGame {
 			()=> {
 				this.menuhandler.close(this.elementid);
 				this.menuhandler.open("menu_connect_direct");
+				this.wants_to_select = false;
 			}
 		);
 
@@ -389,6 +389,7 @@ class ConnectGame {
 	// Connect to the game stored in the this.gamelist by number.
 	about_gamerow(rownumber) {
 		let game = this.gamelist[rownumber];
+		this.wants_to_select = false;
 		this.menuhandler.open("menu_game_about");
 		this.aboutgame = undefined;
 		this.update_game_about(game);  // give it what you've already got.
@@ -451,12 +452,6 @@ class ConnectGame {
 		divstack.push(l);
 		cdiv = l;
 
-
-		l = document.createElement('span');
-		cdiv.appendChild(l);
-		l.classList.add('close');
-		l.title = `Close ${elementid}`;
-		l.innerText = "×";
 
 		divstack.pop(); //imgcontainer
 		cdiv = divstack[divstack.length-1];
@@ -675,6 +670,34 @@ class ConnectGame {
 		);
 
 		return;
+	}
+
+	// search is a string in url search format, i.e. "?var1=val1&var2=val2",
+	// as would be obtained from document.location.search.
+	connect_from_search(search) {
+
+		let ret = new Object;
+		let items = search.slice(1).split('&');
+
+		items.forEach( (item) => {
+			item = item.split('=');
+			ret[item[0]] = decodeURIComponent(item[1] || '');
+		});
+
+		// if they gave us both a host and port...
+		if( ret.host && ret.port ) {
+			let rk = (this.lociterm.reconnect_key || {});
+
+			// only dump the reconnect key if host or port are different.
+			if ( (ret.host != rk.host) || (ret.port != rk.port)) {
+				console.log(`Using search suggestion ${search}`);
+				this.lociterm.reconnect_key = "";
+				this.hostname = ret.host;
+				this.port = ret.port;
+				this.ssl = (ret.ssl || 0);
+				this.in_use = true;
+			}
+		}
 	}
 
 }

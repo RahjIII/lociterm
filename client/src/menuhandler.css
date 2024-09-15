@@ -339,12 +339,15 @@
 	min-height: calc(var(--finger-size)/1.0);
 	min-width: calc(var(--finger-size)/1.0);
 	font-size: var(--font-size);
-	margin: 1mm;
 	background: var(--book-altpaper-color);
 	border-color: var(--book-cover-color);
 	border-radius: calc(var(--finger-size)/4.0);
 	border-style: solid;
 	color: var(--book-text-color);
+}
+
+.menupop button {
+	width: 100%;
 }
 
 .close {

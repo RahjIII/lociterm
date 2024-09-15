@@ -1,10 +1,18 @@
 ------- TODO TODO TODO TODO --------------
+* check upgrade path for clients lociterm1.0->lociterm2.0 
 
-* Suggested games and result should always be logged by server (not a debug)
-
-* config option for verbose suggestion failure message to client.
+* clean up the lociclient protocol numbers.
 
 * CLI db administration mode.
+
+* have login window save creds based on host/port.
+
+* There needs to be an idle timer on proxy connection, to stop game side being
+  alive for ever waiting for a reconnect that wont come.
+
+* could also add a throughput/interface bytes tracker too I suppose.
+
+* config option for verbose suggestion failure message to client.
 
 * DB - save first few K of data, for admin review later?
 
@@ -20,8 +28,6 @@
 
 * Filter out unsupported GMCP messages at the locid level.  No reason to send
   those to the client, and some games are very bad about it.
-
-* see about ?host=x;port=x;ssl=x in URL?
 
 * controlable contrast ratio in theme? (can xtermjs do it after setup?)  
 	See xtermoptions.minimumContrastRatio
@@ -50,6 +56,12 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ see about ?host=x;port=x;ssl=x in URL.  Done, used as initial game connection, ignored otherwise.
+
++ have login window send via in-band again, if GMCP.Char is unavailable.
+
++ Suggested games and result should always be logged by server (not a debug)
+
 + put some color in the terminal icon
 
 + negotiate EOR.  Its just a good thing to do.

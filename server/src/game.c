@@ -1,6 +1,6 @@
 /* game.c - LociTerm game side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: game.c,v 1.6 2024/09/13 14:32:58 malakai Exp $*/
+/* $Id: game.c,v 1.7 2024/09/15 16:39:29 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -89,7 +89,6 @@ void free_game_conn(game_conn_t *f) {
 	if(f->uuid) g_free(f->uuid);
 	f->uuid = NULL;
 
-
 	f->echo_opt = 0;
 	f->sga_opt = 0;
 
@@ -159,7 +158,8 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 
 	switch (reason) {
 	case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
-		lwsl_warn("%s: onward game connection failed\n", __func__);
+		locid_debug(DEBUG_LWS,pc,"LWS_CALLBACK_CLIENT_CONNECTION_ERROR.");
+		locid_info(pc,"game lws connection error.");
 		if(game_db_get_status(pc) == DBSTATUS_NOT_CHECKED) {
 			game_db_update_status(pc,DBSTATUS_NO_ANSWER);
 		}
@@ -193,6 +193,7 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 
 	case LWS_CALLBACK_RAW_CONNECTED:
 		locid_debug(DEBUG_LWS,pc,"LWS_CALLBACK_RAW_CONNECTED");
+		locid_info(pc,"Game side connected.");
 		game_db_update_lastconnection(pc);
 		loci_telnet_init(pc->game);
 		if(pc->game->check_protocol || pc->game->check_wait) {
@@ -206,7 +207,7 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 	case LWS_CALLBACK_RAW_CLOSE:
 		if(!pc) return(-1);
 		locid_debug(DEBUG_LWS,pc,"LWS_CALLBACK_RAW_CLOSE\n");
-		locid_log("[%d] game side closing.",pc->id);
+		locid_info(pc,"game side closed.");
 		/*
 		 * Clean up any pending messages to us that are never going
 		 * to get delivered now, we are in the middle of closing
@@ -227,7 +228,9 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 			 * the last guy still holding on to the proxy_conn...
 			 * and we're going away, so let's destroy it
 			 */
-			free_proxy_conn(pc);
+			/* locid_info(pc,"Proxy Session Ends.");
+			free_proxy_conn(pc); */
+			loci_proxy_shutdown(pc);
 			break;
 		}
 
@@ -237,6 +240,7 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 			/* a security check was in process, but the connection has closed
 			 * without passing.*/
 			game_db_update_status(pc,DBSTATUS_BAD_PROTOCOL);
+			locid_info(pc,"game didn't meet protocol requirements.");
 		}
 
 		if( (get_game_state(pc) == PRXY_RECONNECTING) ) {
@@ -248,7 +252,7 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 
 		} else {
 			set_game_state(pc,PRXY_DOWN);
-			locid_log("[%d] game side down, so closing the client side.",pc->id);
+			locid_debug(DEBUG_GAME,pc,"game side down, shutting down client side.");
 			/* Trigger client side close. */
 			loci_client_shutdown(pc);
 		} 
@@ -270,6 +274,7 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 				pc->game->check_wait = 0;
 				locid_debug(DEBUG_TELNET,pc,"All protocol checks PASSED, unblocking.");
 				game_db_update_status(pc,DBSTATUS_APPROVED);
+				locid_info(pc,"game passed protocol requirements.");
 				set_game_state(pc,PRXY_UP);
 			}
 		}

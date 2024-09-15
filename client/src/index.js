@@ -1,6 +1,6 @@
 // index.js - LociTerm entry js
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: index.js,v 1.13 2024/04/30 16:53:36 malakai Exp $
+// $Id: index.js,v 1.14 2024/09/15 16:39:29 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -45,6 +45,8 @@ let wsproto = "wss:";
 if(document.location.protocol == "http:") {
 	wsproto = "ws:";
 }
+
+
 let websocket_url = `${wsproto}//${document.location.host}${document.location.pathname}`;
 console.log(`Websocket URL is ${websocket_url}`)
 
@@ -54,6 +56,15 @@ if( document.location.port == 5001 ) {
 	websocket_url = `${wsproto}//${document.location.hostname}:4005${document.location.pathname}`;
 	console.log(`NPM serve mode detected.  Connecting to ${websocket_url} instead.`)
 } 
+
+// If the player already has a reconnect key, don't mess with that.  The search
+// parameters are really meant for a 'first time connection' only.  If player
+// changes to a different game, we should respect the choice.
+if( (terminal.reconnect_key == "") || 
+	(terminal.reconnect_key == null)
+) {
+	terminal.connectgame.connect_from_search(document.location.search);
+}
 
 // open it up and go.
 terminal.connect(websocket_url);

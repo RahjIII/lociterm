@@ -1,6 +1,6 @@
 // gmcp.js - generic mud communication protocol for lociterm
 // Created: Wed Apr  3 05:34:00 PM EDT 2024
-// $Id: gmcp.js,v 1.4 2024/05/11 17:20:21 malakai Exp $
+// $Id: gmcp.js,v 1.5 2024/09/15 16:39:29 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -144,7 +144,7 @@ class GMCP {
 
 	charLoginResult(message) {
 		// end the request. 
-		this.charLoginRequested = false;
+		//this.charLoginRequested = false;
 
 		if( (message.success != undefined) &&
 			(message.success == false) 
@@ -158,6 +158,7 @@ class GMCP {
 	}
 	
 	coreGoodbye(message) {
+		this.charLoginRequested = false;
 		this.lociterm.menuhandler.update_oob_message(
 			`${message}`
 		);

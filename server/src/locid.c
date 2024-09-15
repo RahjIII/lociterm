@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.14 2024/09/13 14:32:58 malakai Exp $ */
+/* $Id: locid.c,v 1.15 2024/09/15 16:39:29 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -261,6 +261,7 @@ void free_config(struct locid_conf *c) {
 	if(c->origin) free(c->origin);
 	if(c->default_doc) free(c->default_doc);
 	if(c->client_security) free(c->client_security);
+	if(c->client_service) free(c->client_service);
 	if(c->client_launcher) free(c->client_launcher);
 	if(c->game_security) free(c->game_security);
 	if(c->game_host) free(c->game_host);
@@ -357,7 +358,7 @@ int main(int argc, char **argv) {
 	locid_log("Starting %s", config->locid_proxy_name);
 	locid_log("Loaded config file %s", configfilename);
 	locid_log("Mountpoint is %s", config->mountpoint);
-	locid_log("Game 0 is %s %d security %s", 
+	locid_log("Default game is %s %d security %s", 
 		config->game_host, config->game_port,
 		config->game_security
 	);
@@ -432,7 +433,7 @@ int main(int argc, char **argv) {
 	info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
 
 	if (!strcasecmp(config->client_security,"ssl")) {
-		lwsl_user("Client side using TLS\n");
+		locid_log("Client side using TLS\n");
 		info.ssl_cert_filepath = config->cert_file;
 		info.ssl_private_key_filepath = config->key_file;
 	}
@@ -445,10 +446,9 @@ int main(int argc, char **argv) {
 
 	context = lws_create_context(&info);
 	if (!context) {
-		lwsl_err("lws init failed\n");
+		locid_log("LWS init failed!\n");
 		return 1;
 	}
-
 
 	locid_log("LociTerm server listening on port %d.", 
 		config->listening_port

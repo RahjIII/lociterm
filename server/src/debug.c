@@ -1,6 +1,6 @@
 /* debug.c - Debugging and loggin code for LociTerm */
 /* Created: Wed Mar  3 11:09:27 PM EST 2021 malakai */
-/* $Id: debug.c,v 1.6 2024/09/13 14:32:58 malakai Exp $*/
+/* $Id: debug.c,v 1.7 2024/09/15 16:39:29 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -88,7 +88,7 @@ int lwsl_timestamp(int level, char *p, size_t len) {
 
 /* ...cause we'll be using this logger instead. */
 void locid_log_lws(int level, char *str) {
-	locid_log("%d:%s",level,str);
+	locid_Debug("LWS",DEBUG_LWS,NULL,"Level %d, %s",level,str);
 }
 
 void locid_Debug(const char *caller, int facility, proxy_conn_t *pc, char *str, ...) {
@@ -127,3 +127,4 @@ int locid_breakpoint(int code) {
 	count++;
 	return(count);
 }
+

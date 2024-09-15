@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.27 2024/09/13 14:32:58 malakai Exp $
+// $Id: menuhandler.js,v 1.28 2024/09/15 16:39:29 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -78,11 +78,13 @@ class MenuHandler {
 	open(name) {
 		var e = document.getElementById(name);
 		let call = undefined;
+		// close everthing that's open.
 		this.done();
 		if(e == null) {
 			console.log(`couldn't open menu '${name}'?`);
 			return;
 		}
+		// open the requested window.
 		e.style.visibility = 'visible';
 		e.setAttribute("tabindex","0");
 		if(e.classList.contains("menuside")) {
@@ -92,6 +94,7 @@ class MenuHandler {
 		}
 		this.openwindow[name] =1;
 		e.focus();
+
 		if( (call = this.openHandler.get(name)) ) {
 			call(name);
 		}
@@ -178,12 +181,15 @@ class MenuHandler {
 			this.lociterm.connect();
 		}
 
+		let username = document.getElementById("username").value;
+		let password = document.getElementById("current-password").value;
+		
 		// Check for gmcp auth availability
 		if( (this.lociterm.gmcp.charLoginRequested == true) ) {
-			let username = document.getElementById("username").value;
-			let password = document.getElementById("current-password").value;
 			this.lociterm.gmcp.sendCharLoginCredentials(username,password);
-			return;
+		} else {
+			setTimeout(()=>this.send(`${username}\n`),0);
+			setTimeout(()=>this.send(`${password}\n`),250);
 		}
 
 		return;
@@ -523,6 +529,7 @@ class MenuHandler {
 		// login
 		l = document.createElement('button');
 		cdiv.appendChild(l);
+		l.id=`${overlay.id}_submit`;
 		l.setAttribute("type","submit");
 		l.innerText = "Login";
 		l.onclick = (
@@ -554,6 +561,12 @@ class MenuHandler {
 					} else {
 						fig.innerText = "";
 					}
+				}
+				let submit = document.getElementById(`${id}_submit`);
+				if( (this.lociterm.gmcp.charLoginRequested == true) ) {
+					submit.innerText = "Login";
+				} else {
+					submit.innerText = "Send Text";
 				}
 			}
 		);
@@ -853,30 +866,24 @@ class MenuHandler {
 		let cdiv;
 		let divstack = [];
 
-		let overlay = document.createElement('div');
-		overlay.id='menu_about';
-		overlay.classList.add('overlay');
-		divstack.push(overlay);
-		cdiv = overlay;
+		let elementid = `menu_about`;
 
-		l = document.createElement('div');
-		cdiv.appendChild(l);
-		l.classList.add('menupop');
-		divstack.push(l);
-		cdiv = l;
+		let divs = this.create_generic_window(
+			elementid,
+			"About LociTerm",
+			(()=> { this.done(); })
+		);
+
+		let overlay = divs[0];
+		let content = divs[1];
+		cdiv = content;
+		divstack.push(content);
 
 		l = document.createElement('div');
 		cdiv.appendChild(l);
 		l.classList.add('imgcontainer');
 		divstack.push(l);
 		cdiv = l;
-
-		l = document.createElement('span');
-		cdiv.appendChild(l);
-		l.onclick = (()=>this.done());
-		l.classList.add('close');
-		l.title = "Close about";
-		l.innerText = "×";
 
 		l = document.createElement('img');
 		cdiv.appendChild(l);

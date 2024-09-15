@@ -1,6 +1,6 @@
 /* client.c - LociTerm client side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: client.c,v 1.16 2024/09/13 14:32:58 malakai Exp $*/
+/* $Id: client.c,v 1.17 2024/09/15 16:39:29 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -133,7 +133,9 @@ int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 			}
 			free(s);
 			loci_game_send_naws(pc);
-			lwsl_user("[%d] Terminal resized (%dx%d)",pc->id,pc->client->width,pc->client->height);
+			locid_debug(DEBUG_CLIENT,pc,"Terminal resized to (%dx%d)", 
+				pc->client->width,pc->client->height
+			);
 			break;
 
 		case CONNECT_VERBOSE: {
@@ -290,6 +292,7 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 		pc = new_proxy_conn(); 
 		set_client_state(pc,PRXY_UP);
 		lws_set_opaque_user_data(wsi, pc);
+		locid_info(pc,"New proxy connection [%d]", pc->id);
 
 		/* Save this wsi in the proxy con structure as the client side, so that
 		 * it can be looked up by callbacks made the game side wsi... */
@@ -297,29 +300,33 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 
 		lws_get_peer_simple(pc->client->wsi_client,buf,sizeof(buf));
 		pc->client->hostname = strdup(buf);
-		locid_log("Establishing client connection from %s", pc->client->hostname);
+		locid_info(pc,"Client From: '%s'", pc->client->hostname);
 
 		/* grab a string copy of the peer's address */
 		if(lws_hdr_copy(pc->client->wsi_client,buf,sizeof(buf),WSI_TOKEN_X_FORWARDED_FOR) > 0) {
-			locid_log("Using x-forwarded-for as the hostname: '%s'", buf);
+			locid_info(pc,"Using x-forwarded-for as the hostname: '%s'", buf);
 			if(pc->client->hostname) free(pc->client->hostname);
 			pc->client->hostname = strdup(buf);
 		}
 
 		if(lws_hdr_copy(pc->client->wsi_client,buf,sizeof(buf),WSI_TOKEN_HTTP_USER_AGENT) > 0) {
-			locid_log("User Agent: '%s'", buf);
+			locid_info(pc,"User Agent: '%s'", buf);
 			if(pc->client->useragent) {
 				g_free(pc->client->useragent);
 			}
 			pc->client->useragent = strdup(buf);
 		}
 
-		/* lociterm1.x loci_telnet_init(pc); */
+		if(lws_hdr_copy(pc->client->wsi_client,buf,sizeof(buf),WSI_TOKEN_HTTP_REFERER) > 0) {
+			/* could save referer in the client struct and pass it up to the
+			 * game in an env var.. but for now just log it.*/
+			locid_info(pc,"Referer: '%s'", buf);
+		}
 
-		/* loci_connect_to_game(pc,0); */
 		/* Don't open up the connection to the game until the client
 		 * specifically requests it. This is so that the client has a chance to
-		 * send up any login or environment */
+		 * send up any environment parameters first */
+
 		break;
 
 	case LWS_CALLBACK_WS_PEER_INITIATED_CLOSE:
@@ -330,6 +337,7 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 		pc->client->wsi_client = NULL;
 		lws_set_opaque_user_data(wsi, NULL);
 		set_client_state(pc,PRXY_DOWN);
+		locid_info(pc,"client side closed.");
 
 		/* if the game side has either not opened, or has closed and cleaned
 		 * itself up, we can get rid of the proxy_conn too and be all done. */
@@ -338,7 +346,9 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 			locid_debug(DEBUG_CLIENT,pc,"client side full close");
 			empty_proxy_queue(pc->client->client_q); 
 			set_client_state(pc,PRXY_INIT);
-			free_proxy_conn(pc);
+			/* locid_info(pc,"Proxy Session Ends.");
+			free_proxy_conn(pc);*/
+			loci_proxy_shutdown(pc);
 			break;
 		}
 

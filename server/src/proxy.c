@@ -1,6 +1,6 @@
 /* proxy.c - LociTerm protocol bridge */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: proxy.c,v 1.1 2024/09/13 14:32:58 malakai Exp $*/
+/* $Id: proxy.c,v 1.2 2024/09/15 16:39:29 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -96,7 +96,7 @@ void free_proxy_conn(proxy_conn_t *f) {
 	f->mssp = NULL;
 
 	if(f->game_db_entry) json_object_put(f->game_db_entry);
-	f->mssp = NULL;
+	f->game_db_entry = NULL;
 
 	loci_environment_free(f);
 
@@ -113,6 +113,7 @@ void free_proxyconns(void) {
 	proxy_conn_t *pc;
 	while(proxyconns) {
 		pc = proxyconns->data;
+		locid_info(pc,"Proxy session freed.");
 		proxyconns = g_list_remove(proxyconns,pc);
 		free_proxy_conn(pc);
 	}
@@ -257,6 +258,7 @@ void security_enforcement(proxy_conn_t *pc) {
 			(pc->game->check_protocol != 0)
 		) {
 			locid_debug(DEBUG_CLIENT,pc,"FAILED SECURITY ALARM - closing game side");
+			locid_info(pc,"game failed protocol requirements.");
 			game_db_update_status(pc,DBSTATUS_BAD_PROTOCOL);
 			empty_proxy_queue(pc->client->client_q);
 			/* close the game side. */
@@ -320,6 +322,28 @@ void loci_game_shutdown(proxy_conn_t *pc) {
 	lws_set_timeout(pc->game->wsi_game,
 		PENDING_TIMEOUT_KILLED_BY_PROXY_CLIENT_CLOSE, 1
 	); 
+	return;
+
+}
+
+/* Trigger shutdown on any open proxy sides.  If none open, free the proxy. */
+void loci_proxy_shutdown(proxy_conn_t *pc) {
+
+	if(!pc) return;
+
+	if(pc->game && pc->game->wsi_game) {
+		loci_game_shutdown(pc);
+		return;
+	}
+
+	if(pc->client && pc->client->wsi_client) {
+		loci_client_shutdown(pc);
+		return;
+	}
+
+	locid_info(pc,"Proxy session ends. [%d]",pc->id);
+	free_proxy_conn(pc);
+
 	return;
 
 }
