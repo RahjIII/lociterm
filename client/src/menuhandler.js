@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.28 2024/09/15 16:39:29 malakai Exp $
+// $Id: menuhandler.js,v 1.29 2024/09/17 03:46:28 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -24,7 +24,7 @@
 import Menubox from './menubox.json';
 import Menuside from './menuside.json';
 import Icons from './icons.svg';
-import LOIcon from './img/loiconcolor.gif';
+import LOIcon from './img/lociterm96x96.png';
 import TerminalIcon from './img/bezeltermicon192.png';
 
 import PackageData from '../package.json';

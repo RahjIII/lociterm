@@ -20,9 +20,9 @@ module.exports = {
 	plugins: [
 		new HtmlWebpackPlugin({
 			hash: true,
-			title: 'The Last Outpost',
-			header: 'The Last Outpost',
-			metaDesc: 'Last Outpost Client Implementation',
+			title: 'LociTerm',
+			header: 'LociTermt',
+			metaDesc: 'Last Outpost Client Implementation Terminal',
 			template: './src/index.html',
 			filename: 'index.html',
 			inject: 'head'

@@ -10,7 +10,7 @@
 * There needs to be an idle timer on proxy connection, to stop game side being
   alive for ever waiting for a reconnect that wont come.
 
-* could also add a throughput/interface bytes tracker too I suppose.
+* could also add a throughput/interface bytes tracker too I suppose. iostat from LO
 
 * config option for verbose suggestion failure message to client.
 
@@ -36,8 +36,6 @@
 
 * put SSL port into the game about.
 
-* terminal reset- put cursor on last line of screen? (read rows from xtermjs, move cursor there.)
-
 * idea- could do a pure cli lociterm too, for kicks. :)
 
 * There is a bug in libwebsockets, if ip6 hostname resolves but port only open
@@ -56,6 +54,8 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ terminal reset- put cursor on last line of screen? (read rows from xtermjs, move cursor there.)
+
 + see about ?host=x;port=x;ssl=x in URL.  Done, used as initial game connection, ignored otherwise.
 
 + have login window send via in-band again, if GMCP.Char is unavailable.

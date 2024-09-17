@@ -3,13 +3,27 @@
   "dir": "ltr",
   "short_name": "LociTerm",
   "name": "Last Outpost Client Interface Terminal",
-  "description": "The Last Outpost's preferred MUD client",
-  "icons": [{
-      "src": "https://www.last-outpost.com/LO/common/losquareicon192.png",
+  "description": "A Web-Based Telnet and MUD Client",
+  "icons": [
+    {
+      "src": "img/lociterm256x256m.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "256x256",
+      "purpose": "any"
+    },
+    {
+      "src": "img/lociterm128x128m.png",
+      "type": "image/png",
+      "sizes": "128x128",
+      "purpose": "any"
+    },
+    {
+      "src": "img/lociterm96x96.png",
+      "type": "image/png",
+      "sizes": "96x96",
+      "purpose": "any"
     }],
-  "start_url": "/lociterm/",
+  "start_url": "/",
   "id": "/lociterm/",
   "background_color": "#000000",
   "theme_color": "#000000",

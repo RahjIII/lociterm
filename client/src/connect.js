@@ -1,6 +1,6 @@
 // connect.js - direct connection window
 // Created: Mon Aug  5 08:54:28 AM EDT 2024
-// $Id: connect.js,v 1.2 2024/09/15 16:39:29 malakai Exp $
+// $Id: connect.js,v 1.3 2024/09/17 03:46:28 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -193,8 +193,7 @@ class ConnectGame {
 				}
 				// Disable autologin.  This is to avoid giving old creds to a new server. 
 				this.menuhandler.voidLoginAutologin();
-				this.lociterm.terminal.reset();
-				this.lociterm.terminal.clear();
+				this.lociterm.resetTerm();
 				this.connect_direct(server);
 			}
 		);
@@ -381,7 +380,7 @@ class ConnectGame {
 		this.in_use = true;
 		this.menuhandler.voidLoginAutologin();
 		this.menuhandler.close("menu_game_select");
-		this.lociterm.terminal.reset();
+		this.lociterm.resetTerm();
 		this.lociterm.reconnect_key = "";
 		this.lociterm.doConnectGame();
 	}
@@ -664,7 +663,7 @@ class ConnectGame {
 				server.ssl = this.ssl = game.ssl;
 				// Disable autologin.  This is to avoid giving old creds to a new server. 
 				this.menuhandler.voidLoginAutologin();
-				this.lociterm.terminal.reset();
+				this.lociterm.resetTerm();
 				this.connect_direct(server);
 			}
 		);

@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.33 2024/09/15 16:39:29 malakai Exp $
+// $Id: lociterm.js,v 1.34 2024/09/17 03:46:28 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -176,6 +176,7 @@ class LociTerm {
 		this.terminal.open(mydiv);
 		this.fitAddon.fit();
 		this.doWindowResize();
+		this.resetTerm();
 		this.focus();
 	}
 
@@ -872,6 +873,16 @@ class LociTerm {
 
 	debug() {
 		debugger
+	}
+
+	resetTerm() {
+		this.terminal.reset();
+		this.terminal.clear();
+		let scrolldown = this.terminal.rows + 2;
+		// clear the screen, scroll down past the bottom.
+		let code = `\x1b[2J\x1B[${scrolldown}B`;
+		console.log(`code is ${code}`);
+		this.terminal.write(code);
 	}
 
 }
