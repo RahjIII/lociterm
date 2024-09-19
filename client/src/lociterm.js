@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.34 2024/09/17 03:46:28 malakai Exp $
+// $Id: lociterm.js,v 1.35 2024/09/19 17:03:30 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -35,34 +35,18 @@ import { CRTFilter } from './crtfilter.js';
 import { ConnectGame } from './connect.js';
 import BellSound from './snd/Oxygen-Im-Contact-In.mp3';
 
-// shamelessly borrowed from ttyd, as I was considering keeping the ws
-// protocols compatible- but I didn't end up doing that.   Not all of these are
-// implemented.
+// The command codes MUST MATCH the defines in server/client.h !
 const Command = {
-	// client message - these are RECEIVED
-	OUTPUT: 0,
-	SET_WINDOW_TITLE: 1,
-	SET_PREFERENCES: 2,
-	RECV_CMD: 3,
-	RECONNECT_KEY_OLD: 7,
-	GMCP_OUTPUT: 8,
-	CONNECT_VERBOSE: 9,
-	ECHO_MODE: 10,
-	GAME_LIST: 11,
-	MORE_INFO: 12,
-
-	// server message - these are SENT
-	INPUT: 0,
-	RESIZE_TERMINAL: 1,
-	PAUSE: 2,
-	RESUME: 3,
-	CONNECT_GAME: 5,
-	SEND_CMD: 6,
-	DISCONNECT_CMD: 7,
-	GMCP_INPUT: 8,
-	CONNECT_VERBOSE: 9,
-	GAME_LIST: 11,
-	MORE_INFO: 12
+	HELLO: 0,
+	TERM_DATA: 1,
+	COMMAND: 2,
+	CONNECT: 3,
+	DISCONNECT: 4,
+	ECHO_MODE: 5,
+	RESIZE_TERMINAL: 6,
+	GMCP_DATA: 7,
+	GAME_LIST: 8,
+	MORE_INFO: 9
 }
 
 // IIP support from xterm-addon-image
@@ -168,6 +152,7 @@ class LociTerm {
 		}
 		this.autoreconnect = true;
 		this.reconnect_delay = 0;
+		this.serverhello = "";
 
 		window.addEventListener('resize', (e) => this.onWindowResize(e) );
 		this.menuhandler = new MenuHandler(this);
@@ -243,18 +228,8 @@ class LociTerm {
 		} else {
 			this.menuhandler.update_oob_message(`🔀Connecting...`);
 		}
-		console.log(`Sending connect_verbose: ${JSON.stringify(request)}`);
-		this.sendMsg(Command.CONNECT_VERBOSE,JSON.stringify(request));
-	}
-
-	doConnectGameOld() {
-		if(this.reconnect_key == "") {
-			console.log(`Connecting to game ${n}.`);
-			this.sendMsg(Command.CONNECT_GAME,n);
-		} else {
-			console.log(`Connecting to uuid ${this.reconnect_key} or game ${n}.`);
-			this.sendMsg(Command.CONNECT_GAME,`${n} ${this.reconnect_key}`);
-		}
+		console.log(`Sending connect: ${JSON.stringify(request)}`);
+		this.sendMsg(Command.CONNECT,JSON.stringify(request));
 	}
 
 	// ask server to send us a list of games.  request is ignored for now.
@@ -330,7 +305,7 @@ class LociTerm {
 		}
 	}
 
-	onKey() {
+	onKey(e) {
 		// Kinda hokey, but if the xtermjs temrinal gets a keystroke while the
 		// client is in line mode, try and activate the nerfbar instead.
 		if(this.echo_mode != 3) {
@@ -341,7 +316,7 @@ class LociTerm {
 	onTerminalData(data) {
 		/* char at a time mode */
 		if(this.echo_mode == 3) {
-			this.sendMsg(Command.INPUT,data);
+			this.sendMsg(Command.TERM_DATA,data);
 			return;
 		} else {
 			this.focus();
@@ -349,12 +324,12 @@ class LociTerm {
 	}
 
 	onBinaryData(data) {
-		//this.sendBinaryMsg(Command.INPUT,data);
-		this.sendMsg(Command.INPUT,data);
+		//this.sendBinaryMsg(Command.TERM_DATA,data);
+		this.sendMsg(Command.TERM_DATA,data);
 	}
 
 	paste(data) {
-		this.sendMsg(Command.INPUT,data);
+		this.sendMsg(Command.TERM_DATA,data);
 		if(this.echo_mode !=3 ) {
 			if(data.endsWith("\r")) {
 				this.terminal.writeln(data);
@@ -365,14 +340,14 @@ class LociTerm {
 	}
 
 	doSendCMD(obj) {
-		this.sendBinaryMsg(Command.SEND_CMD,JSON.stringify(obj));
+		this.sendBinaryMsg(Command.COMMAND,JSON.stringify(obj));
 	}
 
 	doSendGMCP(module,obj) {
 		let msg = module + " " + JSON.stringify(obj);
 		//console.log("GMCP Send: " + module + " [object]");
 		console.log(`GMCP Send: ${msg}`);
-		this.sendMsg(Command.GMCP_INPUT,msg);
+		this.sendMsg(Command.GMCP_DATA,msg);
 	}
 
 	connect(url=this.url) {
@@ -416,7 +391,7 @@ class LociTerm {
 			this.autoreconnect = false;
 			this.socket.close();
 		} else {
-			this.sendMsg(Command.DISCONNECT_CMD,"");
+			this.sendMsg(Command.DISCONNECT,"");
 		}
 	}
 
@@ -442,14 +417,10 @@ class LociTerm {
 		this.menuhandler.update_connect_message(`🚀Connected!`);
 		this.autoreconnect = true;
 		this.reconnect_delay = 0;
-		// Send the window size to the game side so that it can be made
-		// available to the mud at connection time.
-		this.lastResize = "";  // Force it.
-		this.doWindowResize();
+		this.sendMsg(Command.HELLO,this.serverhello);
 
-		// Request connection to the current game.
-		this.doConnectGame(0);
-		this.menuhandler.close("menu_connect");
+		// wait for a hello message to come from server.  Next startup steps
+		// have moved into Command.HELLO processing.
 
 	}
 
@@ -462,13 +433,13 @@ class LociTerm {
 		let cmd = rawbytes[0];
 
 		switch(cmd) {
-			case Command.OUTPUT:
+			case Command.TERM_DATA:
 				var output;
 				var outbytes;
 
 				if( this.leftover != undefined ) {
 					// There were some trailing UTF bytes left over from the last
-					// OUTPUT message that we would like to combine into this message.
+					// TERM_DATA message that we would like to combine into this message.
 					// (See the large comment block below.)
 					let leftbytes = new Uint8Array(this.leftover);
 					output = new ArrayBuffer( this.leftover.byteLength + rawbytes.byteLength-1 );
@@ -516,16 +487,16 @@ class LociTerm {
 				this.terminal.scrollToBottom();
 				this.terminal.write(str);
 				break;
-			case Command.RECV_CMD:
+			case Command.COMMAND:
 				let msg = new TextDecoder('utf8').decode(rawbuffer).slice(1);
 				let obj = JSON.parse(msg);
 				// Of course, there's nothing implemented yet so...
-				console.warn("Unhandled recv_json: " + msg);
+				console.warn("Unhandled command: " + msg);
 				break;
 
-			case Command.CONNECT_VERBOSE: {
+			case Command.CONNECT: {
 				let msg = new TextDecoder('utf8').decode(rawbuffer).slice(1);
-				console.log(`Recieved connect_verbose '${msg}'`);
+				console.log(`Recieved connect '${msg}'`);
 				let robj = JSON.parse(msg);
 				if( robj.reconnect) {
 					if ((robj.reconnect == "invalidate")) {
@@ -557,7 +528,7 @@ class LociTerm {
 				localStorage.setItem("reconnect_key",JSON.stringify(sobj));
 				break;	
 			}
-			case Command.GMCP_OUTPUT: {
+			case Command.GMCP_DATA: {
 				// the format is the standard GMCP one.  A text field that is
 				// the GMCP module name, followed by a JSON encoded object.
 				// Parse them out here.
@@ -613,6 +584,29 @@ class LociTerm {
 				console.log(`MORE_INFO: ${msg}`);
 				try { obj = JSON.parse(msg); } catch { obj = {}; }
 				this.connectgame.update_game_about(obj);
+				break;
+			}
+			case Command.HELLO: {
+				let hello = new TextDecoder('utf8').decode(rawbuffer).slice(1);
+				console.log(`Hello from server ${hello}`);
+
+				if( (this.serverhello != "") && (this.serverhello != hello) ) {
+					this.menuhandler.update_oob_message(`🚀Getting Updates...`);
+					console.log(`Sever version has changed, forcing reload.`);
+					setTimeout( ()=>{location.reload(true)}, 5000 );
+				} else {
+					// We're good to go on this end!
+					this.serverhello = hello;
+
+					// Send the window size to the game side so that it can be made
+					// available to the mud at connection time.
+					this.lastResize = "";  // Force it.
+					this.doWindowResize();
+
+					// Request connection to the current game.
+					this.doConnectGame(0);
+					this.menuhandler.close("menu_connect");
+				}
 				break;
 			}
 			default:
@@ -878,11 +872,11 @@ class LociTerm {
 	resetTerm() {
 		this.terminal.reset();
 		this.terminal.clear();
-		let scrolldown = this.terminal.rows + 2;
-		// clear the screen, scroll down past the bottom.
-		let code = `\x1b[2J\x1B[${scrolldown}B`;
-		console.log(`code is ${code}`);
+		let scrolldown = this.terminal.rows;
+		// scroll down to the bottom.
+		let code = `\x1b[${scrolldown}B`;
 		this.terminal.write(code);
+		setTimeout( ()=> {this.terminal.scrollToBottom();}, 100);
 	}
 
 }

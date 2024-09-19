@@ -1,6 +1,6 @@
 /* game.h - <comment goes here> */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: game.h,v 1.3 2024/09/13 14:32:58 malakai Exp $ */
+/* $Id: game.h,v 1.4 2024/09/19 17:03:30 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -23,6 +23,8 @@
 #ifndef LO_GAME_H
 #define LO_GAME_H
 
+#include "iostats.h"
+
 /* global #defines */
 
 /* structs and typedefs */
@@ -33,6 +35,8 @@ typedef struct game_conn {
 	GQueue *game_q;					/* Game side data queue */
 	telnet_t *game_telnet;			/* telnet protocol tracker */
 	gchar *uuid;					/* reconnect key for this game connection. */
+
+	struct iostat_data *ios;		/* iostat structure for bytes in/out */
 
 	int check_wait;					/* Protocol verification timer */
 	int check_protocol;				/* Protocol verification flags */

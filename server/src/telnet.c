@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.11 2024/09/15 16:39:29 malakai Exp $ */
+/* $Id: telnet.c,v 1.12 2024/09/19 17:03:30 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -338,7 +338,7 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		case TELNET_TELOPT_GMCP:
 			security_checked(pc,CHECK_MUD);
 			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_SUBNEGOTIATION GMCP");
-			loci_client_send_cmd(pc,GMCP_OUTPUT,event->data.buffer,event->data.size);
+			loci_client_send_cmd(pc,GMCP_DATA,event->data.buffer,event->data.size);
 			break;
 		case TELNET_TELOPT_NEW_ENVIRON:
 		case TELNET_TELOPT_TTYPE:
@@ -411,12 +411,12 @@ void loci_telnet_free(game_conn_t *gc) {
 
 void loci_client_gmcp_will(proxy_conn_t *pc) {
 	char module[]="Core.Enable";
-	loci_client_send_cmd(pc,GMCP_OUTPUT,module,strlen(module));
+	loci_client_send_cmd(pc,GMCP_DATA,module,strlen(module));
 }
 
 void loci_client_gmcp_wont(proxy_conn_t *pc) {
 	char module[]="Core.Disable";
-	loci_client_send_cmd(pc,GMCP_OUTPUT,module,strlen(module));
+	loci_client_send_cmd(pc,GMCP_DATA,module,strlen(module));
 }
 
 void loci_telnet_send_gmcp(telnet_t *telnet, const char *buffer, size_t size) {

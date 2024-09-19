@@ -1,6 +1,6 @@
 /* game.c - LociTerm game side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: game.c,v 1.7 2024/09/15 16:39:29 malakai Exp $*/
+/* $Id: game.c,v 1.8 2024/09/19 17:03:30 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -32,6 +32,7 @@
 #include "connect.h"
 #include "telnet.h"
 #include "gamedb.h"
+#include "iostats.h"
 
 #include "game.h"
 
@@ -57,6 +58,8 @@ game_conn_t *new_game_conn(void) {
 	n->game_telnet = NULL;
 	n->uuid = g_uuid_string_random();
 	n->ttype_state = 0;
+
+	n->ios = iostat_new();
 
 	n->check_wait = 0;
 	n->check_protocol = 0;
@@ -88,6 +91,9 @@ void free_game_conn(game_conn_t *f) {
 
 	if(f->uuid) g_free(f->uuid);
 	f->uuid = NULL;
+
+	if(f->ios) iostat_free(f->ios);
+	f->ios = NULL;
 
 	f->echo_opt = 0;
 	f->sga_opt = 0;
@@ -202,12 +208,17 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 			set_game_state(pc,PRXY_UP);
 			loci_client_send_echosga(pc);
 		}
+		/* arrange for a timer pulse for idle timeout and rate tracking. */
+		lws_set_timer_usecs(wsi,IDLE_TIMER_USEC);
 		break;
 
-	case LWS_CALLBACK_RAW_CLOSE:
+	case LWS_CALLBACK_RAW_CLOSE: {
 		if(!pc) return(-1);
 		locid_debug(DEBUG_LWS,pc,"LWS_CALLBACK_RAW_CLOSE\n");
-		locid_info(pc,"game side closed.");
+
+		char buf[1024];
+		iostat_printhuman(buf,sizeof(buf),pc->game->ios);
+		locid_info(pc,"game closed: %s",buf);
 		/*
 		 * Clean up any pending messages to us that are never going
 		 * to get delivered now, we are in the middle of closing
@@ -258,12 +269,15 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 		} 
 
 		break;
+	}
 
 	case LWS_CALLBACK_RAW_RX:
 		locid_debug(DEBUG_LWS,pc,"LWS_CALLBACK_RAW_RX (%d)", (int)len);
 		//if (!pc || !pc->client->wsi_client)
 		if (!pc)
 			break;
+
+		iostat_incr(pc->game->ios,len,0);
 		
 		if(get_game_state(pc) != PRXY_CLOSING) {
 			loci_game_parse(pc,in,len);
@@ -299,6 +313,8 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 			return -1;
 		}
 
+		iostat_incr(pc->game->ios,0,m);
+
 		/*
 		 * If more to do...
 		 */
@@ -306,6 +322,30 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 			lws_callback_on_writable(wsi);
 		}
 		break;
+
+	case LWS_CALLBACK_TIMER: {
+		locid_debug(DEBUG_LWS,pc,"LWS_CALLBACK_TIMER");
+		if(!pc) break;
+
+		iostat_checkpoint(pc->game->ios,0.9);
+
+		if(global_debug_facility & DEBUG_GAME) {
+			char buf[4096];
+			iostat_printhrate(buf,sizeof(buf),pc->game->ios);
+			locid_debug(DEBUG_GAME,pc,buf);
+		}
+
+		/* don't forget to reschedule. */
+		lws_set_timer_usecs(wsi,IDLE_TIMER_USEC);
+
+		/* and pet the doggie. */
+		if(loci_proxy_watchdog(pc)) {
+			loci_proxy_shutdown(pc);
+		}
+
+		break;
+	}
+
 	default:
 		break;
 	}

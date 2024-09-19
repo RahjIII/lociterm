@@ -100,8 +100,7 @@
 		"item" : [
 			{
 				"label": "Logout",
-				"send": "logout\n",
-				"disconnect": "remote"
+				"send": "logout\n"
 			},
 			{
 				"label": "Camp",

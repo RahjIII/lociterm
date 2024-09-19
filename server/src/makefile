@@ -1,6 +1,6 @@
 # makefile - LociTerm locid server
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.9 2024/09/15 16:39:29 malakai Exp $
+# $Id: makefile,v 1.10 2024/09/19 17:03:30 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -33,7 +33,7 @@ LOCITERM_VERSION ?= 2.0.0-dev
 # List the LOCI .c files here.  Order doesn't matter.  Dont worry
 # about header file dependencies, this makefile will figure them out
 # automatically.
-LOCI_CFILES = locid.c debug.c proxy.c client.c game.c connect.c telnet.c libtelnet.c gamedb.c
+LOCI_CFILES = locid.c debug.c proxy.c client.c game.c connect.c telnet.c libtelnet.c gamedb.c iostats.c
 
 # The list of HFILES, (required for making the ctags database) is generated
 # automatically from the LOCI_CFILES list.  However, not everything in LOCI_CFILES

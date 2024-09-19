@@ -1,16 +1,13 @@
 ------- TODO TODO TODO TODO --------------
-* check upgrade path for clients lociterm1.0->lociterm2.0 
+* lociterm... talking to Play.Legendsofterris.Com 31000, got a lot of what
+	looked like oob gmcp?  figure that out.
 
-* clean up the lociclient protocol numbers.
+* BUG - is there some race condtition, or message fragmentation problem wrt
+	gmcp/env data making its way into the in-band datastream?  
 
 * CLI db administration mode.
 
 * have login window save creds based on host/port.
-
-* There needs to be an idle timer on proxy connection, to stop game side being
-  alive for ever waiting for a reconnect that wont come.
-
-* could also add a throughput/interface bytes tracker too I suppose. iostat from LO
 
 * config option for verbose suggestion failure message to client.
 
@@ -24,7 +21,8 @@
 
 * try to fix TAB and SHIFT TAB in the ui.
 
-* support for CHARSET telnet option, to send UTF-8
+* idea- support for CHARSET telnet option, to send UTF-8. (Eh, maybe only do it
+  later if we bother to support other codepages.)
 
 * Filter out unsupported GMCP messages at the locid level.  No reason to send
   those to the client, and some games are very bad about it.
@@ -54,6 +52,19 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ There needs to be an idle timer on proxy connection, to stop game side being
+  alive for ever waiting for a reconnect that wont come.
+
++ could also add a throughput/interface bytes tracker too I suppose. iostat from LO
+
++ clean up the lociclient protocol numbers.
+	Also added a client/server HELLO exchange to detect when client version may
+	not match server version.
+
++ check upgrade path for clients lociterm1.0->lociterm2.0.
+	Well... the new server will detect lociterm.1.x and at least send a "You
+	must refresh the page" down to the user.  Hopefully they will be able to.
+
 + terminal reset- put cursor on last line of screen? (read rows from xtermjs, move cursor there.)
 
 + see about ?host=x;port=x;ssl=x in URL.  Done, used as initial game connection, ignored otherwise.

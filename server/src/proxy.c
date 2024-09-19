@@ -1,6 +1,6 @@
 /* proxy.c - LociTerm protocol bridge */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: proxy.c,v 1.2 2024/09/15 16:39:29 malakai Exp $*/
+/* $Id: proxy.c,v 1.3 2024/09/19 17:03:30 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -53,6 +53,14 @@ char *proxy_state_str[] = {
 	[PRXY_STATE_MAX] = "UNKNOWN"
 };
 
+/* idle_proxy_timeout is how long a proxy connection will hang around waiting
+ * for a reconnect if one of its sides is not up.  This could be made tunable
+ * in the config file sometime, I suppose. */
+struct timeval idle_proxy_timeout = {
+	.tv_sec = 600,
+	.tv_usec = 0
+};
+
 /* this is a global list of all the proxied connections. */
 GList *proxyconns = NULL;
 
@@ -73,6 +81,8 @@ proxy_conn_t *new_proxy_conn() {
 
 	n->game = new_game_conn();
 	n->game->pc = n;
+
+	gettimeofday(&(n->watchdog),NULL);
 
 	n->mssp = NULL;
 	n->game_db_entry = NULL;
@@ -376,7 +386,7 @@ void loci_client_invalidate_key(proxy_conn_t *pc) {
 
 	jstr = json_object_to_json_string(r);
 
-	loci_client_send_cmd(pc,CONNECT_VERBOSE,jstr,strlen(jstr));
+	loci_client_send_cmd(pc,CONNECT,jstr,strlen(jstr));
 	locid_debug(DEBUG_CLIENT,pc,"sent invalidate '%s'",jstr);
 	json_object_put(r);
 }
@@ -397,3 +407,30 @@ void loci_game_send_naws(proxy_conn_t *pc) {
 	loci_telnet_send_naws(pc->game->game_telnet,pc->client->width,pc->client->height);
 }
 
+/* returns 1 if the watchdog has expired and is barking, 0 otherwise. */
+int loci_proxy_watchdog(proxy_conn_t *pc) {
+	
+	struct timeval now;
+	struct timeval deltat;
+
+	if(!pc) return(1);
+	
+	/* if both sides of the proxy are present, pat the doggie and we're good. */
+	if( (get_game_state(pc) == PRXY_UP) && 
+		(get_client_state(pc) == PRXY_UP) 
+	) {
+		gettimeofday(&(pc->watchdog),NULL);
+		return(0);
+	}
+
+	gettimeofday(&now,NULL);
+	timersub(&now,&(pc->watchdog),&deltat);
+
+	if(timercmp(&(deltat),&(idle_proxy_timeout),>)) {
+		/* watchdog has expired! */
+		return(1);
+	}
+
+	return(0);
+
+}

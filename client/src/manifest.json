@@ -1,9 +1,9 @@
 {
   "lang": "en",
   "dir": "ltr",
+  "name": "LociTerm",
   "short_name": "LociTerm",
-  "name": "Last Outpost Client Interface Terminal",
-  "description": "A Web-Based Telnet and MUD Client",
+  "description": "Last Outpost Client Interface Terminal, a Web-based Telnet and MUD Client.",
   "icons": [
     {
       "src": "img/lociterm256x256m.png",
@@ -15,18 +15,14 @@
       "src": "img/lociterm128x128m.png",
       "type": "image/png",
       "sizes": "128x128",
-      "purpose": "any"
-    },
-    {
-      "src": "img/lociterm96x96.png",
-      "type": "image/png",
-      "sizes": "96x96",
-      "purpose": "any"
-    }],
-  "start_url": "/",
+      "purpose": "maskable"
+    } ],
+  "start_url": "/lociterm/",
   "id": "/lociterm/",
   "background_color": "#000000",
   "theme_color": "#000000",
   "display": "standalone",
-  "orientation": "portrait"
+  "display_override": ["standalone"],
+  "orientation": "portrait",
+  "categories": ["games","utilities"]
 }

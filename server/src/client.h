@@ -1,6 +1,6 @@
 /* client.h - LociTerm client side protocols */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: client.h,v 1.8 2024/09/13 14:32:58 malakai Exp $ */
+/* $Id: client.h,v 1.9 2024/09/19 17:03:30 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -23,31 +23,25 @@
 #ifndef LO_CLIENT_H
 #define LO_CLIENT_H
 
+#include "iostats.h"
+
 /* global #defines */
 
-// to web client message
-#define OUTPUT 0
-#define SET_WINDOW_TITLE 1
-#define SET_PREFERENCES 2
-#define RECV_CMD 3
-#define RECONNECT_KEY_OLD 7
-#define GMCP_OUTPUT 8
-#define CONNECT_VERBOSE 9
-#define ECHO_MODE 10 
-#define GAME_LIST 11
-
-// from web client message
-#define INPUT 0
-#define RESIZE_TERMINAL 1
-#define PAUSE 2
-#define RESUME 3
-#define CONNECT_GAME 5
-#define SEND_CMD 6
-#define DISCONNECT_GAME 7
-#define GMCP_INPUT 8
-#define CONNECT_VERBOSE 9
-#define GAME_LIST 11
-#define MORE_INFO 12
+/* These defines MUST MATCH the ones in ../../client/lociterm.js ! */
+#define HELLO 0
+#define TERM_DATA 1
+#define COMMAND 2
+#define CONNECT 3
+#define DISCONNECT 4
+#define ECHO_MODE 5
+#define RESIZE_TERMINAL 6
+#define GMCP_DATA 7
+#define GAME_LIST 8
+#define MORE_INFO 9
+/* special reserved numbers, used to detect connection from lociterm 1.0, which
+ * doesn't have a HELLO message. */
+#define OLD_LOCITERM_OUTPUT 48
+#define OLD_LOCITERM 49
 
 /* structs and typedefs */
 
@@ -57,6 +51,9 @@ typedef struct client_conn {
 	struct lws *wsi_client;			/* LWS wsi for client websocket. */
 	proxy_state_t client_state;		/* current loci interface state */
 	GQueue *client_q;				/* Client side data queue */
+
+	struct iostat_data *ios;		/* iostat structure for bytes in/out */
+
 	char *hostname;					/* Hostname of the calling client. */
 	gchar *useragent;				/* User agent reported by clients browser */
 	int width;						/* terminal window char width for NAWS */

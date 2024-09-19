@@ -1,6 +1,6 @@
 /* proxy.h - LociTerm protocol bridge  */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: proxy.h,v 1.2 2024/09/15 16:39:29 malakai Exp $ */
+/* $Id: proxy.h,v 1.3 2024/09/19 17:03:30 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -27,6 +27,8 @@
 #include "libtelnet.h"
 
 /* global #defines */
+
+#define IDLE_TIMER_USEC 10*1000000
 
 /* structs and typedefs */
 
@@ -56,6 +58,8 @@ typedef struct proxy_conn {
 	int id;
 	client_conn_t *client;
 	game_conn_t *game;
+
+	struct timeval watchdog;
 
 	json_object *game_db_entry;     /* contains hostname, port, ssl, ... */
 	json_object *mssp;				/* TEMPORARY MSSP data recieved from game. */
@@ -117,6 +121,7 @@ void loci_game_send(proxy_conn_t *pc, const char *buffer, size_t size);
 void loci_game_send_gmcp(proxy_conn_t *pc, const char *buffer, size_t size);
 void loci_game_send_naws(proxy_conn_t *pc);
 void loci_game_shutdown(proxy_conn_t *pc);
+int loci_proxy_watchdog(proxy_conn_t *pc);
 void loci_proxy_shutdown(proxy_conn_t *pc);
 void free_proxyconns(void);
 #endif /* LO_PROXY_H */

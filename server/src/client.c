@@ -1,6 +1,6 @@
 /* client.c - LociTerm client side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: client.c,v 1.17 2024/09/15 16:39:29 malakai Exp $*/
+/* $Id: client.c,v 1.18 2024/09/19 17:03:30 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -28,6 +28,7 @@
 #include "proxy.h"
 #include "connect.h"
 #include "gamedb.h"
+#include "locid.h"
 
 #include "client.h"
 
@@ -56,6 +57,9 @@ client_conn_t *new_client_conn() {
 	n->wsi_client = NULL;
 	n->client_q = g_queue_new();
 	n->client_state = PRXY_INIT;
+
+	n->ios = iostat_new();
+
 	n->hostname = NULL;
 	n->width = 80;
 	n->height = 25;
@@ -81,6 +85,10 @@ void free_client_conn(client_conn_t *f) {
 		g_queue_free(f->client_q);
 		f->client_q = NULL;
 	}
+
+	if(f->ios) iostat_free(f->ios);
+	f->ios = NULL;
+
 	if(f->hostname) free(f->hostname);
 	f->hostname = NULL;
 	
@@ -115,10 +123,12 @@ int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 	}
 
 	switch (*in) {
-		case INPUT:
+		case HELLO: 
+			break;
+		case TERM_DATA:
 			loci_game_send(pc,msg,msglen);
 			break;
-		case GMCP_INPUT:
+		case GMCP_DATA:
 			loci_game_send_gmcp(pc,msg,msglen);
 			break;
 		case RESIZE_TERMINAL:
@@ -138,7 +148,7 @@ int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 			);
 			break;
 
-		case CONNECT_VERBOSE: {
+		case CONNECT: {
 			/* the msg is a null terminated json encoded blob of data.  See
 			 * loci_connect_verbose() for the expected content of that blob. */
 			s = (char *)malloc(len);
@@ -148,11 +158,11 @@ int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 			free(s);
 			return(ret);
 		} break;
-		case DISCONNECT_GAME:
+		case DISCONNECT:
 			locid_debug(DEBUG_CLIENT,pc,"client requested game close.");
 			loci_game_shutdown(pc);
 			break;
-		case SEND_CMD:
+		case COMMAND:
 			loci_client_json_cmd_parse(pc,msg,msglen);
 			break;
 		case GAME_LIST:
@@ -169,11 +179,17 @@ int loci_client_parse(proxy_conn_t *pc, char *in, size_t len) {
 			loci_client_more_info(pc,s);
 			free(s);
 			return(0);
-		case PAUSE:
-		case RESUME:
+		case OLD_LOCITERM:
+			locid_info(pc,"Ooops!  Old lociterm1x protocol detected?",*in);
+			char *ooops = "Please refresh the page!\r\n";
+			loci_client_send_cmd(pc,OLD_LOCITERM_OUTPUT,ooops,strlen(ooops));
+			return(0);
 		default:
-			locid_debug(DEBUG_CLIENT,pc,"unimplemented client command.");
-			return(-1);
+			/* You might be tempted to return(-1) here to hang up on the bogus
+			 * client.  But holding the connection open (and dead) keeps him
+			 * from calling back immediately. */
+			locid_info(pc,"Protocol Error! Unimplemented client command. %d",*in);
+			return(0);
 	}
 	return(*in);
 }
@@ -202,7 +218,7 @@ void loci_client_send_cmd(proxy_conn_t *pc, char cmd, char *in, size_t len) {
 
 /* send regular terminal data to the client. */
 void loci_client_write(proxy_conn_t *pc, char *in, size_t len) {
-	loci_client_send_cmd(pc,OUTPUT,in,len);
+	loci_client_send_cmd(pc,TERM_DATA,in,len);
 }
 
 /* send the reconnection key to the client. */
@@ -227,7 +243,7 @@ void loci_client_send_key(proxy_conn_t *pc) {
 
 	jstr = json_object_to_json_string(r);
 
-	loci_client_send_cmd(pc,CONNECT_VERBOSE,jstr,strlen(jstr));
+	loci_client_send_cmd(pc,CONNECT,jstr,strlen(jstr));
 	locid_debug(DEBUG_CLIENT,pc,"sent reconnect '%s'",jstr);
 	json_object_put(r);
 
@@ -249,7 +265,7 @@ void loci_client_send_connectmsg(proxy_conn_t *pc, char *state, char *msg) {
 	}
 	jstr = json_object_to_json_string(r);
 
-	loci_client_send_cmd(pc,CONNECT_VERBOSE,jstr,strlen(jstr));
+	loci_client_send_cmd(pc,CONNECT,jstr,strlen(jstr));
 	locid_debug(DEBUG_CLIENT,pc,"sent connectmsg '%s'",jstr);
 	json_object_put(r);
 
@@ -319,13 +335,22 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 
 		if(lws_hdr_copy(pc->client->wsi_client,buf,sizeof(buf),WSI_TOKEN_HTTP_REFERER) > 0) {
 			/* could save referer in the client struct and pass it up to the
-			 * game in an env var.. but for now just log it.*/
+			 * game in an env var.. but for now just log it.  Actually, it
+			 * shouldn't ever appear, because this is supposed to be a
+			 * websocket connection that our own client initiated.  (so no
+			 * referrer) */
 			locid_info(pc,"Referer: '%s'", buf);
 		}
 
 		/* Don't open up the connection to the game until the client
 		 * specifically requests it. This is so that the client has a chance to
 		 * send up any environment parameters first */
+		char *hello = get_proxy_name();
+		loci_client_send_cmd(pc,HELLO,hello,strlen(hello));
+		free(hello);
+
+		/* arrange for a timer pulse for idle timeout and rate tracking. */
+		lws_set_timer_usecs(wsi,IDLE_TIMER_USEC);
 
 		break;
 
@@ -333,11 +358,14 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 		set_client_state(pc,PRXY_DOWN);
 		break;
 
-	case LWS_CALLBACK_CLOSED:
+	case LWS_CALLBACK_CLOSED: {
 		pc->client->wsi_client = NULL;
 		lws_set_opaque_user_data(wsi, NULL);
 		set_client_state(pc,PRXY_DOWN);
-		locid_info(pc,"client side closed.");
+
+		char buf[1024];
+		iostat_printhuman(buf,sizeof(buf),pc->client->ios);
+		locid_info(pc,"client closed: %s",buf);
 
 		/* if the game side has either not opened, or has closed and cleaned
 		 * itself up, we can get rid of the proxy_conn too and be all done. */
@@ -355,6 +383,7 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 		/* The game side of the proxy is still alive... */
 		locid_debug(DEBUG_CLIENT,pc,"client side half close");
 		break;
+	}
 
 	case LWS_CALLBACK_SERVER_WRITEABLE:
 		/* this callback happens every three seconds while client is open, no matter what. */
@@ -380,6 +409,9 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 			return -1;
 		}
 
+		/* tweak the iostat counter. */
+		iostat_incr(pc->client->ios,0,m);
+
 		/* and repeat while the queue contains messages. */
 		if (!(g_queue_is_empty(pc->client->client_q))) {
 			lws_callback_on_writable(wsi);
@@ -389,13 +421,38 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 	case LWS_CALLBACK_RECEIVE:
 		if (!pc) break;
 
+		/* tweak the iostat counter. */
+		iostat_incr(pc->client->ios,len,0);
+
 		/* de-encapsulate inbound from the client here. The unfiltered data is
 		 * at *in.  It needs its loci protocol framing translated, and then
 		 * sent on to the outbound game q.*/
-
 		loci_client_parse(pc,in,len);
 
 		break;
+
+	case LWS_CALLBACK_TIMER: {
+		locid_debug(DEBUG_LWS,pc,"LWS_CALLBACK_TIMER");
+		if(!pc) break;
+
+		iostat_checkpoint(pc->client->ios,0.9);
+
+		if(global_debug_facility & DEBUG_CLIENT) {
+			char buf[4096];
+			iostat_printhrate(buf,sizeof(buf),pc->client->ios);
+			locid_debug(DEBUG_CLIENT,pc,buf);
+		}
+
+		/* don't forget to reschedule. */
+		lws_set_timer_usecs(wsi,IDLE_TIMER_USEC);
+
+		/* and pet the doggie. */
+		if(loci_proxy_watchdog(pc)) {
+			loci_proxy_shutdown(pc);
+		}
+
+		break;
+	}
 
 	default:
 		if(pc) {

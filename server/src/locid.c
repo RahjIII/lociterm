@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.15 2024/09/15 16:39:29 malakai Exp $ */
+/* $Id: locid.c,v 1.16 2024/09/19 17:03:30 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -468,8 +468,10 @@ int main(int argc, char **argv) {
 
 	/* Keep on giving good service... Its all event driven from here. */
 	int retcode = 0;
-	while (retcode >= 0 && !interrupted)
+	while (retcode >= 0 && !interrupted) {
+		//locid_debug(DEBUG_LWS,NULL,"Boop.");
 		retcode = lws_service(context, 0);
+	}
 
 	/* exit and cleanup */
 	lws_context_destroy(context);
