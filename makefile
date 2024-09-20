@@ -1,8 +1,8 @@
-# $Id: makefile,v 1.10 2024/09/20 17:51:11 malakai Exp $
+# $Id: makefile,v 1.11 2024/09/20 17:53:40 malakai Exp $
 #
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.10 2024/09/20 17:51:11 malakai Exp $
+# $Id: makefile,v 1.11 2024/09/20 17:53:40 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -63,6 +63,7 @@ $(BUILD) :
 	mkdir -p $(BUILD)/etc/ssl/certs
 	mkdir -p $(BUILD)/etc/ssl/private
 	mkdir -p $(BUILD)/var/www/lociterm
+	mkdir -p $(BUILD)/var/lib/lociterm
 
 $(NPM) :
 	cd $(CLIENTDIR); npm install
