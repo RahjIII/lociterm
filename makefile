@@ -1,8 +1,8 @@
-# $Id: makefile,v 1.9 2024/09/13 14:32:58 malakai Exp $
+# $Id: makefile,v 1.10 2024/09/20 17:51:11 malakai Exp $
 #
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.9 2024/09/13 14:32:58 malakai Exp $
+# $Id: makefile,v 1.10 2024/09/20 17:51:11 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -53,7 +53,7 @@ server : $(BUILD)
 client : $(NPM) $(BUILD)
 	cd $(CLIENTDIR); npm version --allow-same-version $(LOCITERM_VERSION)
 	cd $(CLIENTDIR); npm run build
-	cp -r $(CLIENTDIR)/dist/* $(BUILD)/var/www/loci
+	cp -r $(CLIENTDIR)/dist/* $(BUILD)/var/www/lociterm
 
 # Create run directory...
 $(BUILD) : 
@@ -62,7 +62,7 @@ $(BUILD) :
 	mkdir -p $(BUILD)/etc
 	mkdir -p $(BUILD)/etc/ssl/certs
 	mkdir -p $(BUILD)/etc/ssl/private
-	mkdir -p $(BUILD)/var/www/loci
+	mkdir -p $(BUILD)/var/www/lociterm
 
 $(NPM) :
 	cd $(CLIENTDIR); npm install
