@@ -6,16 +6,10 @@
   "description": "Last Outpost Client Interface Terminal, a Web-based Telnet and MUD Client.",
   "icons": [
     {
-      "src": "img/lociterm256x256m.png",
+      "src": "img/lociterm512x512.png",
       "type": "image/png",
-      "sizes": "256x256",
+      "sizes": "512x512",
       "purpose": "any"
-    },
-    {
-      "src": "img/lociterm128x128m.png",
-      "type": "image/png",
-      "sizes": "128x128",
-      "purpose": "maskable"
     } ],
   "start_url": "/lociterm/",
   "id": "/lociterm/",

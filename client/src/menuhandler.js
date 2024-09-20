@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.30 2024/09/19 17:03:30 malakai Exp $
+// $Id: menuhandler.js,v 1.31 2024/09/20 17:45:03 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -24,7 +24,7 @@
 import Menubox from './menubox.json';
 import Menuside from './menuside.json';
 import Icons from './icons.svg';
-import LOIcon from './img/lociterm128x128m.png';
+import LOIcon from './img/lociterm512x512.png';
 import TerminalIcon from './img/bezeltermicon192.png';
 
 import PackageData from '../package.json';
@@ -886,8 +886,9 @@ class MenuHandler {
 		cdiv = l;
 
 		l = document.createElement('img');
-		cdiv.appendChild(l);
+		l.classList.add('siteicon');
 		l.src = LOIcon;
+		cdiv.appendChild(l);
 
 
 		divstack.pop(); 
@@ -915,7 +916,7 @@ class MenuHandler {
 		
 		l = document.createElement('p');
 		cdiv.appendChild(l);
-		l.innerText = "Terminal bell sound from Oxegen desktop theme (https://invent.kde.org/plasma/oxygen)."
+		l.innerText = "Terminal bell sound from Oxygen desktop theme (https://invent.kde.org/plasma/oxygen)."
 
 		l = document.createElement('p');
 		cdiv.appendChild(l);

@@ -1,4 +1,6 @@
 ------- TODO TODO TODO TODO --------------
+* Should have the systemctl file built at make time, to use the right install path.
+
 * lociterm... talking to Play.Legendsofterris.Com 31000, got a lot of what
 	looked like oob gmcp?  figure that out.
 

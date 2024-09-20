@@ -286,7 +286,7 @@
 	justify-content: center;
 }
 
-.imgcontainer .siteicon {
+.siteicon {
 	width: calc(var(--finger-size) * 4.0);
 	max-width: calc(var(--finger-size) * 4.0);
 	max-height: calc(var(--finger-size) * 4.0);

@@ -1,6 +1,6 @@
 // connect.js - direct connection window
 // Created: Mon Aug  5 08:54:28 AM EDT 2024
-// $Id: connect.js,v 1.3 2024/09/17 03:46:28 malakai Exp $
+// $Id: connect.js,v 1.4 2024/09/20 17:45:03 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -587,6 +587,17 @@ class ConnectGame {
 		if(mssp.DESCRIPTION) {
 			l = document.createElement('div');
 			l.innerText = `${mssp.DESCRIPTION}`;
+			cdiv.appendChild(l);
+			divstack.push(l);
+			cdiv = l;
+		}
+		
+		if( (!game.ssl) &&
+			(mssp.SSL) &&
+			(mssp.SSL > 1)
+		) {
+			l = document.createElement('div');
+			l.innerText = `Supports SSL on port ${mssp.SSL}`;
 			cdiv.appendChild(l);
 			divstack.push(l);
 			cdiv = l;
