@@ -1,7 +1,7 @@
 /* gamedb.c - <comment goes here> */
 /* Created: Sun Aug 18 10:43:34 AM EDT 2024 malakai */
 /* Copyright © 2024 Jeffrika Heavy Industries */
-/* $Id: gamedb.c,v 1.1 2024/09/19 17:03:30 malakai Exp $ */
+/* $Id: gamedb.c,v 1.2 2024/09/20 17:08:29 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -617,4 +617,121 @@ json_object *game_db_mssplookup(char *host, int port, int ssl) {
 	sqlite3_close(db);
 
 	return(jobj);
+}
+
+void game_db_list(int approved) {
+
+	sqlite3 *db;
+	sqlite3_stmt *stmt;
+	json_object *jobj=NULL;
+	char *sqlstr;
+
+	game_db_status_t filter;
+
+	if(!config->db_inuse) { 
+		fprintf(stderr,"No DB in use.\n  Did you specify the right config file location?");
+		return;
+	}
+
+	if ( (sqlite3_open(config->db_location, &db) != SQLITE_OK) ) {
+		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
+		return;
+	}
+
+	sqlstr = sqlite3_mprintf(
+		"SELECT "
+			"id,"
+			"(select status from gamedbstatus where GAMEDBSTATUS.id = gamedb.status), "
+			"host,port,ssl,name "
+		"FROM GAMEDB "
+			"WHERE "
+			"status %s %d"
+		";",
+		(approved == 1)?"=":"!=",
+		DBSTATUS_APPROVED
+	);
+
+	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) != SQLITE_OK) ){
+		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
+		sqlite3_free(sqlstr);
+		sqlite3_close(db);
+		return;
+	}
+
+	fprintf(stdout,"%s\t%s\t%s %s %s (%s)\n",
+		"ID",
+		"Status     ",
+		"Host",
+		"Port",
+		"SSL",
+		"Name"
+	);
+	fprintf(stdout,"-------------------------------------------------------\n");
+
+	int row=0;
+	while (sqlite3_step(stmt) != SQLITE_DONE) {
+		int ssl = sqlite3_column_int(stmt,4);
+		char *name = sqlite3_column_text(stmt,5);
+		fprintf(stdout,"%d\t%s\t%s %d %s (%s)\n",
+			sqlite3_column_int(stmt,0),
+			sqlite3_column_text(stmt,1),
+			sqlite3_column_text(stmt,2),
+			sqlite3_column_int(stmt,3),
+			(ssl==1)?"SSL":"tcp",
+			(name!=NULL)?name:"?"
+		);
+		row++;
+	}
+
+	fprintf(stdout,"\nListed %d games.\n",row);
+
+	sqlite3_free(sqlstr);
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+
+	return;
+}
+
+void game_db_update(int id,game_db_status_t status) {
+
+	sqlite3 *db;
+	char *errmsg;
+	char *sqlstr = NULL;
+	int ret;
+
+	if ( (ret=sqlite3_open(config->db_location, &db)) != SQLITE_OK ) {
+		locid_info(NULL,"Ooops.  %s",sqlite3_errmsg(db));
+		return;
+	}
+
+	if(status == DBSTATUS_NULL) {
+		/* it was a deletion request. */
+		sqlstr = sqlite3_mprintf(
+			"DELETE FROM GAMEDB "
+				"WHERE ID IS %d "
+			";",
+			id
+		);
+	} else {
+		sqlstr = sqlite3_mprintf(
+			"UPDATE GAMEDB SET "
+				"status = %d "
+				"WHERE ID IS %d "
+			";",
+			status, id
+		);
+	}
+
+	if ( (ret=sqlite3_exec(db, sqlstr, NULL, NULL, &errmsg)) != SQLITE_OK ) {
+		locid_info(NULL,"Ooops.  %s",sqlite3_errmsg(db));
+		if(errmsg) sqlite3_free(errmsg);
+	} 
+	sqlite3_close(db);
+
+	fprintf(stdout,"%s game id %d\n", 
+		(status==DBSTATUS_NULL)?"Deleted":"Updated",
+		id
+	);
+	
+	return;
 }

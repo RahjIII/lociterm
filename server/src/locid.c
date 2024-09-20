@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.16 2024/09/19 17:03:30 malakai Exp $ */
+/* $Id: locid.c,v 1.17 2024/09/20 17:08:29 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -288,6 +288,9 @@ int main(int argc, char **argv) {
 	char *configfilename = NULL;
 	int debug = 0;
 	int localmode = 0;
+	int listmode = -1;
+	int dbupdate_id = -1;
+	game_db_status_t dbupdate_status = DBSTATUS_NOT_CHECKED;
 	struct lws_context_creation_info info;
 	struct lws_context *context;
 	struct lws_http_mount *mount;
@@ -305,14 +308,19 @@ int main(int argc, char **argv) {
 	/* ...and begin. */
 
 	while(1) {
-		char *short_options = "hlc:dv";
+		char *short_options = "hlc:dvalA:B:D:";
 		static struct option long_options[] = {
 			{"help", no_argument,0,'h'},
-			{"launch", no_argument,0,'l'},
+			{"browser", no_argument,0,'b'},
 			{"version", no_argument,0,'v'},
 			{"config",required_argument,0,'c'},
 			{"debug", no_argument,0,'d'},
 			{"version", no_argument,0,'v'},
+			{"list-approved", no_argument,0,'a'},
+			{"list-denied", no_argument,0,'l'},
+			{"approve", required_argument,0,'A'},
+			{"ban", required_argument,0,'B'},
+			{"delete", required_argument,0,'D'},
 			{NULL,no_argument,NULL,0}
 		};
 		int option_index = 0;
@@ -325,7 +333,7 @@ int main(int argc, char **argv) {
 			case 'd':
 				debug = 1;
 				break;
-			case 'l':
+			case 'b':
 				localmode = 1;
 				break;
 			case 'v':
@@ -333,36 +341,40 @@ int main(int argc, char **argv) {
 				fprintf(stdout,"%s\n",s);
 				free(s);
 				exit(EXIT_SUCCESS);
+			case 'a':
+				listmode = 1;
+				break;
+			case 'l':
+				listmode = 0;
+				break;
+			case 'A':
+				dbupdate_id = atoi(optarg);
+				dbupdate_status = DBSTATUS_APPROVED;
+				break;
+			case 'B':
+				dbupdate_id = atoi(optarg);
+				dbupdate_status = DBSTATUS_BANNED;
+				break;
+			case 'D':
+				dbupdate_id = atoi(optarg);
+				dbupdate_status = DBSTATUS_NULL;
+				break;
 			case 'h':
 			default:
 				fprintf(stdout,"Usage: %s [options]\n",argv[0]);
-				fprintf(stdout,"\t-c / --config   : specify location of config file\n");
-				fprintf(stdout,"\t-d / --debug    : run in debug mode\n");
-				fprintf(stdout,"\t-h / --help     : this message\n");
-				fprintf(stdout,"\t-l / --launch   : launch a browser\n");
-				fprintf(stdout,"\t-v / --version  : show the version\n");
+				fprintf(stdout,"\t-c / --config        specify location of config file\n");
+				fprintf(stdout,"\t-d / --debug         run in debug mode\n");
+				fprintf(stdout,"\t-h / --help          this message\n");
+				fprintf(stdout,"\t-l / --launch        launch a browser\n");
+				fprintf(stdout,"\t-v / --version       show the version\n");
+				fprintf(stdout,"\t-a / --list-approved list approved games by id\n");
+				fprintf(stdout,"\t-l / --list-denied   list denied games by id\n");
+				fprintf(stdout,"\t-A / --approve <id>  Mark game approved\n");
+				fprintf(stdout,"\t-B / --ban <id>      Mark game banned\n");
+				fprintf(stdout,"\t-D / --delete <id>   Remove game from DB\n");
 				exit(EXIT_SUCCESS);
 		}
 	}
-
-	
-
-	if(configfilename == NULL) {
-		configfilename = CONFIG_FILE;
-	}
-
-	config = new_config(configfilename);
-
-	locid_log_init(config->log_file);
-
-	locid_log("Starting %s", config->locid_proxy_name);
-	locid_log("Loaded config file %s", configfilename);
-	locid_log("Mountpoint is %s", config->mountpoint);
-	locid_log("Default game is %s %d security %s", 
-		config->game_host, config->game_port,
-		config->game_security
-	);
-	config->client_localmode = localmode;
 
 	/* begin websocket init */
 	if(debug) {
@@ -379,18 +391,49 @@ int main(int argc, char **argv) {
 		lws_set_log_level(lwslogs, (lws_log_emit_t)locid_log_lws);
 	}
 
-	/* init the database? */
+	if(configfilename == NULL) {
+		configfilename = CONFIG_FILE;
+	}
+
+	config = new_config(configfilename);
+	locid_log_init(config->log_file);
+
+	/* init the database. */
 	if(strcasecmp(config->db_engine,"none")) {
 		config->db_inuse = 1;
+	} else {
+		config->db_inuse = 0;
+	}
+
+	if(listmode != -1) {
+		game_db_list(listmode);
+		exit(EXIT_SUCCESS);
+	}
+
+	if( dbupdate_id > 0) {
+		game_db_update(dbupdate_id,dbupdate_status);
+		exit(EXIT_SUCCESS);
+	}
+
+	locid_log("Starting %s", config->locid_proxy_name);
+	locid_log("Loaded config file %s", configfilename);
+	locid_log("Mountpoint is %s", config->mountpoint);
+	locid_log("Default game is %s %d security %s", 
+		config->game_host, config->game_port,
+		config->game_security
+	);
+
+	if(config->db_inuse == 1) {
 		locid_log("Using %s database",config->db_engine);
 		if ( (game_db_init(config->db_location) == -1) ) {
 			locid_log("Unable to open game-db location '%s'.",config->db_location);
 			exit(EXIT_FAILURE);
 		}
 		locid_log("Banned port list contains %d ports.",g_list_length(config->db_banned_ports));
-	} else {
-		config->db_inuse = 0;
 	}
+
+	config->client_localmode = localmode;
+
 
 	/* init the mountpoint struct for lws's built in http server. */
 	mount = (struct lws_http_mount *)malloc(sizeof(struct lws_http_mount));

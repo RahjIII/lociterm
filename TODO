@@ -5,8 +5,6 @@
 * BUG - is there some race condtition, or message fragmentation problem wrt
 	gmcp/env data making its way into the in-band datastream?  
 
-* CLI db administration mode.
-
 * have login window save creds based on host/port.
 
 * config option for verbose suggestion failure message to client.
@@ -21,9 +19,6 @@
 
 * try to fix TAB and SHIFT TAB in the ui.
 
-* idea- support for CHARSET telnet option, to send UTF-8. (Eh, maybe only do it
-  later if we bother to support other codepages.)
-
 * Filter out unsupported GMCP messages at the locid level.  No reason to send
   those to the client, and some games are very bad about it.
 
@@ -31,8 +26,6 @@
 	See xtermoptions.minimumContrastRatio
 
 * Work on selectable / alternate menubox layouts for 10-way direction muds.
-
-* put SSL port into the game about.
 
 * idea- could do a pure cli lociterm too, for kicks. :)
 
@@ -52,6 +45,13 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
+- put SSL port into the game about.
+
+- idea- support for CHARSET telnet option, to send UTF-8. (Eh, maybe only do it
+  later if we bother to support other codepages.)
+
++ CLI db administration mode.
+
 + There needs to be an idle timer on proxy connection, to stop game side being
   alive for ever waiting for a reconnect that wont come.
 

@@ -1,6 +1,6 @@
 /* gamedb.h - <comment goes here> */
 /* Created: Sun Aug 18 10:43:34 AM EDT 2024 malakai */
-/* $Id: gamedb.h,v 1.1 2024/09/13 14:32:58 malakai Exp $ */
+/* $Id: gamedb.h,v 1.2 2024/09/20 17:08:29 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -54,5 +54,7 @@ int game_db_get_status(proxy_conn_t *pc);
 int game_db_get_default_game(proxy_conn_t *pc);
 json_object *game_db_get_server_list(void);
 json_object *game_db_mssplookup(char *host, int port, int ssl);
+void game_db_list(int approved);
+void game_db_update(int id,game_db_status_t status);
 
 #endif /* LOCI_GAMEDB_H */

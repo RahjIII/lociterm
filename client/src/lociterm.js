@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.35 2024/09/19 17:03:30 malakai Exp $
+// $Id: lociterm.js,v 1.36 2024/09/20 17:08:29 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -292,7 +292,7 @@ class LociTerm {
 				/* no break! */
 			case 0: // CONNECTING
 				this.menuhandler.update_connect_message(`🔄Connecting...`);
-				setTimeout( ()=>{this.sendMsg();} , 5 );
+				setTimeout( ()=>{this.sendMsg();} , 100 );
 				break;
 			case 2: // CLOSING
 				// if for some reason
@@ -361,7 +361,7 @@ class LociTerm {
 		if(this.themeLoaded == false) {
 			console.log("Delaying connection for themes to load...");
 			this.terminal.write(`\r`);
-			setTimeout(() => this.connect(url) , 10.0); 
+			setTimeout(() => this.connect(url) , 100.0); 
 			return;
 		}
 
