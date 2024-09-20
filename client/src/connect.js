@@ -1,6 +1,6 @@
 // connect.js - direct connection window
 // Created: Mon Aug  5 08:54:28 AM EDT 2024
-// $Id: connect.js,v 1.4 2024/09/20 17:45:03 malakai Exp $
+// $Id: connect.js,v 1.5 2024/09/20 18:29:30 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -154,13 +154,13 @@ class ConnectGame {
 
 		id = `${elementid}_hostname`;
 		l = this.generic_field(id,"Host Name",
-			((e)=>{this.hostname = e.target.value })
+			((e)=>{this.hostname = e.target.value.trim() })
 		);
 		cdiv.appendChild(l);
 
 		id = `${elementid}_port`;
 		l = this.generic_field(id,"Port Number",
-			((e)=>{this.port = e.target.value })
+			((e)=>{this.port = e.target.value.trim() })
 		);
 		l.childNodes[1].setAttribute("type","number");
 		cdiv.appendChild(l);
@@ -201,7 +201,7 @@ class ConnectGame {
 		this.menuhandler.openHandler.set(
 			"menu_game_select", 
 			() => { 
-				document.getElementById(`${elementid}_host`).value = this.host;
+				document.getElementById(`${elementid}_hostname`).value = this.host;
 				document.getElementById(`${elementid}_port`).value = this.port;
 				document.getElementById(`${elementid}_ssl`).checked = this.ssl;
 			}
