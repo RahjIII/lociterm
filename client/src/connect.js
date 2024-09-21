@@ -1,6 +1,6 @@
 // connect.js - direct connection window
 // Created: Mon Aug  5 08:54:28 AM EDT 2024
-// $Id: connect.js,v 1.5 2024/09/20 18:29:30 malakai Exp $
+// $Id: connect.js,v 1.6 2024/09/21 15:25:52 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -178,9 +178,11 @@ class ConnectGame {
 		l.innerText = "Submit";
 		l.onclick = (
 			()=> {
-				this.menuhandler.close(this.elementid);
+				this.hostname = document.getElementById(`${elementid}_hostname_input`).value;
+				this.port = document.getElementById(`${elementid}_port_input`).value;
+				this.ssl = document.getElementById(`${elementid}_ssl_checkbox`).checked;
 				let server = {};
-				if( (this.host == "") || (this.port =="") || (this.port == 0) ) {
+				if( (this.hostname == "") || (this.port =="") || (this.port == 0) ) {
 					this.host == "";
 					this.port == 0;
 					this.ssl = 0;
@@ -191,6 +193,7 @@ class ConnectGame {
 					server.ssl = this.ssl;
 					this.in_use = true;
 				}
+				this.menuhandler.close(this.elementid);
 				// Disable autologin.  This is to avoid giving old creds to a new server. 
 				this.menuhandler.voidLoginAutologin();
 				this.lociterm.resetTerm();
@@ -201,9 +204,9 @@ class ConnectGame {
 		this.menuhandler.openHandler.set(
 			"menu_game_select", 
 			() => { 
-				document.getElementById(`${elementid}_hostname`).value = this.host;
-				document.getElementById(`${elementid}_port`).value = this.port;
-				document.getElementById(`${elementid}_ssl`).checked = this.ssl;
+				document.getElementById(`${elementid}_hostname_input`).value = this.host;
+				document.getElementById(`${elementid}_port_input`).value = this.port;
+				document.getElementById(`${elementid}_ssl_checkbox`).checked = this.ssl;
 			}
 		);
 	
