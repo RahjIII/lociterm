@@ -1,7 +1,7 @@
 /* gamedb.c - <comment goes here> */
 /* Created: Sun Aug 18 10:43:34 AM EDT 2024 malakai */
 /* Copyright © 2024 Jeffrika Heavy Industries */
-/* $Id: gamedb.c,v 1.2 2024/09/20 17:08:29 malakai Exp $ */
+/* $Id: gamedb.c,v 1.3 2024/09/21 03:25:56 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -329,7 +329,8 @@ int game_db_suggest(proxy_conn_t *pc, char *host, int port, int ssl) {
 	if(game_db_port_is_banned(port)) {
 		dbstatus = DBSTATUS_BANNED;
 	} else {
-		dbstatus = DBSTATUS_NOT_CHECKED;
+		/* use the configured default value. */
+		dbstatus = config->db_suggestions;
 	}
 
 	sqlstr = sqlite3_mprintf(

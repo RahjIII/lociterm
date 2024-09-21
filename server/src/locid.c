@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.17 2024/09/20 17:08:29 malakai Exp $ */
+/* $Id: locid.c,v 1.18 2024/09/21 03:25:56 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -228,8 +228,8 @@ struct locid_conf *new_config(char *filename) {
 	} else if (!strcasecmp(tmpstr,"none")) {
 		c->db_min_protocol = 0;
 	} else {
-		/* make an unknown value default to CHECK MUD */
-		c->db_suggestions = CHECK_MUD;
+		/* make an unknown value default to CHECK TELNET */
+		c->db_min_protocol = CHECK_TELNET;
 	}
 	free(tmpstr);
 

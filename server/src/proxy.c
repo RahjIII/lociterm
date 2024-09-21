@@ -1,6 +1,6 @@
 /* proxy.c - LociTerm protocol bridge */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: proxy.c,v 1.3 2024/09/19 17:03:30 malakai Exp $*/
+/* $Id: proxy.c,v 1.4 2024/09/21 03:25:56 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -261,8 +261,8 @@ void security_require(proxy_conn_t *pc,int security_flags,int timeout) {
 
 void security_enforcement(proxy_conn_t *pc) {
 	if(!pc) return;
-	int now = time(0);
 	if(get_game_state(pc) == PRXY_BLOCKING) {
+		int now = time(0);
 		if( (pc->game->check_wait >0) &&
 			(pc->game->check_wait <= now) &&
 			(pc->game->check_protocol != 0)
