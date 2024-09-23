@@ -1,4 +1,30 @@
 ------- TODO TODO TODO TODO --------------
+* Do a "lociterm supports" features writeup, maybe in .md format?
+		UTF-8, Unicode, Emoji support
+		XTerm compatible, True Color, 256 Color
+		Telnet Char-at-a-time, linemode.  EOR TTYPE MCCP MTTS MSSP NAWS GMCP
+		GMCP Char.login Loci.hotkey
+		Themes - font size, button size, CRT emulation filters, menu locations
+		Accesibility - screen reader hinting
+		Touch screen support
+		Installable as Progressive Web App
+		Mobile support, speech to text on mobile
+
+* Add an About->Conennection window, to show connection time, i/o stats, and
+  maybe operating parameters like telnet and gmcp negs.
+
+* Add a db state DBSTATUS_TEST_SERVER that allows connections, but does not get
+  shown in the list.  (and a way to set it from the CLI.)
+
+* theme setting for adding some spacing around the terminal div, so letters
+  aren't right up against the edge.
+
+* screenshots for PWA installer
+
+* Work on selectable / alternate menubox layouts for 10-way direction muds.
+
+* Think about a GMCP Loci.Font protocol for d/l'in and using a private EUA font set?
+
 * check security_enforcement(), should it be using shutdown_game() instead?
 
 * Should have the systemctl file built at make time, to use the right install
@@ -29,8 +55,6 @@
 
 * controlable contrast ratio in theme? (can xtermjs do it after setup?)  
 	See xtermoptions.minimumContrastRatio
-
-* Work on selectable / alternate menubox layouts for 10-way direction muds.
 
 * idea- could do a pure cli lociterm too, for kicks. :)
 

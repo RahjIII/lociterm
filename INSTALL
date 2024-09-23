@@ -3,19 +3,27 @@
 
 Requires libglib2.0-dev, ctags, openssl, cmake, libwebsockets4.4.0, npm, libjson-c-dev
 
-on debian 11-
+on debian 12-
 
-`apt-get install libglib2.0-dev exuberant-ctags openssl cmake npm libjson-c-dev`
+`apt-get install gcc libglib2.0-dev exuberant-ctags openssl cmake npm libjson-c-dev libsqlite3-dev pkg-config`
 
-Note that libwesockets in debian 11 is the wrong version!  Gotta get the code from https://libwebsockets.org/repo/libwebsockets
+1.a Libwebsockets
+-----------------
+
+Libwesockets in debian 11 is the wrong version, and in debian 12
+doesn't have the required options compiled in.  So, you've got to get the code
+from https://libwebsockets.org/repo/libwebsockets and rebuild it.
+
+Note that for the cmake step....
+# -DCMAKE_BUILD_TYPE=DEBUG will make a debug image of libwebsockets. Not normally used.
+# -DLWS_WITHOUT_EXTENSIONS=0 enables permessage deflate, and IS REQUIRED.
+# -DLWS_IPV6=ON because in deb 11 at least, that wasn't the default.
 
 cd ~/othercode
 git clone https://libwebsockets.org/repo/libwebsockets
 cd libwebsockets
 mkdir build
 cd build
-# -DCMAKE_BUILD_TYPE=DEBUG will make a debug image of libwebsockets. Not normally used.
-# -DLWS_WITHOUT_EXTENSIONS=0 enables permessage deflate, and IS REQUIRED.
 cmake -DLWS_IPV6=ON -DLWS_WITH_ZLIB=ON -DLWS_WITHOUT_EXTENSIONS=OFF ..
 make
 sudo make install
@@ -35,6 +43,7 @@ Edit the locid.conf config file per the comments.
 
 3. Proxy rules for apache2
 --------------------------
+Apache2 can be configured to make LociTerm's webserver available under a normal looking apache url.  
 
 To add proxy rules to apache2:
     RewriteEngine on

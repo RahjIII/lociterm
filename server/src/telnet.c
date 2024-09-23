@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.12 2024/09/19 17:03:30 malakai Exp $ */
+/* $Id: telnet.c,v 1.13 2024/09/23 21:55:51 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -52,15 +52,15 @@
 #define MTTS_OSC_COLOR 32
 #define MTTS_SCREEN_READER 64
 #define MTTS_PROXY 128
-#define MTTS_TRUECOLOR 128
+#define MTTS_TRUECOLOR 256
 #define MTTS_MNES 512
 #define MTTS_MSLP 1024
 #define MTTS_SSL 2048
 
+#define MTTS_BITS (MTTS_ANSI|MTTS_VT100|MTTS_UTF8|MTTS_256_COLOR|MTTS_MOUSETRACKING|MTTS_PROXY|MTTS_TRUECOLOR|MTTS_MNES)
 /* sometime, make it so the MTTS reported bitfield is controlable from the
  * config file.  For now though... */
-#define MTTS_VALUE "943"
-
+#define MTTS_VALUE "927"
 
 /* local structs and typedefs */
 
@@ -316,6 +316,11 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		case TELNET_TELOPT_TTYPE:
 			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_DO TELNET_TELOPT_TTYPE");
 			break;
+		case TELNET_TELOPT_SGA:
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_DO TELNET_TELOPT_SGA");
+			gc->sga_opt = 1;
+			loci_client_send_echosga(pc);
+			break;
 		default:
 			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_DO: unhandled %d", event->neg.telopt);
 			break;
@@ -327,6 +332,11 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		case TELNET_TELOPT_TTYPE:
 			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_DONT TELNET_TELOPT_TTYPE");
 			gc->ttype_state = 0;
+			break;
+		case TELNET_TELOPT_SGA:
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_DO TELNET_TELOPT_SGA");
+			gc->sga_opt = 0;
+			loci_client_send_echosga(pc);
 			break;
 		default:
 			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_DONT: unhandled %d", event->neg.telopt);
@@ -377,6 +387,10 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		}
 		pc->mssp = mssp_to_json(&(event->mssp));
 		game_db_update_mssp(pc);
+		break;
+	}
+	case TELNET_EV_COMPRESS: {
+		locid_debug(DEBUG_TELNET,pc,"Compression Enabled.");
 		break;
 	}
 	default:
