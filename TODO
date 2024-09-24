@@ -1,4 +1,7 @@
 ------- TODO TODO TODO TODO --------------
+* change the URL connect format so that it overrides the users saved game
+	choice... or at least pops up a window about it.
+
 * Do a "lociterm supports" features writeup, maybe in .md format?
 		UTF-8, Unicode, Emoji support
 		XTerm compatible, True Color, 256 Color
