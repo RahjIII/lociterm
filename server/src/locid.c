@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.18 2024/09/21 03:25:56 malakai Exp $ */
+/* $Id: locid.c,v 1.19 2024/09/28 15:03:13 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -365,7 +365,7 @@ int main(int argc, char **argv) {
 				fprintf(stdout,"\t-c / --config        specify location of config file\n");
 				fprintf(stdout,"\t-d / --debug         run in debug mode\n");
 				fprintf(stdout,"\t-h / --help          this message\n");
-				fprintf(stdout,"\t-l / --launch        launch a browser\n");
+				fprintf(stdout,"\t-b / --browser       launch a browser\n");
 				fprintf(stdout,"\t-v / --version       show the version\n");
 				fprintf(stdout,"\t-a / --list-approved list approved games by id\n");
 				fprintf(stdout,"\t-l / --list-denied   list denied games by id\n");

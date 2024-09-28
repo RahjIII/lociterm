@@ -1,26 +1,9 @@
 ------- TODO TODO TODO TODO --------------
-* change the URL connect format so that it overrides the users saved game
-	choice... or at least pops up a window about it.
-
-* Do a "lociterm supports" features writeup, maybe in .md format?
-		UTF-8, Unicode, Emoji support
-		XTerm compatible, True Color, 256 Color
-		Telnet Char-at-a-time, linemode.  EOR TTYPE MCCP MTTS MSSP NAWS GMCP
-		GMCP Char.login Loci.hotkey
-		Themes - font size, button size, CRT emulation filters, menu locations
-		Accesibility - screen reader hinting
-		Touch screen support
-		Installable as Progressive Web App
-		Mobile support, speech to text on mobile
-
 * Add an About->Conennection window, to show connection time, i/o stats, and
   maybe operating parameters like telnet and gmcp negs.
 
 * Add a db state DBSTATUS_TEST_SERVER that allows connections, but does not get
   shown in the list.  (and a way to set it from the CLI.)
-
-* theme setting for adding some spacing around the terminal div, so letters
-  aren't right up against the edge.
 
 * screenshots for PWA installer
 
@@ -77,7 +60,25 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
-- put SSL port into the game about.
++ theme setting for adding some spacing around the terminal div, so letters
+	aren't right up against the edge.  (no.  I did a justify-content on one of
+	the divs to center the terminal element)
+
++ change the URL connect format so that it overrides the users saved game
+	choice... or at least pops up a window about it.
+
++ Do a "lociterm supports" features writeup, maybe in .md format?
+		UTF-8, Unicode, Emoji support
+		XTerm compatible, True Color, 256 Color
+		Telnet Char-at-a-time, linemode.  EOR TTYPE MCCP MTTS MSSP NAWS GMCP
+		GMCP Char.login Loci.hotkey
+		Themes - font size, button size, CRT emulation filters, menu locations
+		Accesibility - screen reader hinting
+		Touch screen support
+		Installable as Progressive Web App
+		Mobile support, speech to text on mobile
+
++ put SSL port into the game about.
 
 - idea- support for CHARSET telnet option, to send UTF-8. (Eh, maybe only do it
   later if we bother to support other codepages.)
