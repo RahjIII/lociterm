@@ -63,7 +63,33 @@ Will install all of the required development packages to build LociTerm EXCEPT l
 
 Once the packages are installed, running  `make` and `make install` will install LociTerm  into the /usr/local directory.  There are additional steps for making the terminal available under its own apache2 document root, and having it start up automatically from systemd.  
 
- See the file **INSTALL.txt** for complete instructions.
+See the file **INSTALL.txt** for those details.
+
+Once the locid.conf file is configured with a service port and security model
+(or as a forwarded host from Apache), clients will be able to connect by going
+to the configured URL.
+For a test system, that might look like:
+
+`http://localhost:4500`  
+
+For a production system with Apache port forwarding and live certificates, that might look like:
+
+`https://www.last-outpost.com/lociterm/`.
+
+When the client connects to the lociterm server for the first time, it will
+automatically be connected to the default game stored in the server's config
+file.  If the user changes to a different game, that choice is stored on the
+client side, and will be used as the user's default game whenever they launch.
+
+Creating a URL with host, port, and ssl parameters will force the client to
+connect to those when the user clicks the link, overriding the last game stored
+on the client system.  A forced connection URL might look like:
+
+`https://www.last-outpost.com/lociterm/?host=www.last-outpost.com&port=4443&ssl=1`
+
+This can be used to direct players to connect to a specific game that isn't the
+default for a particular LociTerm server.
+
 
 ## SERVER DOCS
 
