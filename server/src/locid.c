@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.19 2024/09/28 15:03:13 malakai Exp $ */
+/* $Id: locid.c,v 1.20 2024/10/02 19:05:09 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -308,7 +308,7 @@ int main(int argc, char **argv) {
 	/* ...and begin. */
 
 	while(1) {
-		char *short_options = "hlc:dvalA:B:D:";
+		char *short_options = "hbc:dvalA:B:D:";
 		static struct option long_options[] = {
 			{"help", no_argument,0,'h'},
 			{"browser", no_argument,0,'b'},

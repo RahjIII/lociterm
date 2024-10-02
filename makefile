@@ -1,8 +1,8 @@
-# $Id: makefile,v 1.12 2024/09/28 15:03:13 malakai Exp $
+# $Id: makefile,v 1.13 2024/10/02 19:05:09 malakai Exp $
 #
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.12 2024/09/28 15:03:13 malakai Exp $
+# $Id: makefile,v 1.13 2024/10/02 19:05:09 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -24,7 +24,7 @@
 
 # This one location controls the version string that appears in the client,
 # server, and archive files!
-LOCITERM_VERSION = 2.0.1
+LOCITERM_VERSION = 2.0.2
 #
 
 # #### Variable definitions ####

@@ -20,7 +20,7 @@
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
 			"theme": {
-				"black": "#eeeeee",
+				"black": "#3f3f3f",
 				"red": "#fd233e",
 				"green": "#1cbd30",
 				"yellow": "#b4a543",
@@ -29,7 +29,7 @@
 				"cyan": "#28cdcd",
 				"white": "#e4e4e4",
 
-				"brightBlack": "#7a7a7a",
+				"brightBlack": "#709080",
 				"brightRed": "#ff566e",
 				"brightGreen": "#5cff71",
 				"brightYellow": "#ffffb4",

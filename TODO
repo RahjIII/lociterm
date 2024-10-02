@@ -1,4 +1,6 @@
 ------- TODO TODO TODO TODO --------------
+* Add a "you have login creds here" icon to the games list.
+
 * Add an About->Conennection window, to show connection time, i/o stats, and
   maybe operating parameters like telnet and gmcp negs.
 
@@ -20,9 +22,8 @@
 	looked like oob gmcp?  figure that out.
 
 * BUG - is there some race condtition, or message fragmentation problem wrt
-	gmcp/env data making its way into the in-band datastream?  
-
-* have login window save creds based on host/port.
+	gmcp/env data making its way into the in-band datastream?  Is client GMCP
+	buffered correctly?
 
 * config option for verbose suggestion failure message to client.
 
@@ -60,6 +61,8 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ have login window save creds based on host/port.
+
 + theme setting for adding some spacing around the terminal div, so letters
 	aren't right up against the edge.  (no.  I did a justify-content on one of
 	the divs to center the terminal element)

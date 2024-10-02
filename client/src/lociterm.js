@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.36 2024/09/20 17:08:29 malakai Exp $
+// $Id: lociterm.js,v 1.37 2024/10/02 19:05:09 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -228,14 +228,13 @@ class LociTerm {
 		} else {
 			this.menuhandler.update_oob_message(`🔀Connecting...`);
 		}
-		console.log(`Sending connect: ${JSON.stringify(request)}`);
+		console.log(`Connecting to ${JSON.stringify(request)}`);
 		this.sendMsg(Command.CONNECT,JSON.stringify(request));
 	}
 
 	// ask server to send us a list of games.  request is ignored for now.
 	requestGameList(request) {
 		request = new Object();	 // ignore the request for now.
-		console.log(`Sending GAME_LIST : ${JSON.stringify(request)}`);
 		this.sendMsg(Command.GAME_LIST,JSON.stringify(request));
 	}
 
@@ -249,7 +248,6 @@ class LociTerm {
 		} catch {
 			msg = {};
 		}
-		console.log(`Sending MORE_INFO : ${JSON.stringify(msg)}`);
 		this.sendMsg(Command.MORE_INFO,JSON.stringify(msg));
 	}
 
@@ -277,7 +275,7 @@ class LociTerm {
 			msg[0] = cmd;
 			this.sendq.push(msg);
 		} else {
-			console.log(`send retry`);
+			//console.log(`send retry`);
 		}
 
 		switch (this.socket.readyState) {
@@ -299,7 +297,7 @@ class LociTerm {
 				this.menuhandler.update_connect_message(`🌀Closing...`);
 				/* no break! */
 			default:
-				console.log(`ReadState=${this.socket.readyState}.  Lost ${this.sendq.length} messages`);
+				console.error(`ReadState=${this.socket.readyState}.  Lost ${this.sendq.length} messages`);
 				this.sendq = [];
 				break;
 		}
@@ -345,8 +343,7 @@ class LociTerm {
 
 	doSendGMCP(module,obj) {
 		let msg = module + " " + JSON.stringify(obj);
-		//console.log("GMCP Send: " + module + " [object]");
-		console.log(`GMCP Send: ${msg}`);
+		// console.log(`GMCP Send: ${msg}`);
 		this.sendMsg(Command.GMCP_DATA,msg);
 	}
 
@@ -381,7 +378,7 @@ class LociTerm {
 			this.socket.onclose = (e) => this.onSocketClose(e);
 			this.socket.onerror = (e) => this.onSocketError(e);
 		} catch (err) {
-			console.log(`WebSocket Error- ${err.name}-${err.message}`);
+			console.error(`WebSocket Error- ${err.name}-${err.message}`);
 			this.reconnect();
 		}
 	}
@@ -402,7 +399,7 @@ class LociTerm {
 				return;
 			}
 		}
-		console.log(`Reconnect in ${this.reconnect_delay}`);
+		///console.log(`Reconnect in ${this.reconnect_delay}`);
 		this.menuhandler.update_connect_message(`🔁Trying to reconnect...`);
 		setTimeout(() => this.connect() , this.reconnect_delay); 
 		if(this.reconnect_delay == 0) {
@@ -413,7 +410,7 @@ class LociTerm {
 	}
 
 	onSocketOpen(e) {
-		console.log("Socket open!" + e);
+		console.log("-- LociTerm WebSocket Open --");
 		this.menuhandler.update_connect_message(`🚀Connected!`);
 		this.autoreconnect = true;
 		this.reconnect_delay = 0;
@@ -496,7 +493,7 @@ class LociTerm {
 
 			case Command.CONNECT: {
 				let msg = new TextDecoder('utf8').decode(rawbuffer).slice(1);
-				console.log(`Recieved connect '${msg}'`);
+				console.log(`Recieved connection update '${msg}'`);
 				let robj = JSON.parse(msg);
 				if( robj.reconnect) {
 					if ((robj.reconnect == "invalidate")) {
@@ -541,10 +538,10 @@ class LociTerm {
 					try {
 						obj = JSON.parse(msg.slice(idx));
 					} catch {
-						console.log(`GMCP Recv: ${module} and unparsable crap: '${msg.slice(idx)}'`);
+						// console.log(`GMCP Recv: ${module} and unparsable crap: '${msg.slice(idx)}'`);
 					}
 				}
-				console.log("GMCP Recv: " + module + " " + JSON.stringify(obj));
+				// console.log("GMCP Recv: " + module + " " + JSON.stringify(obj));
 				this.gmcp.parse(module,obj);
 				break;
 			}
@@ -552,9 +549,9 @@ class LociTerm {
 				let obj;
 				let msg = new TextDecoder('utf8').decode(rawbuffer).slice(1);
 				try { obj = JSON.parse(msg); } catch { obj = 0; }
-				console.log(`ECHO_MODE: ${obj}`);
 				this.echo_mode = obj;
 				if (this.echo_mode == 3) {
+					console.log(`Game connection is char-at-a-time.`);
 					/* honor the user's preference. */
 					let nerfbar = localStorage.getItem("nerfbar");
 					if(nerfbar == "true") {
@@ -563,6 +560,7 @@ class LociTerm {
 						this.nerfbar.close();
 					}
 				} else {
+					console.log(`Game connection is obsolete line mode.`);
 					/* open the nerfbar. */
 					this.nerfbar.open();
 					this.nerfbar.nofade();
@@ -573,7 +571,6 @@ class LociTerm {
 			case Command.GAME_LIST: {
 				let obj;
 				let msg = new TextDecoder('utf8').decode(rawbuffer).slice(1);
-				console.log(`GAME_LIST: ${msg}`);
 				try { obj = JSON.parse(msg); } catch { obj = 0; }
 				this.connectgame.update_game_select(obj);
 				break;
@@ -581,7 +578,6 @@ class LociTerm {
 			case Command.MORE_INFO: {
 				let obj;
 				let msg = new TextDecoder('utf8').decode(rawbuffer).slice(1);
-				console.log(`MORE_INFO: ${msg}`);
 				try { obj = JSON.parse(msg); } catch { obj = {}; }
 				this.connectgame.update_game_about(obj);
 				break;
@@ -593,7 +589,7 @@ class LociTerm {
 				if( (this.serverhello != "") && (this.serverhello != hello) ) {
 					this.menuhandler.update_oob_message(`🚀Getting Updates...`);
 					console.log(`Sever version has changed, forcing reload.`);
-					setTimeout( ()=>{location.reload(true)}, 5000 );
+					setTimeout( ()=>{location.reload(true)}, 3000 );
 				} else {
 					// We're good to go on this end!
 					this.serverhello = hello;
@@ -616,7 +612,7 @@ class LociTerm {
 	}
 
 	onSocketClose(e) {
-		console.log(`Socket Close`);
+		console.log(`-- LociTerm WebSocket Close --`);
 		if( (this.reconnect_key) && 
 			(this.reconnect_key.reconnect) &&
 			(this.reconnect_key.reconnect != "") &&

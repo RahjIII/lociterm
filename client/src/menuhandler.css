@@ -329,7 +329,7 @@
 	font-style: normal;
 	font-size: calc(var(--font-size)*.66);
 	margin: 0.5em;
-	text-transform: capitalize;
+	text-transform: lowercase;
 }
 
 .menupop select,

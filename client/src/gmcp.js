@@ -1,6 +1,6 @@
 // gmcp.js - generic mud communication protocol for lociterm
 // Created: Wed Apr  3 05:34:00 PM EDT 2024
-// $Id: gmcp.js,v 1.5 2024/09/15 16:39:29 malakai Exp $
+// $Id: gmcp.js,v 1.6 2024/10/02 19:05:09 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -60,7 +60,7 @@ class GMCP {
 
 		var fn = this.modules.get(module.toLowerCase());
 		if(fn == undefined) {
-			console.log("Unsupported module: " + module);
+			console.warn("Unsupported module: " + module);
 			return;
 		}
 		return( fn(message) );
@@ -127,7 +127,7 @@ class GMCP {
 				this.charLoginCancel({});
 			}
 		} else {
-			// ooops we don't suppor that type.
+			// ooops we don't support that type.
 			this.charLoginCancel({});
 		}
 	}
@@ -176,13 +176,13 @@ class GMCP {
 	// handle a loci.hotkey.set message.
 	lociHotkeySet(message) {
 
-		console.log("GMCP Loci.Hotkey.Set requested.");
+		// console.log("GMCP Loci.Hotkey.Set requested.");
 
 		let id = `hotkey_${message.name}`;
 
 		let item = document.getElementById(id);
 		if(item == undefined) {
-			console.log(`GMCP Loci.Hotkey.Set can't find id ${id}`);
+			console.error(`GMCP Loci.Hotkey.Set can't find id ${id}`);
 			return;
 		}
 
@@ -199,12 +199,12 @@ class GMCP {
 			let id = `hotkey_${message.name}`;
 			let item = document.getElementById(id);
 			if(item == undefined) {
-				console.log(`GMCP Loci.Hotkey.Reset can't find id ${id}`);
+				console.error(`GMCP Loci.Hotkey.Reset can't find id ${id}`);
 				return;
 			}
 			let defaults = this.lociterm.menuhandler.hotkeys[id];
 			if(defaults == undefined) {
-				console.log(`GMCP Loci.Hotkey.Reset can't find defaults for id ${id}`);
+				console.error(`GMCP Loci.Hotkey.Reset can't find defaults for id ${id}`);
 				return;
 			}
 			item.innerText = defaults.label;

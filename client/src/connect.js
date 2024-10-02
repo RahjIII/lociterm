@@ -1,6 +1,6 @@
 // connect.js - direct connection window
 // Created: Mon Aug  5 08:54:28 AM EDT 2024
-// $Id: connect.js,v 1.6 2024/09/21 15:25:52 malakai Exp $
+// $Id: connect.js,v 1.7 2024/10/02 19:05:09 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -194,8 +194,7 @@ class ConnectGame {
 					this.in_use = true;
 				}
 				this.menuhandler.close(this.elementid);
-				// Disable autologin.  This is to avoid giving old creds to a new server. 
-				this.menuhandler.voidLoginAutologin();
+				this.menuhandler.loadLogin();
 				this.lociterm.resetTerm();
 				this.connect_direct(server);
 			}
@@ -214,7 +213,7 @@ class ConnectGame {
 	}
 
 	connect_direct(server) {
-		console.log(`connect_direct: ${server.hostname} ${server.port} ssl=${server.ssl}`);
+		// console.log(`connect_direct: ${server.hostname} ${server.port} ssl=${server.ssl}`);
 		this.lociterm.reconnect_key = "";
 		this.lociterm.doConnectGame();
 	}
@@ -381,7 +380,8 @@ class ConnectGame {
 		this.ssl = game.ssl;
 		this.wants_to_select = false;
 		this.in_use = true;
-		this.menuhandler.voidLoginAutologin();
+		//this.menuhandler.voidLoginAutologin();
+		this.menuhandler.loadLogin();
 		this.menuhandler.close("menu_game_select");
 		this.lociterm.resetTerm();
 		this.lociterm.reconnect_key = "";
@@ -675,8 +675,8 @@ class ConnectGame {
 				server.hostname = this.hostname = game.host;
 				server.port = this.port = game.port;
 				server.ssl = this.ssl = game.ssl;
-				// Disable autologin.  This is to avoid giving old creds to a new server. 
-				this.menuhandler.voidLoginAutologin();
+				//this.menuhandler.voidLoginAutologin();
+				this.menuhandler.loadLogin();
 				this.lociterm.resetTerm();
 				this.connect_direct(server);
 			}
@@ -703,7 +703,7 @@ class ConnectGame {
 
 			// only dump the reconnect key if host or port are different.
 			if ( (ret.host != rk.host) || (ret.port != rk.port)) {
-				console.log(`Using search suggestion ${search}`);
+				// console.log(`Using search suggestion ${search}`);
 				this.lociterm.reconnect_key = "";
 				this.hostname = ret.host;
 				this.port = ret.port;

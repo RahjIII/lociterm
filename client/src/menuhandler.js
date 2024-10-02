@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.31 2024/09/20 17:45:03 malakai Exp $
+// $Id: menuhandler.js,v 1.32 2024/10/02 19:05:09 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -61,8 +61,8 @@ class MenuHandler {
 		this.mydiv.appendChild(this.create_connect());
 		this.mydiv.appendChild(this.create_oob_message());
 
-
-		this.loadLogin();
+		// dont loadLogin until lociterm has loaded connectgame
+		//this.loadLogin();
 		
 	}
 
@@ -81,7 +81,7 @@ class MenuHandler {
 		// close everthing that's open.
 		this.done();
 		if(e == null) {
-			console.log(`couldn't open menu '${name}'?`);
+			console.warn(`couldn't open menu '${name}'?`);
 			return;
 		}
 		// open the requested window.
@@ -147,7 +147,7 @@ class MenuHandler {
 	}
 
 	store(key,value) {
-		console.log("Storage: " + key + "," + value);
+		//console.log("Storage: " + key + "," + value);
 		localStorage.setItem(key,value);
 	}
 
@@ -158,17 +158,20 @@ class MenuHandler {
 
 	// used by gmcp module to see if a username is available.
 	getLoginUsername() {
+		this.loadLogin();
 		let val =document.getElementById("username").value;
 		return( (val==undefined)?"":val)
 	}
 
 	// used by gmcp module to see if a password is available.
 	getLoginPassword() {
+		this.loadLogin();
 		let val = document.getElementById("current-password").value;
 		return( (val==undefined)?"":val)
 	}
 
 	getLoginAutologin() {
+		this.loadLogin();
 		let val = document.getElementById("autologin").checked;
 		return(val);
 	}
@@ -574,57 +577,62 @@ class MenuHandler {
 		return(overlay);
 	}
 
-	// init the menu_loginbox from storage.
+
+	credsetKey() {
+		let cg = this.lociterm.reconnect_key || { host: "-", port: 23 };
+		return(`${cg.host}${cg.port}`);
+	}
+
 	loadLogin() {
+		let fullset = {};
+		try {
+			fullset = JSON.parse(atob(decodeURIComponent(escape(localStorage.getItem("credset")))));
+		} catch {
+			fullset = {};
+		}
+		let key = this.credsetKey();
 		let remember = document.getElementById("remember");
 		let username = document.getElementById("username");
 		let password = document.getElementById("current-password");
 		let autologin = document.getElementById("autologin");
 
-		try {
-			remember.checked = (localStorage.getItem("remember") == "true")?true:false;
-		} catch {
-			remember.checked = false;
+		if(fullset[key] == undefined) {
+			fullset[key] = {};
 		}
 
-		try {
-			autologin.checked = (localStorage.getItem("autologin") == "true")?true:false;
-		} catch {
-			autologin.checked = true;
-		}
-
-		try {
-			username.value = localStorage.getItem("username");
-		} catch { 
-			username.value = "";
-		}
-
-		try {
-			password.value = localStorage.getItem("current-password");
-			password.value = atob(password.value);
-		} catch {
-			password.value = "";
-		}
+		username.value = fullset[key].u || "";
+		password.value = fullset[key].p || "";
+		remember.checked = fullset[key].r || false;
+		autologin.checked = fullset[key].a || true;
 	}
 
 	saveLogin() {
+		let fullset = {};
+		try {
+			fullset = (JSON.parse(atob(decodeURIComponent(escape(localStorage.getItem("credset"))))) || {});
+		} catch {
+			fullset = {};
+		}
+		let key = this.credsetKey();
 		let username = document.getElementById("username");
 		let password = document.getElementById("current-password");
 		let remember = document.getElementById("remember");
 		let autologin = document.getElementById("autologin");
 
+		try { delete(fullset[key]); } catch {};
+
 		if(remember.checked == true) {
-			localStorage.setItem("username",username.value);
-			localStorage.setItem("current-password",btoa(password.value));
-			localStorage.setItem("remember",remember.checked);
-			localStorage.setItem("autologin",autologin.checked);
-		} else {
-			localStorage.removeItem("username");
-			localStorage.removeItem("current-password");
-			localStorage.removeItem("remember");
-			localStorage.removeItem("autologin");
+			fullset[key] = {};
+			fullset[key].u = username.value;
+			fullset[key].p = password.value;
+			fullset[key].r = remember.checked;
+			fullset[key].a = autologin.checked;
 		}
+
+		localStorage.setItem("credset",btoa(unescape(encodeURIComponent(JSON.stringify(fullset)))));
+		//localStorage.setItem("credshadow",JSON.stringify(fullset));
 	}
+
 
 	create_settings() {
 		let overlay;
