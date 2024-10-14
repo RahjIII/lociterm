@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.37 2024/10/02 19:05:09 malakai Exp $
+// $Id: lociterm.js,v 1.38 2024/10/14 22:49:50 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -163,6 +163,11 @@ class LociTerm {
 		this.doWindowResize();
 		this.resetTerm();
 		this.focus();
+
+		// if this is the first time ever that they've come in, show the welcome/disclaimer 
+		if(localStorage.getItem("disclaimer") == null) {
+			setTimeout(()=>this.menuhandler.open("menu_disclaimer"),2000);
+		}
 	}
 
 	// call this as an event listener handler
@@ -348,6 +353,7 @@ class LociTerm {
 	}
 
 	connect(url=this.url) {
+
 		if(this.socket != undefined) {
 			if(this.socket.readyState == 1) { // OPEN
 				/* don't re-open on top of soemthing. */
@@ -872,7 +878,7 @@ class LociTerm {
 		// scroll down to the bottom.
 		let code = `\x1b[${scrolldown}B`;
 		this.terminal.write(code);
-		setTimeout( ()=> {this.terminal.scrollToBottom();}, 100);
+		setTimeout( ()=> {this.terminal.scrollToBottom();}, 300);
 	}
 
 }

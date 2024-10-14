@@ -797,6 +797,10 @@
 	{	"id" : "menu_about_which",
 		"item" : [
 			{
+				"label": "Privacy",
+				"open": "menu_disclaimer"
+			},
+			{
 				"label": "LociTerm",
 				"open": "menu_about"
 			},

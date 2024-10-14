@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.32 2024/10/02 19:05:09 malakai Exp $
+// $Id: menuhandler.js,v 1.33 2024/10/14 22:49:50 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -58,12 +58,12 @@ class MenuHandler {
 		this.mydiv.appendChild(this.create_settings());
 		this.mydiv.appendChild(this.create_filters());
 		this.mydiv.appendChild(this.create_about());
+		this.mydiv.appendChild(this.create_disclaimer());
 		this.mydiv.appendChild(this.create_connect());
 		this.mydiv.appendChild(this.create_oob_message());
 
 		// dont loadLogin until lociterm has loaded connectgame
 		//this.loadLogin();
-		
 	}
 
 	toggle(name) {
@@ -931,6 +931,133 @@ class MenuHandler {
 		l.innerText = "Thank you to the Multi User Dungeon #coding discord group for your help and encouragement, Nicky N. for help with the CRT Filters, and to every member of the Last Outpost Honor Guard! "
 
 		divstack.pop(); //imgcontainer
+		cdiv = divstack[divstack.length-1];
+
+		return(overlay);
+	}
+
+	// Return an overlay popup for the disclaimer menu.
+	create_disclaimer() {
+
+		let l;
+		let cdiv;
+		let divstack = [];
+		var pgrfs;
+
+		let elementid = `menu_disclaimer`;
+
+		let divs = this.create_generic_window(
+			elementid,
+			"Welcome to LociTerm",
+			(()=> { 
+				localStorage.setItem("disclaimer","disclaimed");
+				this.done(); 
+			})
+		);
+
+		let overlay = divs[0];
+		let content = divs[1];
+		cdiv = content;
+		divstack.push(content);
+
+		l = document.createElement('div');
+		cdiv.appendChild(l);
+		l.classList.add('imgcontainer');
+		divstack.push(l);
+		cdiv = l;
+
+		l = document.createElement('img');
+		l.classList.add('siteicon');
+		l.src = LOIcon;
+		cdiv.appendChild(l);
+
+		divstack.pop(); 
+		cdiv = divstack[divstack.length-1];
+
+		l = document.createElement('div');
+		l.classList.add('textflow');
+		cdiv.appendChild(l);
+		divstack.push(l);
+		cdiv = l;
+
+		l = document.createElement('h1');
+		cdiv.appendChild(l);
+		l.innerText = "Welcome to LociTerm!";
+
+		pgrfs = [
+			"To install LociTerm Client as an App on your phone or computer, select " +
+			"'Install on Homescreen' or 'Install Application' from the browser " +
+			"window options.",
+
+			"You can change settings such as theme, text and window sizes, game " +
+			"server, and login information by selecting Gear '⚙' → Settings. " + 
+			"Your choices will be saved in your browser's local storage for next " +
+			"time.",
+		];
+		for(let idx=0;idx<pgrfs.length;idx++) {
+			l = document.createElement('p');
+			cdiv.appendChild(l);
+			l.innerText = pgrfs[idx];
+		}
+
+		l = document.createElement('h1');
+		cdiv.appendChild(l);
+		l.innerText = "LociTerm and Privacy";
+			
+
+		pgrfs = [
+			"LociTerm is a free to use, Cloud Hosted, Web-to-Telnet proxy.  LociTerm is " +
+			"offered in the hope that it will be useful, but WITHOUT ANY " +
+			"WARRANTY; without even the implied warranty of MERCHANTABILITY or " +
+			"FITNESS FOR A PARTICULAR PURPOSE.",
+
+			"Telnet is a clear text protocol. Any sensitive data you enter " +
+			"into LociTerm may be visible to unintended parties. " +
+			"Your session is encrypted " +
+			"between your web browser and the LociTerm proxy server running at " +
+			"the address in the URL bar.  Your session is re-encrypted between " +
+			"the LociTerm proxy and the game if the game uses TELNET-SSL " +
+			"and is listed with a 🔐 icon in the Game Server menu. " +
+			"You use this Web-to-Telnet proxy AT YOUR OWN RISK. " +
+			"The operator of the LociTerm proxy server is not responsible for lost or stolen data.",
+
+			"Game Server " +
+			"login credentials for automatic login are stored in your browser's " +
+			"local storage only when the 'remember me' option is checked, and " +
+			"are never stored on, or logged by the LociTerm proxy server.",
+
+
+			"LociTerm shares your IP address and User Agent string with game " +
+			"servers that request it, and the LociTerm proxy server logs the " +
+			"source and destination addresses of all connections. ",
+
+			"Suggesting a new game server to LociTerm will add that server to " +
+			"the global Game Server menu for all users, and is not private.",
+
+			"By using LociTerm, you agree to access only the systems that you are " +
+			"authorized to use, and that you will not use LociTerm to bypass, " +
+			"obfuscate, or probe for network or system access. ",
+
+			"Parental discresion is advised. We suggest you wear a helmet and bring a jacket.",
+
+			"Thanks for reading. Go have fun!"
+		];
+		for(let idx=0;idx<pgrfs.length;idx++) {
+			l = document.createElement('p');
+			cdiv.appendChild(l);
+			l.innerText = pgrfs[idx];
+		}
+
+		l = document.createElement('button');
+		cdiv.appendChild(l);
+		l.setAttribute("type","submit");
+		l.innerText = "I agree.";
+		l.onclick = (()=> { 
+			localStorage.setItem("disclaimer","disclaimed");
+			this.done(); 
+		});
+
+		divstack.pop(); 
 		cdiv = divstack[divstack.length-1];
 
 		return(overlay);

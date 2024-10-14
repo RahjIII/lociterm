@@ -1,4 +1,11 @@
 ------- TODO TODO TODO TODO --------------
+* Work on selectable / alternate menubox layouts for 10-way direction muds.
+	(in-game menu themes first.  Then maybe game provided ones.)
+
+* work on cleaning up for home-dir install, so that locid -b works as a
+ one-shot local launch without having to specify a -c config file.  (.lociterm
+ dotfiles?)
+
 * Add a "you have login creds here" icon to the games list.
 
 * Add an About->Conennection window, to show connection time, i/o stats, and
@@ -8,8 +15,6 @@
   shown in the list.  (and a way to set it from the CLI.)
 
 * screenshots for PWA installer
-
-* Work on selectable / alternate menubox layouts for 10-way direction muds.
 
 * Think about a GMCP Loci.Font protocol for d/l'in and using a private EUA font set?
 

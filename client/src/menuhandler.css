@@ -282,6 +282,13 @@
 	overflow: auto;
 }
 
+.textflow h1 {
+	font-size: calc(var(--font-size)*1.5);
+	font-weight: bold;
+	text-align: center;
+	color: var(--book-cover-color);
+}
+
 .imgcontainer {
 	justify-content: center;
 }
