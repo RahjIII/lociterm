@@ -1,6 +1,6 @@
 /* proxy.c - LociTerm protocol bridge */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: proxy.c,v 1.4 2024/09/21 03:25:56 malakai Exp $*/
+/* $Id: proxy.c,v 1.5 2024/10/15 02:30:44 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -57,7 +57,7 @@ char *proxy_state_str[] = {
  * for a reconnect if one of its sides is not up.  This could be made tunable
  * in the config file sometime, I suppose. */
 struct timeval idle_proxy_timeout = {
-	.tv_sec = 600,
+	.tv_sec = 3600,
 	.tv_usec = 0
 };
 

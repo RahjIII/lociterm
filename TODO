@@ -38,8 +38,6 @@
 
 * Config option for how frequently to re-check MSSP.
 
-* One time 'suggestion disclaimer' window.
-
 * try to fix TAB and SHIFT TAB in the ui.
 
 * Filter out unsupported GMCP messages at the locid level.  No reason to send
@@ -66,6 +64,8 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ One time 'suggestion disclaimer' window.
+
 + have login window save creds based on host/port.
 
 + theme setting for adding some spacing around the terminal div, so letters
