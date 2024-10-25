@@ -1,6 +1,6 @@
 // gmcp.js - generic mud communication protocol for lociterm
 // Created: Wed Apr  3 05:34:00 PM EDT 2024
-// $Id: gmcp.js,v 1.6 2024/10/02 19:05:09 malakai Exp $
+// $Id: gmcp.js,v 1.7 2024/10/25 15:51:20 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -171,6 +171,11 @@ class GMCP {
 		obj.account = account;
 		obj.password = password;
 		this.send("Char.Login.Credentials",obj);
+	}
+
+	// generate a loci.hotkey.get message.
+	lociHotkeyGet() {
+		this.send("Loci.Hotkey.Get",{});
 	}
 
 	// handle a loci.hotkey.set message.

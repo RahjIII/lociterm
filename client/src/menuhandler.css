@@ -65,9 +65,10 @@
 
 .menugrid {
     display: grid;
-    grid-template-rows: repeat(4,1fr);
-    grid-template-columns: repeat(4,1fr);
-    grid-gap: 1mm;
+    /* grid-template-rows: repeat(4,1fr); */
+    /* grid-template-columns: repeat(4,1fr); */
+    grid-gap: 0mm;
+	background: #000000C0;
 }
 
 .menugrid *:hover{
@@ -133,6 +134,15 @@
 	padding: 1em;
 }
 
+.menubutton {
+	color: var(--book-altpaper-color);
+	font-size: var(--finger-size);
+	text-align: center;
+	align-content: center;
+	font-weight: bold;
+	font-family: LOFont, emoji, Noto Sans Symbols2;
+	direction: initial;
+}
 
 .menuside {
 	float: right;
@@ -217,8 +227,10 @@
 .menuicon {
 	display: inline-block;
 	margin: 2.0mm;
-	width: var(--finger-size);
-	height: var(--finger-size);
+	max-width: var(--finger-size);
+	max-height: var(--finger-size);
+	width: auto;
+	height: auto;
 	fill: white;
 }
 

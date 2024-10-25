@@ -1,0 +1,121 @@
+{	"label": "Telnet",
+	"name": "telnet",
+	"menubox": {
+		"width": 2,
+		"height": 2,
+		"buttons": [
+			{
+				"name": "Hotkey",
+				"menubar": "menu_hotkey",
+				"text": "✨",
+				"color": "Yellow"
+			},
+			{ 
+				"name": "ChangeDirectory",
+				"text": "📂",
+				"color": "white",
+				"menubar": "menu_unixcd"
+			},
+			{ 
+				"name": "ControlKey",
+				"text": "^C",
+				"color": "green",
+				"menubar": "menu_unixkey"
+			}
+		]
+	},
+	"menubar": [
+		{
+			"id": "menu_unixkey",
+			"item" : [
+				{
+					"label": "ESC",
+					"send": "\u001b"
+				},
+				{
+					"label": "TAB",
+					"send": "\u0009"
+				},
+				{
+					"label": "Ctrl ...",
+					"open": "menu_ctrlkey"
+				},
+				{
+					"label": "Arrow ...",
+					"open": "menu_arrowkey"
+				}
+			]
+		},
+		{
+			"id": "menu_ctrlkey",
+			"item" : [
+				{
+					"label": "Ctrl-A",
+					"send": "\u0001"
+				},
+				{
+					"label": "Ctrl-C",
+					"send": "\u0003"
+				},
+				{
+					"label": "Ctrl-D",
+					"send": "\u0004"
+				},
+				{
+					"label": "Ctrl-X",
+					"send": "\u0018"
+				},
+				{
+					"label": "Ctrl-Z",
+					"send": "\u001a"
+				}
+			]
+		},
+		{
+			"id": "menu_arrowkey",
+			"item" : [
+				{
+					"label": "Up",
+					"send": "\u001b\u005b\u0041"
+				},
+				{
+					"label": "Down",
+					"send": "\u001b\u005b\u0042"
+				},
+				{
+					"label": "Left",
+					"send": "\u001b\u005b\u0044"
+				},
+				{
+					"label": "Right",
+					"send": "\u001b\u005b\u0043"
+				}
+			]
+		},
+		{
+			"id": "menu_unixcd",
+			"item" : [
+				{
+					"label": "Root",
+					"send": "cd /\n"
+				},
+				{
+					"label": "/var/log",
+					"send": "cd /var/log\n"
+				},
+				{
+					"label": "Home",
+					"send": "cd ~\n"
+				},
+				{
+					"label": "Up",
+					"send": "cd ..\n"
+				},
+				{
+					"label": "ls -l",
+					"send": "ls -l\n"
+				}
+			]
+		}
+	]
+}

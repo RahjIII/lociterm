@@ -1,6 +1,6 @@
 // connect.js - direct connection window
 // Created: Mon Aug  5 08:54:28 AM EDT 2024
-// $Id: connect.js,v 1.7 2024/10/02 19:05:09 malakai Exp $
+// $Id: connect.js,v 1.8 2024/10/25 15:51:20 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -709,6 +709,14 @@ class ConnectGame {
 				this.port = ret.port;
 				this.ssl = (ret.ssl || 0);
 				this.in_use = true;
+			}
+		}
+		if( ret.menu ) {
+			let idx = this.lociterm.menuhandler.menuThemes.findIndex( 
+				(x)=>{return(x.name === ret.menu)}
+			);
+			if(idx != -1) {
+				this.lociterm.menuhandler.applyMenuNo(idx);
 			}
 		}
 	}

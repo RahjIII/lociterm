@@ -1,6 +1,20 @@
 ------- TODO TODO TODO TODO --------------
-* Work on selectable / alternate menubox layouts for 10-way direction muds.
-	(in-game menu themes first.  Then maybe game provided ones.)
+* Think about a GMCP Loci.Menu protocol for sending menu definitions to client
+
+* make a "this is a dev server" flag in the suggest window, that keeps the
+  server from going into the global list.
+
+* General save settings per site?
+
+* change prompt menu action to print into the nerfbar if active.  send
+  should send the nerfbar of the nerfbar (if any) without a newline then the
+  send string.
+
+* make it so that ?host=X&port=Y ONLY works if the game has already been
+  suggested and allowed, to make it LESS easy to automate suggestions.
+
+* there are times when you might want to allow a numeric ip. make it
+  selectable.
 
 * work on cleaning up for home-dir install, so that locid -b works as a
  one-shot local launch without having to specify a -c config file.  (.lociterm
@@ -64,6 +78,19 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ clean up the menu format keywords and document them.
+
++ add img format to menus.
+
++ Make the menu selection save.  Per site?
+	Saved, but not per site.  Decided to do it the easy way for now, and
+	re-archetect the whole theme saving thing later.
+
++ Work on selectable / alternate menubox layouts for 10-way direction muds.
+	(in-game menu themes first.  Then maybe game provided ones.)
+
++ When you do menus, do a &menu=lp or whatever.  That'd be nice.
+
 + One time 'suggestion disclaimer' window.
 
 + have login window save creds based on host/port.

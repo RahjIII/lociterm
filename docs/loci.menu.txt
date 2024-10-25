@@ -1,0 +1,28 @@
+Menu Object:
+    name "name of menu, lowercase, no spaces"
+    label "display name of menu"
+    menubox {}
+        width # width of the box in buttons
+        height # height of the box in buttons
+        buttons []
+            name "name of button"
+            send "text to send to game, should end with \n"
+            svgid "depreciated do not use"
+            svgclass "depreciated do not use"
+            menubar "id of menubar item to open"
+            color "a css color"
+            background "a css color"
+            text "text of the button"
+            img "href source of icon image"
+
+    menubar {}
+        id "id of this menubar"
+        item []
+            label "display name of item"
+            open "id of menubar to open"
+            prompt "partial text to send to game, must not end in \n"
+            send "text to send to game, should end with \n"
+            id "hotkey_NAME (special use for hotkey identification.)"
+            hotkey true if item is a programmable hotkey
+            color "a css color"
+            background "a css color"

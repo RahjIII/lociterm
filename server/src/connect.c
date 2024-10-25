@@ -1,6 +1,6 @@
 /* connect.c - <comment goes here> */
 /* Created: Sun Aug  4 10:09:40 PM EDT 2024 malakai */
-/* $Id: connect.c,v 1.1 2024/09/19 17:03:30 malakai Exp $ */
+/* $Id: connect.c,v 1.2 2024/10/25 15:51:20 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -296,11 +296,21 @@ int loci_connect_to_game_uuid(proxy_conn_t *pc,char *uuid) {
 		oldpc->game_db_entry = tmp;
 	}
 
-	/* ok, get rid of it. */
+	/* copy anything still buffered in the old client queue into the current
+	 * client queue. */
+	while (!g_queue_is_empty(oldpc->client->client_q)) {
+		g_queue_push_tail(
+			pc->client->client_q,
+			g_queue_pop_head(oldpc->client->client_q)
+		);
+	}
+
+	/* and now, get rid of it. */
 	loci_proxy_shutdown(oldpc);
 
 	loci_client_send_key(pc);
 	loci_renegotiate_env(pc);
+	loci_client_send_echosga(pc);
 	loci_telnet_send_naws(pc->game->game_telnet,pc->client->width,pc->client->height);
 	
 	return(0);

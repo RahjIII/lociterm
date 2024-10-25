@@ -1,0 +1,248 @@
+{	"name": "System",
+	"label": "System",
+	"menubox": {
+		"width": 1,
+		"height": 1,
+		"buttons": [
+			{ 
+				"name": "Client Settings",
+				"svgid": "cog",
+				"svgclass": "ghost",
+				"menubar": "menu_client",
+				"send": ""
+			}
+		]
+	},
+	"menubar": [
+		{ "id": "menu_client",
+			"item" : [
+				{
+					"label": "Login",
+					"open": "menu_loginbox"
+				},
+				{
+					"label": "Logout",
+					"open":"menu_disconnect"
+				},
+				{
+					"label": "Settings",
+					"open": "menu_client_settings"
+				},
+				{
+					"label": "About",
+					"open": "menu_about_which"
+				}
+			]
+		},
+		{ "id": "menu_client_settings",
+			"item" : [
+				{
+					"label": "Game Server",
+					"open": "menu_game_select"
+				},
+				{
+					"label": "Theme",
+					"open": "menu_settings"
+				},
+				{
+					"label": "CRT Filter",
+					"open": "menu_filters"
+				}
+			]
+		},
+		{	"id" : "menu_about_which",
+			"item" : [
+				{
+					"label": "Privacy",
+					"open": "menu_disclaimer"
+				},
+				{
+					"label": "LociTerm",
+					"open": "menu_about"
+				},
+				{
+					"label": "Game",
+					"open": "menu_game_about"
+				}
+			]
+		},
+		{ "id": "menu_disconnect",
+			"item" : [
+				{
+					"label": "Logout",
+					"send": "logout\n"
+				},
+				{
+					"label": "Client",
+					"disconnect": "local"
+				},
+				{
+					"label": "Game",
+					"disconnect": "remote"
+				}
+			]
+		},
+		{
+			"id": "menu_hotkey",
+			"item" : [
+				{
+					"id": "hotkey_f1",
+					"hotkey": true,
+					"label": "Key F1",
+					"send": "\u001B[11~"
+				},
+				{
+					"id": "hotkey_f2",
+					"hotkey": true,
+					"label": "Key F2",
+					"send": "\u001b[12~"
+				},
+				{
+					"id": "hotkey_f3",
+					"hotkey": true,
+					"label": "Key F3",
+					"send": "\u001b[13~"
+				},
+				{
+					"id": "hotkey_f4",
+					"hotkey": true,
+					"label": "Key F4",
+					"send": "\u001b[14~"
+				},
+				{
+					"label": "More",
+					"open": "menu_hotkey5to8"
+				}
+			]
+		},
+		{
+			"id": "menu_hotkey5to8",
+			"item" : [
+				{
+					"id": "hotkey_f5",
+					"hotkey": true,
+					"label": "Key F5",
+					"send": "\u001B[15~"
+				},
+				{
+					"id": "hotkey_f6",
+					"hotkey": true,
+					"label": "Key F6",
+					"send": "\u001b[17~"
+				},
+				{
+					"id": "hotkey_f7",
+					"hotkey": true,
+					"label": "Key F7",
+					"send": "\u001b[18~"
+				},
+				{
+					"id": "hotkey_f8",
+					"hotkey": true,
+					"label": "Key F8",
+					"send": "\u001b[19~"
+				},
+				{
+					"label": "More",
+					"open": "menu_hotkey9to12"
+				}
+			]
+		},
+		{
+			"id": "menu_hotkey9to12",
+			"item" : [
+				{
+					"id": "hotkey_f9",
+					"hotkey": true,
+					"label": "Key F9",
+					"send": "\u001B[20~"
+				},
+				{
+					"id": "hotkey_f10",
+					"hotkey": true,
+					"label": "Key F10",
+					"send": "\u001b[21~"
+				},
+				{
+					"id": "hotkey_f11",
+					"hotkey": true,
+					"label": "Key F11",
+					"send": "\u001b[22~"
+				},
+				{
+					"id": "hotkey_f12",
+					"hotkey": true,
+					"label": "Key F12",
+					"send": "\u001b[23~"
+				},
+				{
+					"label": "Hotkey",
+					"send": "hotkey\n"
+				}
+			]
+		},
+		{
+			"id": "menu_pronoun",
+			"item" : [
+				{
+					"label": "It",
+					"send": "it\n"
+				},
+				{
+					"label": "Who",
+					"open": "menu_who"
+				},
+				{
+					"label": "What",
+					"open": "menu_what"
+				},
+				{
+					"label": "...",
+					"prompt": ""
+				}
+			]
+		},
+		{
+			"id": "menu_who",
+			"item" : [
+				{
+					"label": "Me",
+					"send": "me\n"
+				},
+				{
+					"label": "Friend",
+					"send": "frend\n"
+				},
+				{
+					"label": "Foe",
+					"send": "foe\n"
+				},
+				{
+					"label": "...",
+					"prompt": ""
+				}
+			]
+		},
+		{
+			"id": "menu_what",
+			"item" : [
+				{
+					"label": "It",
+					"send": "it\n"
+				},
+				{
+					"label": "This",
+					"send": "this\n"
+				},
+				{
+					"label": "That",
+					"send": "that\n"
+				},
+				{
+					"label": "...",
+					"prompt": ""
+				}
+			]
+		}
+	]
+}

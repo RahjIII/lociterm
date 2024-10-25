@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.34 2024/10/15 02:30:44 malakai Exp $
+// $Id: menuhandler.js,v 1.35 2024/10/25 15:51:20 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -21,11 +21,16 @@
 // along with LociTerm.  If not, see <https://www.gnu.org/licenses/>.
 //
 
-import Menubox from './menubox.json';
-import Menuside from './menuside.json';
 import Icons from './icons.svg';
 import LOIcon from './img/lociterm512x512.png';
 import TerminalIcon from './img/bezeltermicon192.png';
+import * as ObjDeep from './objdeep.js';
+
+// kinda silly listing these menus seperately but hey...
+import SystemMenu from './system_menu.json';
+import LoMenu from './lo_menu.json';
+import DiagonalMenu from './diagonal_menu.json';
+import TelnetMenu from './telnet_menu.json';
 
 import PackageData from '../package.json';
 
@@ -41,6 +46,7 @@ class MenuHandler {
 		this.openwindow = [];
 		this.hotkeys = [];
 		this.openHandler = new Map();
+		this.menuThemes = this.consolodateMenuThemes();
 
 		// make the menuhandler in the menuhandler div that is already on the
 		// page, or if that doesn't exist, create it under this lociterm.  Note
@@ -52,8 +58,7 @@ class MenuHandler {
 			this.lociterm.mydiv.appendChild(this.mydiv);
 		}
 		this.mydiv.classList.add('menuhandler');
-		this.mydiv.appendChild(this.create_menubox());
-		this.mydiv.appendChild(this.create_menuside());
+		this.mydiv.appendChild(this.create_custom_menus(LoMenu));
 		this.mydiv.appendChild(this.create_loginbox());
 		this.mydiv.appendChild(this.create_settings());
 		this.mydiv.appendChild(this.create_filters());
@@ -64,6 +69,20 @@ class MenuHandler {
 
 		// dont loadLogin until lociterm has loaded connectgame
 		//this.loadLogin();
+
+		let menuthemename = localStorage.getItem("menuthemename");
+		if( menuthemename !== undefined) {
+			this.applyMenuName(menuthemename);
+		}
+	}
+
+	consolodateMenuThemes() {
+		var themes = [];
+		themes.push(LoMenu);
+		themes.push(DiagonalMenu);
+		themes.push(TelnetMenu);
+		themes.push({ name: "None" });
+		return(themes);
 	}
 
 	toggle(name) {
@@ -103,6 +122,7 @@ class MenuHandler {
 	// always close a single menu item.
 	close(name) {
 		var e = document.getElementById(name);
+		if(e == null) return;
 		e.style.visibility = 'hidden';
 		if(e.classList.contains("menuside")) {
 			//	e.style.right = '-100%';
@@ -200,31 +220,101 @@ class MenuHandler {
 	}
 
 
+	// A unified call for adding in a custom menubox/menubar definition.
+	create_custom_menus(custom) {
+
+		// javascript is such bullshit
+		let menu = JSON.parse(JSON.stringify(SystemMenu));
+
+		let menubox = menu.menubox;
+
+		if(custom.menubox) {
+			menubox.width = Math.max(custom.menubox.width , menubox.width);
+			menubox.height = Math.max(custom.menubox.height , menubox.height);
+			menubox.buttons = menubox.buttons.concat(custom.menubox.buttons);
+		}
+
+		let menubar = menu.menubar;
+		if(custom.menubar) {
+			menubar = menubar.concat(custom.menubar);
+		}
+
+		var div;
+
+		// Delete any that might exist.
+		div = document.getElementById("menucustom");
+		if(div !== null) {
+			div.remove();
+		}
+		div = document.createElement('div');
+		div.id='menucustom';
+
+		div.appendChild(this.create_menubox(menubox));
+		div.appendChild(this.create_menubar(menubar));
+		return(div);
+	}
+
 	// Add the Menubox definition to the DOM.
-	create_menubox() {
+	create_menubox(menubox) {
+
 		let box = document.createElement('div');
 		box.id='menubox';
 		box.classList.add('menugrid');
+		let width = menubox.width;
+		let height = menubox.height;
+		box.style.gridTemplateRows = `repeat(${height}, 1fr)`;
+		box.style.gridTemplateColumns =`repeat(${width},1fr)`;
+		box.style.direction = 'rtl';
 
-		for(let i=0; i<Menubox.length; i++) {
-			let item = Menubox[i];
+		let buttons = menubox.buttons;
+
+		// Keywords
+		//	name
+		//	menubar
+		//	class
+		//	svgid
+		//	color
+		//	background
+		//	text
+
+		for(let i=0; i<buttons.length; i++) {
+			let item = buttons[i];
 			let container = document.createElement('div');
-			// assign the right onclick function to the container..
-			if ( item.mhstart != undefined ) {
-				container.onclick = () => this.start(item.mhstart);
-			} else if ( item.mhsend != undefined ) {
-				container.onclick = () => this.send(item.mhsend);
+			container.classList.add('menubutton');
+			// assign the correct onclick function to the container..
+			if ( item.menubar != undefined ) {
+				container.onclick = () => this.start(item.menubar);
+			} else if ( item.send != undefined ) {
+				container.onclick = () => this.send(item.send);
+			}
+
+			if( item.color !== undefined) {
+				container.style.color = item.color;
+			}
+			if( item.background !== undefined) {
+				container.style.background = item.background;
+			}
+			if( item.text !== undefined) {
+				container.innerText = item.text;
 			}
 
 			// add the svg.  Could add a plain old img adder too, but.. later
 			if( item.svgid != undefined) {
 				let svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
 				svg.classList.add('menuicon');
-				svg.classList.add(item.class);
+				svg.classList.add(item.svgclass);
 				let use = document.createElementNS("http://www.w3.org/2000/svg","use");
 				use.setAttribute("href",Icons+"#"+item.svgid);
 				svg.appendChild(use);
 				container.appendChild(svg);
+			}
+
+			if( item.img != undefined) {
+				let img = document.createElement('img');
+				img.classList.add('menuicon');
+				container.appendChild(img);
+				img.src = item.img;
+				img.onerror = ((e)=>{ e.currentTarget.src = TerminalIcon; });
 			}
 
 			box.appendChild(container);
@@ -233,20 +323,28 @@ class MenuHandler {
 	}
 
 	// Add the Menubox definition to the DOM.
-	create_menuside() {
+	create_menubar(menubar) {
 
 		let bar = document.createElement('div');
 		bar.id='menubar';
 		bar.classList.add('menu');
 		bar.classList.add('menubar');
 
-		for(let i=0; i<Menuside.length; i++) {
-			let side = Menuside[i];
+		for(let i=0; i<menubar.length; i++) {
+			let side = menubar[i];
 			let c = document.createElement('div');
 			c.id = side.id
 			c.classList.add('menu');
 			c.classList.add('menuside');
 			c.classList.add('menuside-close');
+
+			// Keywords:
+			//	label
+			//	open
+			//	send
+			//	prompt
+			//	id
+			//	hotkey
 
 			for(let j=0; j<side.item.length; j++) {
 				let item = side.item[j];
@@ -272,6 +370,12 @@ class MenuHandler {
 					s.classList.add('send');
 					s.innerText = item.prompt + "...";
 					s.onclick = () => this.prompt(item.prompt);
+				}
+				if( item.color !== undefined) {
+					s.style.color = item.color;
+				}
+				if( item.background !== undefined) {
+					s.style.background = item.background;
 				}
 
 				// label goes inside the div.
@@ -299,51 +403,12 @@ class MenuHandler {
 			bar.appendChild(c);
 		}
 
-		// this would add the themes to the side menu.. but I've moved them
-		// into the client prefs selector.
-		// bar.appendChild(this.create_menuside_themes(this.lociterm.lociThemes));
 		return(bar);
 	}
 
-	// Given a theme struct, create a menuside style button for it.  (This was
-	// how styles were selected before they were moved into the client prefs
-	// window, and may not be called anywhere anymore.)
-	create_menuside_theme_button(locitheme) {
-		let s = document.createElement('div');
-
-		// assign the right onclick function to the div..
-		s.classList.add('client');
-		if ( locitheme.label != undefined ) {
-			s.innerText = locitheme.label;
-		} else {
-			s.innerText = locitheme.name;
-		}
-		s.onclick = () => {
-			this.lociterm.applyTheme(locitheme);
-			this.done();
-		}
-		return(s);
-	}
-
-	// Given a themes array, create a menuside style menu for it.  This is how
-	// styles were selected before they were moved into the client prefs
-	// window, and may not be called anywhere anymore.)
-	create_menuside_themes(locithemes,menu_id="menu_themes_dynamic") {
-
-		let m = document.createElement('div');
-		m.id=menu_id;
-		m.classList.add('menu');
-		m.classList.add('menuside');
-
-		for(let i=0; i<locithemes.length; i++) {
-			m.appendChild(this.create_menuside_theme_button(locithemes[i]));
-		}
-			
-		return(m);
-	}
 
 	// Build the select box for choosing a theme from the themes array.
-	create_theme_selector(locithemes) {
+	create_generic_selector(id, label, themes, oninput) {
 
 		let l;
 		let cdiv;
@@ -355,28 +420,26 @@ class MenuHandler {
 
 		l = document.createElement('label');
 		cdiv.appendChild(l);
-		l.setAttribute("for","theme-select");
-		l.innerText = "Theme";
+		l.setAttribute("for",id);
+		l.innerText = label;
 
 		l = document.createElement('select');
 		cdiv.appendChild(l);
-		l.setAttribute("name","theme-select");
-		l.id = "theme-select";
-		l.oninput = ((e)=>{
-			this.lociterm.applyThemeNo(e.srcElement.value);
-		});
+		l.setAttribute("name",id);
+		l.id = id;
+		l.oninput = oninput;
 
 		divstack.push(l);
 		cdiv = l;
 
-		for(let i=0; i<locithemes.length; i++) {
-			let locitheme = locithemes[i];
+		for(let i=0; i<themes.length; i++) {
+			let theme = themes[i];
 			l = document.createElement('option');
 			cdiv.appendChild(l);
 			l.setAttribute("value",i);
-			l.innerText =locitheme.name;
-			if ( locitheme.label != undefined ) {
-				l.innerText = locitheme.label;
+			l.innerText = theme.name;
+			if ( theme.label != undefined ) {
+				l.innerText = theme.label;
 			}
 		}
 
@@ -420,7 +483,7 @@ class MenuHandler {
 	}
 
 
-	// Add the Menubox definition to the DOM.
+	// Add the login definition to the DOM.
 	create_loginbox() {
 
 		let l;
@@ -603,7 +666,7 @@ class MenuHandler {
 		username.value = fullset[key].u || "";
 		password.value = fullset[key].p || "";
 		remember.checked = fullset[key].r || false;
-		autologin.checked = fullset[key].a || true;
+		autologin.checked = fullset[key].a || false;
 	}
 
 	saveLogin() {
@@ -627,6 +690,12 @@ class MenuHandler {
 			fullset[key].p = password.value;
 			fullset[key].r = remember.checked;
 			fullset[key].a = autologin.checked;
+		} else {
+			fullset[key] = {};
+			fullset[key].u = username.value;
+			fullset[key].p = "";
+			fullset[key].r = remember.checked;
+			fullset[key].a = false;
 		}
 
 		localStorage.setItem("credset",btoa(unescape(encodeURIComponent(JSON.stringify(fullset)))));
@@ -663,7 +732,12 @@ class MenuHandler {
 		l.title = "Close menu_loginbox";
 		l.innerText = "×";
 
-		l = this.create_theme_selector(this.lociterm.lociThemes);
+		l = this.create_generic_selector(
+			"theme-select",
+			"Theme",
+			this.lociterm.lociThemes,
+			((e)=>{ this.lociterm.applyThemeNo(e.srcElement.value); })
+		);
 		box.appendChild(l);
 
 		// a range slider for setting the font size css
@@ -689,6 +763,16 @@ class MenuHandler {
 			}
 		);
 		label.appendChild(fontsize);
+
+
+		l = this.create_generic_selector(
+			"menu-select",
+			"Menu Style",
+			this.menuThemes,
+			((e)=>{ this.applyMenuNo(e.srcElement.value); })
+		);
+		box.appendChild(l);
+
 
 		// a range slider for setting the finger size css
 		field = document.createElement('div');
@@ -1293,6 +1377,26 @@ class MenuHandler {
 
 		return(ret);
 	}
+
+	applyMenuNo(index) {
+		let theme = this.menuThemes[index];
+		this.mydiv.insertBefore(this.create_custom_menus(theme),this.mydiv.firstChild);
+		localStorage.setItem("menuthemename",theme.name);
+		this.lociterm.gmcp.lociHotkeyGet();
+	}
+
+	applyMenuName(name) {
+		for(let idx=0;idx<this.menuThemes.length;idx++) {
+			let theme = this.menuThemes[idx];
+			if(theme.name === name) {
+				this.applyMenuNo(idx);
+				let sel = document.getElementById("menu-select");
+				sel.value = idx;
+				break;
+			}
+		}
+	}
+
 }
 
 export { MenuHandler };

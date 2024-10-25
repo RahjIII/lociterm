@@ -1,0 +1,870 @@
+{	"name": "lastoutpost",
+	"label": "LastOutpost",
+	"menubox": {
+		"width": 4,
+		"height": 4,
+		"buttons": [
+			{
+				"name": "Up",
+				"send": "up\n",
+				"svgclass": "ansi0",
+				"svgid": "arrow-thick-top"
+			},
+			{
+				"name": "North",
+				"send": "north\n",
+				"svgclass": "ansi0",
+				"svgid": "chevron-top"
+			},
+			{
+				"name": "Main Menu",
+				"menubar": "menu_top",
+				"svgclass": "ansi10",
+				"svgid": "command"
+			},
+			{
+				"name": "Chat",
+				"menubar": "menu_chat",
+				"svgclass": "ansi5",
+				"svgid": "comment-square"
+			},
+			{
+				"name": "East",
+				"send": "east\n",
+				"svgclass": "ansi0",
+				"svgid": "chevron-right"
+			},
+			{
+				"name": "Map",
+				"send": "map\n",
+				"svgclass": "ansi4",
+				"svgid": "compass"
+			},
+			{
+				"name": "West",
+				"send": "west\n",
+				"svgclass": "ansi0",
+				"svgid": "chevron-left"
+			},
+			{
+				"name": "Badge",
+				"menubar": "menu_badge",
+				"svgclass": "ansi11",
+				"svgid": "badge"
+			},
+			{
+				"name": "Look",
+				"menubar": "menu_look",
+				"svgclass": "ansi14",
+				"svgid": "eye"
+			},
+			{
+				"name": "South",
+				"send": "south\n",
+				"svgclass": "ansi0",
+				"svgid": "chevron-bottom"
+			},
+			{
+				"name": "Down",
+				"send": "down\n",
+				"svgclass": "ansi0",
+				"svgid": "arrow-thick-bottom"
+			},
+			{
+				"name": "Loot",
+				"menubar": "menu_loot",
+				"svgclass": "ansi2",
+				"svgid": "share-boxed"
+			},
+			{
+				"name": "Cure",
+				"menubar": "menu_cure",
+				"svgclass": "ansi9",
+				"svgid": "heart"
+			},
+			{
+				"name": "Hotkey",
+				"menubar": "menu_hotkey",
+				"svgclass": "ansi12",
+				"svgid": "flash"
+			},
+			{
+				"name": "Kill",
+				"menubar": "menu_kill",
+				"svgclass": "ansi1",
+				"svgid": "fire"
+			}
+		]
+	},
+	"menubar": [
+		{
+			"id": "menu_top",
+			"item": [
+				{
+					"label": "Help",
+					"open": "menu_help"
+				},
+				{
+					"label": "Help ...",
+					"prompt": "help "
+				},
+				{
+					"label": "History",
+					"open": "menu_history"
+				},
+				{
+					"label": "Info",
+					"open":"menu_info"
+				},
+				{
+					"label": "Credits",
+					"open":"menu_credits"
+				}
+			]
+		},
+		{
+			"id": "menu_info",
+			"item" : [
+				{
+					"label": "Quest",
+					"send": "quest\n"
+				},
+				{
+					"label": "Zones",
+					"send": "zones\n"
+				},
+				{
+					"label": "Hotkeys",
+					"send": "hotkey\n"
+				},
+				{
+					"label": "Aliases",
+					"send": "alias\n"
+				},
+				{
+					"label": "Preferences",
+					"send": "preferences\n"
+				}
+			]
+		},
+		{
+			"id": "menu_help",
+			"item" : [
+				{
+					"label": "Help",
+					"send": "help\n"
+				},
+				{
+					"label": "Report Bug ...",
+					"prompt": "bug "
+				},
+				{
+					"label": "Report Idea ...",
+					"prompt": "idea "
+				},
+				{
+					"label": "Report Typo ...",
+					"prompt": "typo "
+				}
+			]
+		},
+		{
+			"id": "menu_credits",
+			"item" : [
+				{
+					"label": "Credits",
+					"send": "credits\n"
+				},
+				{
+					"label": "News",
+					"send": "news\n"
+				},
+				{
+					"label": "Contact",
+					"send": "wizlist\n"
+				},
+				{
+					"label": "Report Bug ...",
+					"prompt": "bug "
+				},
+				{
+					"label": "Report Idea ...",
+					"prompt": "idea "
+				}
+			]
+		},
+		{
+			"id": "menu_history",
+			"item" : [
+				{
+					"label": "Gossip",
+					"send": "history gossip\n"
+				},
+				{
+					"label": "Clan",
+					"send": "history clan\n"
+				},
+				{
+					"label": "Tell",
+					"send": "history tell\n"
+				},
+				{
+					"label": "Damage",
+					"send": "history damage\n"
+				},
+				{
+					"send": "last\n"
+				}
+			]
+		},
+		{
+			"id": "menu_look",
+			"item" : [
+				{
+					"send": "look\n"
+				},
+				{
+					"label": "Look ...",
+					"send": "look ",
+					"open": "menu_pronoun"
+				},
+				{
+					"label": "Consider ...",
+					"send": "consider ",
+					"open": "menu_pronoun"
+				},
+				{
+					"send": "scan\n"
+				},
+				{
+					"label": "Listen",
+					"send": "listen\n"
+				},
+				{
+					"send": "who\n"
+				}
+			]
+		},
+		{
+			"id": "menu_look",
+			"item" : [
+				{
+					"label": "Look",
+					"send": "look\n"
+				},
+				{
+					"label": "Look ...",
+					"send": "look ",
+					"open": "menu_pronoun"
+				},
+				{
+					"label": "Consider ...",
+					"send": "consider ",
+					"open": "menu_pronoun"
+				},
+				{
+					"label": "Scan",
+					"send": "scan\n"
+				},
+				{
+					"label": "Listen",
+					"send": "listen\n"
+				},
+				{
+					"label": "who",
+					"send": "last\n"
+				}
+			]
+		},
+		{
+			"id": "menu_pronoun",
+			"item" : [
+				{
+					"label": "It",
+					"send": "it\n"
+				},
+				{
+					"label": "Who",
+					"open": "menu_who"
+				},
+				{
+					"label": "What",
+					"open": "menu_what"
+				},
+				{
+					"label": "...",
+					"prompt": ""
+				}
+			]
+		},
+		{
+			"id": "menu_who",
+			"item" : [
+				{
+					"label": "Me",
+					"send": "me\n"
+				},
+				{
+					"label": "Friend",
+					"send": "frend\n"
+				},
+				{
+					"label": "Foe",
+					"send": "foe\n"
+				},
+				{
+					"label": "...",
+					"prompt": ""
+				}
+			]
+		},
+		{
+			"id": "menu_what",
+			"item" : [
+				{
+					"label": "It",
+					"send": "it\n"
+				},
+				{
+					"label": "This",
+					"send": "this\n"
+				},
+				{
+					"label": "That",
+					"send": "that\n"
+				},
+				{
+					"label": "...",
+					"prompt": ""
+				}
+			]
+		},
+		{
+			"id": "menu_score",
+			"item" : [
+				{
+					"label": "Score",
+					"send": "score\n"
+				},
+				{
+					"label": "Affects",
+					"send": "affects\n"
+				},
+				{
+					"label": "Level",
+					"send": "level\n"
+				},
+				{
+					"label": "Quest",
+					"send": "quest\n"
+				},
+				{
+					"label": "Zones",
+					"send": "zones\n"
+				},
+				{
+					"label": "Who",
+					"send": "who\n"
+				}
+			]
+		},
+		{
+			"id": "menu_kill",
+			"item" : [
+				{
+					"label": "Kill Foe",
+					"send": "kill foe\n"
+				},
+				{
+					"label": "Assist",
+					"send": "assist\n"
+				},
+				{
+					"label": "Bash",
+					"send": "bash\n"
+				},
+				{
+					"label": "Run Away!",
+					"open": "menu_flee"
+				}
+			]
+		},
+		{
+			"id": "menu_flee",
+			"item" : [
+				{
+					"label": "Flee",
+					"send": "flee\n"
+				},
+				{
+					"label": "Recite Recall",
+					"send": "recite 'recall' me\n"
+				},
+				{
+					"label": "Cast Recall",
+					"send": "cast 'word' me\n"
+				},
+				{
+					"label": "Cast Haven",
+					"send": "cast 'haven' me\n"
+				}
+			]
+		},
+		{
+			"id": "menu_position",
+			"item" : [
+				{
+					"label": "Stand",
+					"send": "stand\n"
+				},
+				{
+					"label": "Sit",
+					"send": "sit\n"
+				},
+				{
+					"label": "Rest",
+					"send": "rest\n"
+				},
+				{
+					"label": "Eat & Drink",
+					"send": "eat\ndrink\n"
+				},
+				{
+					"label": "Wake",
+					"send": "wake\n"
+				},
+				{
+					"label": "Sleep",
+					"send": "sleep\n"
+				}
+			]
+		},
+		{
+			"id": "menu_gear",
+			"item" : [
+				{
+					"send": "inventory\n"
+				},
+				{
+					"send": "equipment\n"
+				},
+				{
+					"label": "Swap ...",
+					"send": "swap ",
+					"open": "menu_pronoun"
+				},
+				{
+					"label": "Drop ...",
+					"send": "drop ",
+					"open": "menu_pronoun"
+				},
+				{
+					"label": "Get ...",
+					"send": "get ",
+					"open": "menu_pronoun"
+				}
+			]
+		},
+		{
+			"id": "menu_loot",
+			"item" : [
+				{
+					"label": "Loot Coins",
+					"send": "loot coins\nloot\n"
+				},
+				{
+					"send": "loot all\n"
+				},
+				{
+					"prompt": "loot "
+				},
+				{
+					"label": "Items",
+					"open": "menu_gear"
+				},
+				{
+					"label": "Get ...",
+					"send": "get ",
+					"open": "menu_pronoun"
+				}
+			]
+		},
+		{
+			"id": "menu_emote",
+			"item" : [
+				{
+					"label": "Positive",
+					"open": "menu_emote_positive"
+				},
+				{
+					"label": "Neutral",
+					"open": "menu_emote_neutral"
+				},
+				{
+					"label": "Negative",
+					"open": "menu_emote_negative"
+				}
+			]
+		},
+		{
+			"id": "menu_emote_positive",
+			"item" : [
+				{
+					"send": "nod\n"
+				},
+				{
+					"send": "smile\n"
+				},
+				{
+					"send": "laugh\n"
+				},
+				{
+					"send": "clap\n"
+				},
+				{
+					"send": "strut\n"
+				}
+			]
+		},
+		{
+			"id": "menu_emote_neutral",
+			"item" : [
+				{
+					"send": "shrug\n"
+				},
+				{
+					"send": "bow\n"
+				},
+				{
+					"send": "wave\n"
+				}
+			]
+		},
+		{
+			"id": "menu_emote_negative",
+			"item" : [
+				{
+					"send": "shake\n"
+				},
+				{
+					"send": "frown\n"
+				},
+				{
+					"send": "grumble\n"
+				},
+				{
+					"send": "curse\n"
+				}
+			]
+		},
+		{
+			"id": "menu_say",
+			"item" : [
+				{
+					"prompt": "say "
+				},
+				{
+					"prompt": "tell "
+				},
+				{
+					"prompt": "answer "
+				},
+				{
+					"prompt": "gossip "
+				},
+				{
+					"prompt": "clan "
+				}
+			]
+		},
+		{
+			"id": "menu_hotkey",
+			"item" : [
+				{
+					"id": "hotkey_f1",
+					"hotkey": true,
+					"label": "Key F1",
+					"send": "\u001B[11~"
+				},
+				{
+					"id": "hotkey_f2",
+					"hotkey": true,
+					"label": "Key F2",
+					"send": "\u001b[12~"
+				},
+				{
+					"id": "hotkey_f3",
+					"hotkey": true,
+					"label": "Key F3",
+					"send": "\u001b[13~"
+				},
+				{
+					"id": "hotkey_f4",
+					"hotkey": true,
+					"label": "Key F4",
+					"send": "\u001b[14~"
+				},
+				{
+					"label": "More",
+					"open": "menu_hotkey5to8"
+				}
+			]
+		},
+		{
+			"id": "menu_hotkey5to8",
+			"item" : [
+				{
+					"id": "hotkey_f5",
+					"hotkey": true,
+					"label": "Key F5",
+					"send": "\u001B[15~"
+				},
+				{
+					"id": "hotkey_f6",
+					"hotkey": true,
+					"label": "Key F6",
+					"send": "\u001b[17~"
+				},
+				{
+					"id": "hotkey_f7",
+					"hotkey": true,
+					"label": "Key F7",
+					"send": "\u001b[18~"
+				},
+				{
+					"id": "hotkey_f8",
+					"hotkey": true,
+					"label": "Key F8",
+					"send": "\u001b[19~"
+				},
+				{
+					"label": "More",
+					"open": "menu_hotkey9to12"
+				}
+			]
+		},
+		{
+			"id": "menu_hotkey9to12",
+			"item" : [
+				{
+					"id": "hotkey_f9",
+					"hotkey": true,
+					"label": "Key F9",
+					"send": "\u001B[20~"
+				},
+				{
+					"id": "hotkey_f10",
+					"hotkey": true,
+					"label": "Key F10",
+					"send": "\u001b[21~"
+				},
+				{
+					"id": "hotkey_f11",
+					"hotkey": true,
+					"label": "Key F11",
+					"send": "\u001b[22~"
+				},
+				{
+					"id": "hotkey_f12",
+					"hotkey": true,
+					"label": "Key F12",
+					"send": "\u001b[23~"
+				},
+				{
+					"label": "Hotkey",
+					"send": "hotkey\n"
+				}
+			]
+		},
+		{
+			"id": "menu_guilds",
+			"item" : [
+				{
+					"send": "mage\n"
+				},
+				{
+					"send": "warrior\n"
+				},
+				{
+					"send": "cleric\n"
+				},
+				{
+					"send": "thief\n"
+				},
+				{
+					"prompt": ""
+				}
+			]
+		},
+		{
+			"id": "menu_practice",
+			"item" : [
+				{
+					"send": "practice\n"
+				},
+				{
+					"label": "Practice ...",
+					"send": "practice ",
+					"open": "menu_guilds"
+				},
+				{
+					"prompt": "learn "
+				}
+			]
+		},
+		{
+			"id": "menu_badge",
+			"item" : [
+				{
+					"send": "score\n"
+				},
+				{
+					"send": "level\n"
+				},
+				{
+					"send": "gain\n"
+				},
+				{
+					"label": "Skills ...",
+					"send": "skills ",
+					"open": "menu_guilds"
+				},
+				{
+					"label": "Practice",
+					"open": "menu_practice"
+				}
+			]
+		},
+		{
+			"id": "menu_chat",
+			"item" : [
+				{
+					"send": "say ok\n"
+				},
+				{
+					"label": "Emote",
+					"open": "menu_emote"
+				},
+				{
+					"label": "Talk",
+					"open": "menu_say"
+				},
+				{
+					"label": "Shop",
+					"open": "menu_shopping"
+				}
+			]
+		},
+		{
+			"id": "menu_shoppinglist",
+			"item" : [
+				{
+					"send": "list\n"
+				},
+				{
+					"prompt": "list "
+				},
+				{
+					"prompt": "info "
+				},
+				{
+					"prompt": "consider "
+				},
+				{
+					"prompt": "buy "
+				}
+			]
+		},
+		{
+			"id": "menu_shopping",
+			"item" : [
+				{
+					"label": "Buy",
+					"open": "menu_shoppinglist"
+				},
+				{
+					"label": "Sell ...",
+					"send": "sell ",
+					"open": "menu_what"
+				},
+				{
+					"label": "Value ...",
+					"send": "value ",
+					"open": "menu_what"
+				}
+			]
+		},
+		{
+			"id": "menu_whatcure",
+			"item": [
+				{
+					"label": "Light ...",
+					"open": "menu_who",
+					"send": "cast 'cure light' "
+				},
+				{
+					"label": "Serious ...",
+					"open": "menu_who",
+					"send": "cast 'cure serious' "
+				},
+				{
+					"label": "Critical ...",
+					"open": "menu_who",
+					"send": "cast 'cure critic' "
+				}
+			]
+		},
+		{
+			"id": "menu_cure",
+			"item" : [
+				{
+					"label": "Cure ...",
+					"open": "menu_whatcure"
+				},
+				{
+					"label": "Heal ...",
+					"open": "menu_who",
+					"send": "cast 'heal' "
+				},
+				{
+					"label": "Quaff ...",
+					"open": "menu_what",
+					"send": "quaff "
+				},
+				{
+					"label": "Position",
+					"open": "menu_position"
+				}
+			]
+		},
+		{	"id" : "menu_about_which",
+			"item" : [
+				{
+					"label": "Privacy",
+					"open": "menu_disclaimer"
+				},
+				{
+					"label": "LociTerm",
+					"open": "menu_about"
+				},
+				{
+					"label": "Game",
+					"open": "menu_game_about"
+				}
+			]
+		},
+		{
+			"id" : "menu_login",
+			"item" : [
+				{
+					"label": "User Name",
+					"open": "menu_loginbox"
+				},
+				{
+					"label": "New Server",
+					"open": "menu_connect_direct"
+				}
+			]
+		}
+	]
+}

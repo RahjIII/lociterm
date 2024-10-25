@@ -1,0 +1,293 @@
+{	"name": "diagonal",
+	"label": "Diagonal",
+	"menubox": {
+		"width": 5,
+		"height": 4,
+		"buttons": [
+			{ 
+				"name": "Northeast",
+				"text": "↗",
+				"send": "northeast\n"
+			},
+			{ 
+				"name": "North",
+				"text": "⬆",
+				"send": "north\n"
+			},
+			{ 
+				"name": "Northwest",
+				"text": "↖",
+				"send": "northwest\n"
+			},
+			{
+				"name": "Hotkey",
+				"menubar": "menu_hotkey",
+				"Xtext": "⚡",
+				"text": "✨",
+				"color": "Yellow"
+			},
+			{ 
+				"name": "Up",
+				"text": "⭜",
+				"send": "up\n"
+			},
+			{ 
+				"name": "East",
+				"text": "➡",
+				"send": "east\n"
+			},
+			{
+				"name": "Look",
+				"menubar": "menu_look",
+				"color": "blue",
+				"text": "👁️"
+			},
+			{ 
+				"name": "West",
+				"text": "⬅",
+				"send": "west\n"
+			},
+			{ 
+				"name": "In",
+				"text": "↪",
+				"send": "in\n"
+			},
+			{ 
+				"name": "Down",
+				"text": "⭝",
+				"send": "down\n"
+			},
+			{ 
+				"name": "Southeast",
+				"text": "↘",
+				"send": "southeast\n"
+			},
+			{ 
+				"name": "South",
+				"text": "⬇",
+				"send": "south\n"
+			},
+			{ 
+				"name": "Southwest",
+				"text": "↙",
+				"send": "southwest\n"
+			},
+			{ 
+				"name": "Out",
+				"text": "↩",
+				"send": "out\n"
+			},
+			{ 
+				"name": "Chat",
+				"text": "💬",
+				"color": "white",
+				"menubar": "menu_chat"
+			},
+			{ 
+				"name": "Position",
+				"text": "🧎",
+				"color": "green",
+				"menubar": "menu_position"
+			},
+			{
+				"label": "Loot",
+				"menubar": "menu_loot",
+				"color": "red",
+				"text": "🎒"
+			},
+			{ 
+				"name": "Map",
+				"text": "🧭",
+				"color": "lightblue",
+				"send": "map\n"
+			},
+			{
+				"name": "Badge",
+				"menubar": "menu_badge",
+				"color": "gold",
+				"text": "🥇"
+			}
+		]
+	},
+	"menubar": [
+		{
+			"id": "menu_badge",
+			"item" : [
+				{
+					"send": "score\n"
+				},
+				{
+					"send": "levels\n"
+				},
+				{
+					"send": "gold\n"
+				}
+			]
+		},
+		{
+			"id": "menu_look",
+			"item" : [
+				{
+					"send": "look\n"
+				},
+				{
+					"prompt": "look "
+				},
+				{
+					"send": "exits\n"
+				},
+				{
+					"send": "listen\n"
+				},
+				{
+					"send": "who\n"
+				}
+			]
+		},
+		{
+			"id": "menu_loot",
+			"item" : [
+				{
+					"send": "inventory\n"
+				},
+				{
+					"send": "equipment\n"
+				},
+				{
+					"prompt": "wear "
+				},
+				{
+					"prompt": "remove "
+				},
+				{
+					"prompt": "get "
+				},
+				{
+					"prompt": "drop "
+				}
+			]
+		},
+		{
+			"id": "menu_position",
+			"item" : [
+				{
+					"send": "stand\n"
+				},
+				{
+					"send": "sit\n"
+				},
+				{
+					"send": "rest\n"
+				},
+				{
+					"label": "Eat & Drink",
+					"send": "eat\ndrink\n"
+				},
+				{
+					"send": "wake\n"
+				},
+				{
+					"send": "sleep\n"
+				}
+			]
+		},
+		{
+			"id": "menu_chat",
+			"item" : [
+				{
+					"label": "Talk",
+					"open": "menu_say"
+				},
+				{
+					"label": "Emote",
+					"open": "menu_emote"
+				}
+			]
+		},
+		{
+			"id": "menu_say",
+			"item" : [
+				{
+					"prompt": "say "
+				},
+				{
+					"prompt": "tell "
+				},
+				{
+					"prompt": "ask "
+				},
+				{
+					"prompt": "answer "
+				}
+			]
+		},
+		{
+			"id": "menu_emote",
+			"item" : [
+				{
+					"label": "Positive",
+					"open": "menu_emote_positive"
+				},
+				{
+					"label": "Neutral",
+					"open": "menu_emote_neutral"
+				},
+				{
+					"label": "Negative",
+					"open": "menu_emote_negative"
+				}
+			]
+		},
+		{
+			"id": "menu_emote_positive",
+			"item" : [
+				{
+					"send": "nod\n"
+				},
+				{
+					"send": "smile\n"
+				},
+				{
+					"send": "laugh\n"
+				},
+				{
+					"send": "clap\n"
+				},
+				{
+					"send": "strut\n"
+				}
+			]
+		},
+		{
+			"id": "menu_emote_neutral",
+			"item" : [
+				{
+					"send": "shrug\n"
+				},
+				{
+					"send": "bow\n"
+				},
+				{
+					"send": "wave\n"
+				}
+			]
+		},
+		{
+			"id": "menu_emote_negative",
+			"item" : [
+				{
+					"send": "shake\n"
+				},
+				{
+					"send": "frown\n"
+				},
+				{
+					"send": "grumble\n"
+				},
+				{
+					"send": "curse\n"
+				}
+			]
+		}
+	]
+}

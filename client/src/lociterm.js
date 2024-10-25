@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.38 2024/10/14 22:49:50 malakai Exp $
+// $Id: lociterm.js,v 1.39 2024/10/25 15:51:20 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -146,7 +146,11 @@ class LociTerm {
 		});
 
 		try { 
-			this.reconnect_key = JSON.parse(localStorage.getItem("reconnect_key"));
+			try{
+				this.reconnect_key = JSON.parse(sessionStorage.getItem("reconnect_key"));
+			} catch {
+				this.reconnect_key = JSON.parse(localStorage.getItem("reconnect_key"));
+			}
 		} catch {
 			this.reconnect_key = {};
 		}
@@ -512,9 +516,15 @@ class LociTerm {
 					// reset the gcmp login mode.
 					try { this.gmcp.charLoginRequested = false } catch {};
 
-					if(robj.state == "reconnected") {
+					if(robj.state == "reconnect") {
+						// let 'em know if we've changed size.
 						this.doWindowResize();
-						this.paste("\x12");  /* at least in LO, ctrl-r requests a redraw. */
+
+						// re-request any hotkeys
+						this.gmcp.lociHotkeyGet();
+
+						// at least in LO, ctrl-r requests a redraw. 
+						this.paste("\x12");
 						//this.terminal.write(`\r\n┅┅┅┅┅ Reconnected. ┅┅┅┅┅\r\n\r\n`);
 
 					}
@@ -529,6 +539,10 @@ class LociTerm {
 				sobj.port = this.reconnect_key.port;
 				sobj.ssl = this.reconnect_key.ssl;
 				localStorage.setItem("reconnect_key",JSON.stringify(sobj));
+				if(this.reconnect_key.reconnect !== undefined) {
+					sobj.reconnect = this.reconnect_key.reconnect;
+				}
+				sessionStorage.setItem("reconnect_key",JSON.stringify(sobj));
 				break;	
 			}
 			case Command.GMCP_DATA: {

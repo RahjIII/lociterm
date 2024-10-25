@@ -81,14 +81,17 @@ automatically be connected to the default game stored in the server's config
 file.  If the user changes to a different game, that choice is stored on the
 client side, and will be used as the user's default game whenever they launch.
 
-Creating a URL with host, port, and ssl parameters will force the client to
-connect to those when the user clicks the link, overriding the last game stored
-on the client system.  A forced connection URL might look like:
+Creating a URL with host, port, ssl, and menu parameters will force the client
+to connect to those when the user clicks the link, overriding the last game and
+menu set stored on the client system.  A forced connection URL might look like:
 
-`https://www.last-outpost.com/lociterm/?host=www.last-outpost.com&port=4443&ssl=1`
+`https://www.last-outpost.com/lociterm/?host=www.last-outpost.com&port=4443&ssl=1&menu=lastoutpost`
 
 This can be used to direct players to connect to a specific game that isn't the
-default for a particular LociTerm server.
+default for a particular LociTerm server.  
+(Note that the menu parameter should match the "name": of a menu, not the
+"label":.  Some of the built-in menu names are, "lastputpost", "diagonal",
+"telnet", and "none".  This list is subject to change.)
 
 
 ## SERVER DOCS
