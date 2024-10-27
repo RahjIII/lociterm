@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.20 2024/10/02 19:05:09 malakai Exp $ */
+/* $Id: locid.c,v 1.21 2024/10/27 04:28:55 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -308,7 +308,7 @@ int main(int argc, char **argv) {
 	/* ...and begin. */
 
 	while(1) {
-		char *short_options = "hbc:dvalA:B:D:";
+		char *short_options = "hbc:dvalA:B:R:D:";
 		static struct option long_options[] = {
 			{"help", no_argument,0,'h'},
 			{"browser", no_argument,0,'b'},
@@ -320,6 +320,7 @@ int main(int argc, char **argv) {
 			{"list-denied", no_argument,0,'l'},
 			{"approve", required_argument,0,'A'},
 			{"ban", required_argument,0,'B'},
+			{"redact", required_argument,0,'R'},
 			{"delete", required_argument,0,'D'},
 			{NULL,no_argument,NULL,0}
 		};
@@ -355,6 +356,10 @@ int main(int argc, char **argv) {
 				dbupdate_id = atoi(optarg);
 				dbupdate_status = DBSTATUS_BANNED;
 				break;
+			case 'R':
+				dbupdate_id = atoi(optarg);
+				dbupdate_status = DBSTATUS_REDACTED;
+				break;
 			case 'D':
 				dbupdate_id = atoi(optarg);
 				dbupdate_status = DBSTATUS_NULL;
@@ -370,6 +375,7 @@ int main(int argc, char **argv) {
 				fprintf(stdout,"\t-a / --list-approved list approved games by id\n");
 				fprintf(stdout,"\t-l / --list-denied   list denied games by id\n");
 				fprintf(stdout,"\t-A / --approve <id>  Mark game approved\n");
+				fprintf(stdout,"\t-R / --redact <id>   Mark game approved/redacted\n");
 				fprintf(stdout,"\t-B / --ban <id>      Mark game banned\n");
 				fprintf(stdout,"\t-D / --delete <id>   Remove game from DB\n");
 				exit(EXIT_SUCCESS);
@@ -429,6 +435,16 @@ int main(int argc, char **argv) {
 			locid_log("Unable to open game-db location '%s'.",config->db_location);
 			exit(EXIT_FAILURE);
 		}
+		int dbv = game_db_get_version();
+		if(dbv != database_version) {
+			locid_log("The game-db '%s' is an incompatible version.  See the docs for how to upgrade from version %d to version %d.",
+				config->db_location,
+				dbv,
+				database_version
+			);
+			exit(EXIT_FAILURE);
+		}
+			
 		locid_log("Banned port list contains %d ports.",g_list_length(config->db_banned_ports));
 	}
 

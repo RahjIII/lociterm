@@ -1,6 +1,6 @@
 /* gamedb.h - <comment goes here> */
 /* Created: Sun Aug 18 10:43:34 AM EDT 2024 malakai */
-/* $Id: gamedb.h,v 1.2 2024/09/20 17:08:29 malakai Exp $ */
+/* $Id: gamedb.h,v 1.3 2024/10/27 04:28:55 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -36,14 +36,17 @@ typedef enum {
 	DBSTATUS_NO_ANSWER,		/* Connection attempted, but no answer.  */
 	DBSTATUS_BAD_PROTOCOL,	/* Connected to, but didn't pass telnet tests. */
 	DBSTATUS_BANNED,		/* Nope, for whatever reason. */
+	DBSTATUS_REDACTED,		/* Approved, but hidden from the public list */
 	DBSTATUS_MAX			/* marker */
 } game_db_status_t;
 
 /* exported global variable declarations */
+extern int database_version;
 
 /* exported function declarations */
 
 int game_db_init(char *filename);
+int game_db_get_version(void);
 int hostname_looks_valid(char *host);
 int game_db_suggest(proxy_conn_t *pc, char *host, int port, int ssl);
 json_object *game_db_gamelookup(char *host, int port, int ssl);

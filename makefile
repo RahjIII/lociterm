@@ -1,8 +1,8 @@
-# $Id: makefile,v 1.15 2024/10/25 15:51:20 malakai Exp $
+# $Id: makefile,v 1.16 2024/10/27 04:28:55 malakai Exp $
 #
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.15 2024/10/25 15:51:20 malakai Exp $
+# $Id: makefile,v 1.16 2024/10/27 04:28:55 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -24,7 +24,7 @@
 
 # This one location controls the version string that appears in the client,
 # server, and archive files!
-LOCITERM_VERSION = 2.0.4
+LOCITERM_VERSION = 2.0.5
 #
 
 # #### Variable definitions ####
@@ -87,6 +87,7 @@ install :
 	mv -f $(INSTALL)/bin/locid $(INSTALL)/bin/locid.prev 2>/dev/null || true
 	cp -av $(BUILD)/* $(INSTALL)
 	@echo
+	@echo ---- Ensure you have manually backed up any DB files, THEN...    ----
 	@echo ---- Run \`systemctl restart lociterm.service\` as root to go live ----
 
 .PHONY: systemd

@@ -1,7 +1,7 @@
 /* gamedb.c - <comment goes here> */
 /* Created: Sun Aug 18 10:43:34 AM EDT 2024 malakai */
 /* Copyright © 2024 Jeffrika Heavy Industries */
-/* $Id: gamedb.c,v 1.3 2024/09/21 03:25:56 malakai Exp $ */
+/* $Id: gamedb.c,v 1.4 2024/10/27 04:28:55 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -49,12 +49,16 @@ char *dbstatus_str[] = {
 	[DBSTATUS_NO_ANSWER] = 		"No Answer",
 	[DBSTATUS_BAD_PROTOCOL] =	"Bad Protocol",
 	[DBSTATUS_BANNED] = 		"Banned",
+	[DBSTATUS_REDACTED] = 		"Hidden",
 	[DBSTATUS_MAX] = 			"Max"
 };
 
+/* database_version doesn't have to go up by 1, but it must never go down. */
+int database_version = 241026;
+
 char database_definition[] = \
 	"CREATE TABLE IF NOT EXISTS DBVERSION ( "
-		"VERSION TEXT,"
+		"VERSION INTEGER,"
 		"CREATED DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP "
 	");"
 	"CREATE TABLE IF NOT EXISTS GAMEDBSTATUS ("
@@ -153,16 +157,14 @@ int game_db_init(char *filename) {
 	sqlite3_free(sqlstr);
 	sqlite3_close(db);
 
-	char *ver = get_proxy_name();
 	sqlstr = sqlite3_mprintf(
 		"INSERT INTO \
 			DBVERSION (VERSION) \
-			VALUES (%Q) \
+			VALUES (%d) \
 		;",
-		ver
+		database_version
 	);
 	game_db_exec(NULL,sqlstr);
-	free(ver);
 	sqlite3_free(sqlstr);
 
 	locid_debug(DEBUG_DB,NULL,"db created.",filename);
@@ -646,10 +648,11 @@ void game_db_list(int approved) {
 			"host,port,ssl,name "
 		"FROM GAMEDB "
 			"WHERE "
-			"status %s %d"
+			"status %s in (%d,%d)"
 		";",
-		(approved == 1)?"=":"!=",
-		DBSTATUS_APPROVED
+		(approved == 1)?"":"not",
+		DBSTATUS_APPROVED,
+		DBSTATUS_REDACTED
 	);
 
 	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) != SQLITE_OK) ){
@@ -735,4 +738,38 @@ void game_db_update(int id,game_db_status_t status) {
 	);
 	
 	return;
+}
+
+/* returns the integer version of the db file. */
+int game_db_get_version(void) {
+
+	sqlite3 *db;
+	sqlite3_stmt *stmt;
+	json_object *jobj=NULL;
+	char *sqlstr;
+
+	if ( (sqlite3_open(config->db_location, &db) != SQLITE_OK) ) {
+		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
+		return(0);
+	}
+
+	sqlstr = sqlite3_mprintf(
+		"SELECT max(VERSION) FROM DBVERSION;"
+	);
+
+	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) != SQLITE_OK) ){
+		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
+		sqlite3_free(sqlstr);
+		sqlite3_close(db);
+		return(0);
+	}
+
+	sqlite3_step(stmt);
+	int dbversion = sqlite3_column_int(stmt,0);
+
+	sqlite3_free(sqlstr);
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+
+	return(dbversion);
 }

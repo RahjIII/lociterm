@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.13 2024/09/23 21:55:51 malakai Exp $ */
+/* $Id: telnet.c,v 1.14 2024/10/27 04:28:55 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -449,14 +449,18 @@ json_object *mssp_to_json(struct mssp_t *mssp) {
 
 	for(int i=0;i<(mssp->size);i++) {
 		struct telnet_environ_t *t = &(mssp->values[i]);
-		locid_debug(DEBUG_MSSP,NULL,"%d: '%s' = '%s'",
-			i,
-			t->var,
-			t->value
-		);
-		/* to hell with handling MSSP array type for now. */
-		/* to hell with inferring MSSP types for now. */
-		json_object_object_add(blob,t->var,json_object_new_string(t->value));
+		/* I don't think I should have to do this check, but ansalon.net:8679
+		 * crashes the code for some reason. */
+		if(t->var && t->value) {
+			locid_debug(DEBUG_MSSP,NULL,"%d: '%s' = '%s'",
+				i,
+				t->var,
+				t->value
+			);
+			/* to hell with handling MSSP array type for now. */
+			/* to hell with inferring MSSP types for now. */
+			json_object_object_add(blob,t->var,json_object_new_string(t->value));
+		}
 	}
 	locid_debug(DEBUG_MSSP,NULL,"%s",json_object_to_json_string(blob));
 	return(blob);

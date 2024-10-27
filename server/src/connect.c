@@ -1,6 +1,6 @@
 /* connect.c - <comment goes here> */
 /* Created: Sun Aug  4 10:09:40 PM EDT 2024 malakai */
-/* $Id: connect.c,v 1.2 2024/10/25 15:51:20 malakai Exp $ */
+/* $Id: connect.c,v 1.3 2024/10/27 04:28:55 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -146,6 +146,8 @@ int loci_connect_requested_game(proxy_conn_t *pc) {
 
 			switch (dbstatus) {
 				case DBSTATUS_APPROVED:
+				case DBSTATUS_REDACTED: 
+					/* redacted is approved- it doesn't show up in the main list. */
 					loci_client_send_connectmsg(pc,"approved","");
 					security_require(pc,0,0);
 					ret = loci_connect_to_game_host(pc,hostname,port,ssl);
