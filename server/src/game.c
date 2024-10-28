@@ -1,6 +1,6 @@
 /* game.c - LociTerm game side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: game.c,v 1.8 2024/09/19 17:03:30 malakai Exp $*/
+/* $Id: game.c,v 1.9 2024/10/28 22:33:39 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -203,8 +203,14 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 		game_db_update_lastconnection(pc);
 		loci_telnet_init(pc->game);
 		if(pc->game->check_protocol || pc->game->check_wait) {
+			locid_info(pc,"Blocking for protocol check.");
 			set_game_state(pc,PRXY_BLOCKING);
 		} else {
+			locid_info(pc,"No protocol check required.");
+			/* We're connected, no more security checks, so mark approved. */
+			if(game_db_get_status(pc) == DBSTATUS_NOT_CHECKED) {
+				game_db_update_status(pc,DBSTATUS_APPROVED);
+			}
 			set_game_state(pc,PRXY_UP);
 			loci_client_send_echosga(pc);
 		}

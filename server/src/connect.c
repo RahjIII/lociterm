@@ -1,6 +1,6 @@
 /* connect.c - <comment goes here> */
 /* Created: Sun Aug  4 10:09:40 PM EDT 2024 malakai */
-/* $Id: connect.c,v 1.3 2024/10/27 04:28:55 malakai Exp $ */
+/* $Id: connect.c,v 1.4 2024/10/28 22:33:39 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -148,11 +148,14 @@ int loci_connect_requested_game(proxy_conn_t *pc) {
 				case DBSTATUS_APPROVED:
 				case DBSTATUS_REDACTED: 
 					/* redacted is approved- it doesn't show up in the main list. */
+					/* approved means it doesn't have to pass any protocol checks. */
 					loci_client_send_connectmsg(pc,"approved","");
 					security_require(pc,0,0);
 					ret = loci_connect_to_game_host(pc,hostname,port,ssl);
 					return(ret);
 				case DBSTATUS_NOT_CHECKED:
+					/* not_checked means its still ok to try and connect, to
+					 * see if protocol checks pass.*/
 					loci_client_send_connectmsg(pc,"checking","Thanks for the suggestion!");
 					/* DO enforce security checks. */
 					security_require(pc,config->db_min_protocol,3);
@@ -162,8 +165,12 @@ int loci_connect_requested_game(proxy_conn_t *pc) {
 				case DBSTATUS_BAD_PROTOCOL:
 				case DBSTATUS_NO_ANSWER:
 				default:
-					loci_client_send_connectmsg(pc,"banned",NULL);
-					/* don't return, just fall through and take the default game. */
+					/* These other responses mean we aren't going to try to
+					 * connect again. Admin can review and delete/redact/accept
+					 * whatever manually.*/
+					loci_client_send_connectmsg(pc,"banned","Couldn't connect.");
+					/* return will leave user hanging, break will load the default game. */
+					/* return(-1); */
 					break;
 			}
 		}
@@ -177,7 +184,7 @@ int loci_connect_requested_game(proxy_conn_t *pc) {
 		config->game_port,
 		(config->game_usessl)?1:0
 	);
-	loci_client_send_connectmsg(pc,"default","Default.");
+	loci_client_send_connectmsg(pc,"default","Connecting to server default.");
 
 	return(ret);
 

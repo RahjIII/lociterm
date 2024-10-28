@@ -1,7 +1,7 @@
 /* gamedb.c - <comment goes here> */
 /* Created: Sun Aug 18 10:43:34 AM EDT 2024 malakai */
 /* Copyright © 2024 Jeffrika Heavy Industries */
-/* $Id: gamedb.c,v 1.4 2024/10/27 04:28:55 malakai Exp $ */
+/* $Id: gamedb.c,v 1.5 2024/10/28 22:33:39 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -172,6 +172,8 @@ int game_db_init(char *filename) {
 	return(1);
 }
 
+
+/* this does not include numeric addresses. */
 int hostname_looks_valid(char *host) {
 
 	int someletter=0;
@@ -179,6 +181,11 @@ int hostname_looks_valid(char *host) {
 	if(!host) return(0);
 	if(!*host) return(0);
 	if(strlen(host) > 253) return(0);
+
+	if(hostname_looks_numeric(host)) {
+		return(1);
+	}
+
 	for(char *c=host;*c;c++) {
 		if( isalpha(*c) ) {
 			someletter++;
@@ -190,10 +197,30 @@ int hostname_looks_valid(char *host) {
 			) {
 				return(0);
 			}
-		}
+		} 
 	}
 	if(someletter == 0) {
 		return(0);
+	}
+	return(1);
+}
+
+/* what it says on the tin, but only in terms of characters. */
+int hostname_looks_numeric(char *host) {
+
+	int someletter=0;
+
+	if(!host) return(0);
+	if(!*host) return(0);
+	if(strlen(host) > 253) return(0);
+	for(char *c=host;*c;c++) {
+		if( !isxdigit(*c) ) {
+			if( (*c != '.') && 
+				(*c != ':')
+			) {
+				return(0);
+			}
+		}
 	}
 	return(1);
 }
@@ -284,6 +311,7 @@ int game_db_suggest(proxy_conn_t *pc, char *host, int port, int ssl) {
 	json_object *jobj=NULL;
 	json_object *lookup=NULL;
 	int dbstatus;
+	int retstatus;
 
 	/* downcase the hostname. */
 	for(char *c=host;*c;c++) {
@@ -299,63 +327,78 @@ int game_db_suggest(proxy_conn_t *pc, char *host, int port, int ssl) {
 	 * check again, because it is going into a sql statement as a string. */
 	
 	if( !hostname_looks_valid(host) ) {
+		/* this also means we aren't going to save the hostname in the db for
+		 * posterity, or try looking it up in the db.  Who knows what kind of
+		 * garbage it contains? */
 		locid_debug(DEBUG_DB,NULL,"The hostname '%s' doesn't look valid.",host);
 		return(DBSTATUS_BANNED);
 	}
 
-	if(!config->db_inuse) { 
-		/* Should still enforce port ban on db-less suggestion.*/
-		if(game_db_port_is_banned(port)) {
+	/* if the db is in use and contains this host and port, lets respect that
+	 * decision.  */
+	if(config->db_inuse) { 
+		if( (lookup=game_db_gamelookup(host,port,ssl)) ) {
+			dbstatus = json_object_get_int(json_object_object_get(lookup,"status"));
+			json_object_put(lookup);
+			/* if its in the database, return its status with no other checks.*/
+			return(dbstatus);
+		} else {
+			locid_debug(DEBUG_DB,NULL,"%s %d is a new db entry.",host,port);
+		}
+	}
+
+	/* lets take the default for new suggestions. */
+	dbstatus = config->db_suggestions;
+	
+	if(game_db_port_is_banned(port)) {
+		/* if the port is on the banned list, save this request to the db for
+		 * posterity as banned */
+		dbstatus = DBSTATUS_BANNED;
+	} 
+
+	if(hostname_looks_numeric(host)) {
+		/* This could be made into a configuration option too, but for now,
+		 * disallow numeric ip address hostnames.  Save them in the db for
+		 * posterity as banned and return banned. */
+		dbstatus = DBSTATUS_BANNED;
+	} 
+
+	/* if there's a protocol check that still needs doing , indicate that. */
+	if( (dbstatus == DBSTATUS_APPROVED) && (config->db_min_protocol > 0)) {
+		dbstatus = DBSTATUS_NOT_CHECKED;
+	}
+
+	/* update the db. */
+	if(config->db_inuse) { 
+
+		if ( (sqlite3_open(config->db_location, &db) != SQLITE_OK) ) {
+			locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
 			return(DBSTATUS_BANNED);
 		}
-		return(DBSTATUS_NOT_CHECKED);
-	}
 
-	/* it is already in the db? */
-	if( (lookup=game_db_gamelookup(host,port,ssl)) ) {
-		dbstatus = json_object_get_int(json_object_object_get(lookup,"status"));
-		json_object_put(lookup);
-		/* if its in the database, return its status with no other checks.*/
-		return(dbstatus);
-	} else {
-		locid_debug(DEBUG_DB,NULL,"%s %d is a new db entry.",host,port);
-	}
+		sqlstr = sqlite3_mprintf(
+			"INSERT INTO \
+				GAMEDB (suggested_by,host,port,ssl,status) \
+				VALUES (%Q,%Q,%d,%d,%d) \
+			;",
+			loci_get_client_hostname(pc),
+			host,port,ssl,
+			dbstatus
+		);
+				
+		if ( (sqlite3_exec(db, sqlstr, NULL, NULL, &errmsg)) != SQLITE_OK ) {
+			locid_debug(DEBUG_DB,NULL,"Ooops. %s",errmsg);
+			if(errmsg) sqlite3_free(errmsg);
+			sqlite3_free(sqlstr);
+			sqlite3_close(db);
+			return(DBSTATUS_BANNED);
+		}
 
-	if ( (sqlite3_open(config->db_location, &db) != SQLITE_OK) ) {
-		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
-		return(DBSTATUS_NOT_CHECKED);
-	}
-
-	/* if the port is on the banned list, add this request to the db for
-	 * posterity and mark it rejected. */
-	if(game_db_port_is_banned(port)) {
-		dbstatus = DBSTATUS_BANNED;
-	} else {
-		/* use the configured default value. */
-		dbstatus = config->db_suggestions;
-	}
-
-	sqlstr = sqlite3_mprintf(
-		"INSERT INTO \
-			GAMEDB (suggested_by,host,port,ssl,status) \
-			VALUES (%Q,%Q,%d,%d,%d) \
-		;",
-		loci_get_client_hostname(pc),
-		host,port,ssl,
-		dbstatus
-	);
-			
-	if ( (sqlite3_exec(db, sqlstr, NULL, NULL, &errmsg)) != SQLITE_OK ) {
-		locid_debug(DEBUG_DB,NULL,"Ooops. %s",errmsg);
-		if(errmsg) sqlite3_free(errmsg);
 		sqlite3_free(sqlstr);
 		sqlite3_close(db);
-		return(dbstatus);
 	}
 
-	sqlite3_free(sqlstr);
-	sqlite3_close(db);
-
+	/* and give an answer. */
 	return(dbstatus);
 
 }
