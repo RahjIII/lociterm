@@ -1,3 +1,30 @@
+SERVER DEVELOPMENT NOTES
+------------------------
+Generally, you only need to run make from the main lociterm directory.  This
+file contains locid server specific development notes that may (or may not)
+need integration into the docs.
+
+You can build ./locid in the server/src directory by typing `make` there.  It
+will also run from server/src if you create a local.conf file with appropriate
+file paths into the dist directory.  This is useful for developing in VIM,
+where the 'make' key is often bound to a single keystroke.  (Shift-M, in my
+environment.)  Note that if you make from inside the server/src directory, your
+./locid binary will NOT inherit the version string assigned to it from the
+toplevel makefile, and will probably be identified as a 2.x.0-dev build.
+
+To run under GDB, cd into server/src and run 
+
+gdb --args ./locid -c ./local.conf
+
+Debug flags are on by default, so symbols and source should be available within
+the debugger.  
+
+
+
+Random notes and reminders follow.  -jsj
+------------------------
+
+
 To build the loci demon - 
 cd src; make
 

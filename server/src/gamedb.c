@@ -1,7 +1,7 @@
 /* gamedb.c - <comment goes here> */
 /* Created: Sun Aug 18 10:43:34 AM EDT 2024 malakai */
 /* Copyright © 2024 Jeffrika Heavy Industries */
-/* $Id: gamedb.c,v 1.5 2024/10/28 22:33:39 malakai Exp $ */
+/* $Id: gamedb.c,v 1.6 2024/11/17 19:03:33 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -675,7 +675,7 @@ void game_db_list(int approved) {
 	game_db_status_t filter;
 
 	if(!config->db_inuse) { 
-		fprintf(stderr,"No DB in use.\n  Did you specify the right config file location?");
+		fprintf(stderr,"No DB in use.\n");
 		return;
 	}
 
@@ -745,6 +745,11 @@ void game_db_update(int id,game_db_status_t status) {
 	char *errmsg;
 	char *sqlstr = NULL;
 	int ret;
+
+	if(!config->db_inuse) { 
+		fprintf(stderr,"No DB in use.\n");
+		return;
+	}
 
 	if ( (ret=sqlite3_open(config->db_location, &db)) != SQLITE_OK ) {
 		locid_info(NULL,"Ooops.  %s",sqlite3_errmsg(db));

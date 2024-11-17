@@ -1,6 +1,34 @@
+CLIENT DEVELOPMENT NOTES
+------------------------
+Generally, you only need to run make from the main lociterm directory.  This
+file contains lociterm client specific development notes that may (or may not)
+need integration into the docs.  -jsj
+
+Webpack provides a really useful development mode for working on the client
+code that will push code changes into the browser instance as you work on the
+client source code.  To use it, you should first make a full build of lociterm
+from the main directory (one up from here), then cd into the server/src
+directory and create a locid config file named local.conf with appropriate
+settings.  Run a copy of ./locid from the src directory with `./locid -c
+local.conf` so that the locid server is up and available.  You might want to
+have a MUD running locally too.
+
+From a different window, cd into the client directory (this directory) and run
+`npm run serve`.  A new browser tab should open in that window for
+http://localhost:5001.  From in that window, hit F11 to open the development
+console, and keep the 'npm run serve' window going.  Now when you edit the
+client source code, that browser will get the updates whenever you write to the
+files without needing a rebuild.
+
+Note that the ./locid will still be serving its files out of the dist
+directory, so don't be confused if you connect to it from the usual port and
+don't see your updates yet!  You'll need to do a top level make, and restart
+./locid to see them.
+
+
+---------------------------------
 Notes on commands that have been run manually while setting up or reconfiguring
 the projcect.  -jsj
----------------------------------
 
 See: https://www.codeinwp.com/blog/webpack-tutorial-for-beginners/
 

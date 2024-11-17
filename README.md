@@ -89,6 +89,7 @@ menu set stored on the client system.  A forced connection URL might look like:
 
 This can be used to direct players to connect to a specific game that isn't the
 default for a particular LociTerm server.  
+
 (Note that the menu parameter should match the "name": of a menu, not the
 "label":.  Some of the built-in menu names are, "lastputpost", "diagonal",
 "telnet", and "none".  This list is subject to change.)
@@ -96,20 +97,55 @@ default for a particular LociTerm server.
 
 ## SERVER DOCS
 
-The server config file is installed as `/usr/local/etc/locid.conf` by default.  The server options are documented as comments in the config file.  
+The server config file is installed as `/usr/local/etc/locid.conf` by default.
+The server options are documented as comments in the config file.  
 
 CLI options to the server can be shown with `locid -h`  .
 
-       -c / --config        specify location of config file   
-       -d / --debug         run in debug mode   
-       -h / --help          this message   
-       -b / --browser       launch a browser   
-       -v / --version       show the version   
-       -a / --list-approved list approved games by id   
-       -l / --list-denied   list denied games by id   
-       -A / --approve <id>  Mark game approved   
-       -B / --ban <id>      Mark game banned   
-       -D / --delete <id>   Remove game from DB:w
+        -c / --config        specify location of config file
+        -d / --debug         run in debug mode
+        -h / --help          this message
+        -b / --browser       launch a browser
+        -v / --version       show the version
+        -a / --list-approved list approved games by id
+        -l / --list-denied   list denied games by id
+        -A / --approve <id>  Mark game approved
+        -R / --redact <id>   Mark game approved/redacted
+        -B / --ban <id>      Mark game banned
+        -D / --delete <id>   Remove game from DB
+
+If the config file location is not specified on the command file, locid looks
+for ~/.locid.conf, then /etc/locid.conf.
+
+The --browser option directs locid to open a browser window with xdg-open after
+the server starts, and is useful for running lociterm as a local client.  Locid
+will only accept connections coming from the local host when started in this
+mode.
+
+--list-approved and --list-denied show the contents of the locid database, if a
+database is specified in the config file.  The entries are listed by ID number,
+which is used by the approve/redact/ban/delete commands.  Note that as a
+safeguard, locid will NOT try to connect to sites in the database that have not
+been approved.  If a game suggestion did not pass the protocol and port tests,
+or if it did not connect for any reason, administrative action is needed to
+take the server off the --list-denied list before another connection attempt
+can be made.
+
+--approve allows the entry to appear in the db without any further security or
+protocol checks.  This is useful for adminstrative approval of a game that
+didn't pass the protocol or port checks, or was offline when it was suggested.
+
+--redact keeps the entry in the db and allows connections via the URL or
+suggestion UI without further security or protocol checks, but hides the entry
+from the public list.  This is useful for connections to development servers,
+or when reviewing suggestions of sites that failed auto-approval.
+
+--ban prevents locid from connecting to this entry.
+
+--delete removes the game from the db entirely.  If suggested again, the
+connection will go through the full security and protocol checks, and the game
+will be given a new ID.
+
 
 ## CLIENT DOCS
 

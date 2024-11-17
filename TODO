@@ -1,26 +1,31 @@
 ------- TODO for 2.1 release --------------
-* document the locid command line functions for DB managment.
+* document the locid command line functions for DB managment including redatction
 
-* implement the GMCP Loci.Menu protocol for game sending menu definitions to client
+* create a "player.locid.conf" file suggestion for ~/.locid.conf
 
 * change the "Diagonal" menu back to LPMud.  Make the "canned" menus
-	auto-select based on the MSSP family name.
-
-* work on cleaning up for home-dir install, so that locid -b works as a
- one-shot local launch without having to specify a -c config file.  (.lociterm
- dotfiles?)
+	auto-select based on the MSSP family name?
 
 * screenshots for PWA installer
 
+* the password entry field probably doesn't blank the nerfbar while in line mode, but it should.
+
+* comments around some of the nastier code bits, particularly the crummy js.
+
 ------- TODO TODO TODO TODO --------------
-- make a "this is a dev server" flag in the suggest window, that keeps the
-  server from SHOWING in the global list.  (I didn't make it "user selectable",
-  but I did add an adminstrative flag for it, DBSTATUS_REDACTED, to keep
-  certain hosts from showing up in the public offerings.)
+* implement the GMCP Loci.Menu protocol for game sending menu definitions to client
 
 * local mode function key editor?
 
 * General save settings per site?
+
+* Would be cool if the function keys "animated" on screen when they changed via
+	loci.hotkey, so that the player is more aware of it.
+
+* It might be cool to have the screen stay at a fixed width (from font size),
+	but also be able to do a pinch zoom and only have the term panel effected,
+	not the ui buttons.  so not pinch zoom of whole app, but just the xterm
+	pane.
 
 * change prompt menu action to print into the nerfbar if active.  send
   should send the nerfbar of the nerfbar (if any) without a newline then the
@@ -49,10 +54,6 @@
 
 * lociterm... talking to Play.Legendsofterris.Com 31000, got a lot of what
 	looked like oob gmcp?  figure that out.
-
-* BUG - is there some race condtition, or message fragmentation problem wrt
-	gmcp/env data making its way into the in-band datastream?  Is client GMCP
-	buffered correctly?
 
 * config option for verbose suggestion failure message to client.
 
@@ -88,6 +89,20 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
+- BUG - is there some race condtition, or message fragmentation problem wrt
+	gmcp/env data making its way into the in-band datastream?  Is client GMCP
+	buffered correctly? (No, I don't think so.  I believe I was seeing was LO
+	improperly inserting system notifications into the GMCP data stream)
+
++ work on cleaning up for home-dir install, so that locid -b works as a
+ one-shot local launch without having to specify a -c config file.  (.lociterm
+ dotfiles?)
+
+- make a "this is a dev server" flag in the suggest window, that keeps the
+  server from SHOWING in the global list.  (I didn't make it "user selectable",
+  but I did add an adminstrative flag for it, DBSTATUS_REDACTED, to keep
+  certain hosts from showing up in the public offerings.)
+
 + clean up the menu format keywords and document them.
 
 + add img format to menus.

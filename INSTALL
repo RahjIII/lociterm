@@ -30,16 +30,26 @@ sudo make install
 
 2. Building LOciTerm
 --------------------
+cd into the directory where you found this INSTALL file.
 
-To build type `make` in this directory.
+LociTerm will install into /usr/local by default.  If you want it somewhere
+else, edit the makefile.  (you may also have to edit lociterm.service use the
+correct paths)
 
-Then "make install".
+To build type "make".
+
+The makefile will run npm to install the packages required by the client, build
+the lociterm javascript client files, and then locid proxy binary.  
+
+Assuming all went well... Then "make install".
 
 "make certs" to make some self signed ones if you don't have real ones.
 
 "make systemd" to make locid run as lociterm.service
 
-Edit the locid.conf config file per the comments.
+Edit the locid.conf file (installed as /usr/local/etc/locid.conf by default)
+and edit any parameters as described in the config file.
+
 
 3. Proxy rules for apache2
 --------------------------

@@ -167,13 +167,46 @@
 					"id": "hotkey_f11",
 					"hotkey": true,
 					"label": "Key F11",
-					"send": "\u001b[22~"
+					"send": "\u001b[23~"
 				},
 				{
 					"id": "hotkey_f12",
 					"hotkey": true,
 					"label": "Key F12",
-					"send": "\u001b[23~"
+					"send": "\u001b[24~"
+				},
+				{
+					"label": "More",
+					"open": "menu_hotkeyPgUptoEnd"
+				}
+			]
+		},
+		{
+			"id": "menu_hotkeyPgUptoEnd",
+			"item" : [
+				{
+					"id": "hotkey_pgup",
+					"hotkey": true,
+					"label": "Key PgUp",
+					"send": "\u001B[5~"
+				},
+				{
+					"id": "hotkey_pgdn",
+					"hotkey": true,
+					"label": "Key PgDn",
+					"send": "\u001b[6~"
+				},
+				{
+					"id": "hotkey_home",
+					"hotkey": true,
+					"label": "Key Home",
+					"send": "\u001b[7~"
+				},
+				{
+					"id": "hotkey_end",
+					"hotkey": true,
+					"label": "Key End",
+					"send": "\u001b[8~"
 				},
 				{
 					"label": "Hotkey",

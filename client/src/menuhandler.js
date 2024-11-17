@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.35 2024/10/25 15:51:20 malakai Exp $
+// $Id: menuhandler.js,v 1.36 2024/11/17 19:03:33 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -26,11 +26,11 @@ import LOIcon from './img/lociterm512x512.png';
 import TerminalIcon from './img/bezeltermicon192.png';
 import * as ObjDeep from './objdeep.js';
 
-// kinda silly listing these menus seperately but hey...
-import SystemMenu from './system_menu.json';
-import LoMenu from './lo_menu.json';
-import DiagonalMenu from './diagonal_menu.json';
-import TelnetMenu from './telnet_menu.json';
+// kinda silly listing these menus seperately but hey, this is webpack.
+import SystemMenu from './menu/system_menu.json';
+import LoMenu from './menu/lo_menu.json';
+import DiagonalMenu from './menu/diagonal_menu.json';
+import TelnetMenu from './menu/telnet_menu.json';
 
 import PackageData from '../package.json';
 
@@ -314,7 +314,7 @@ class MenuHandler {
 				img.classList.add('menuicon');
 				container.appendChild(img);
 				img.src = item.img;
-				img.onerror = ((e)=>{ e.currentTarget.src = TerminalIcon; });
+				img.onerror = ((e)=>{ e.currentTarget.onerror=null; e.currentTarget.src = TerminalIcon; });
 			}
 
 			box.appendChild(container);
@@ -531,7 +531,7 @@ class MenuHandler {
 		l.classList.add('siteicon');
 		l.id=`${overlay.id}_icon`;
 		l.src = LOIcon;
-		l.onerror = ((e)=>{ e.currentTarget.src = TerminalIcon; });
+		l.onerror = ((e)=>{ e.currentTarget.onerror=null; e.currentTarget.src = TerminalIcon; });
 		cdiv.appendChild(l);
 
 		l = document.createElement('figcaption');

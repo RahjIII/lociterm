@@ -36,7 +36,12 @@ module.exports = {
 					transform (content, path) {
 						return modify(content)
 					}
-				}
+				},
+				{
+					from: "./src/menu",
+					to: "menu",
+					force: true
+				},
 			]
 			}
 		)

@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.21 2024/10/27 04:28:55 malakai Exp $ */
+/* $Id: locid.c,v 1.22 2024/11/17 19:03:33 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -161,7 +161,8 @@ struct locid_conf *new_config(char *filename) {
 	gkf = g_key_file_new();
 
 	if(!g_key_file_load_from_file(gkf,filename,G_KEY_FILE_NONE,NULL)){
-		fprintf(stderr,"Couldn't read config file %s\n",CONFIG_FILE);
+		fprintf(stderr,"Ooops! Can't read config file '%s'\n",filename);
+		return(NULL);
 	}
 
 	/* set config file variables */
@@ -178,7 +179,14 @@ struct locid_conf *new_config(char *filename) {
 	c->log_file = g_key_file_get_string(gkf, "locid", "log-file", NULL);
 	c->vhost_name = get_conf_string(gkf, "locid", "vhost_name", "localhost");
 	c->mountpoint = get_conf_string(gkf, "locid", "mountpoint", "/");
-	c->origin = get_conf_string(gkf, "locid", "origin", "/var/www/loci");  /* shrug */
+	c->origin = get_conf_string(gkf, "locid", "origin", ""); 
+	if( !strcmp(c->origin,"") ) {
+		fprintf(stderr,"Ooops! Can't find '[locid] origin' in '%s'.\n",filename);
+		free(c);
+		g_key_file_free(gkf);
+		return(NULL);
+	}
+
 	c->default_doc = get_conf_string(gkf, "locid", "default_doc", "index.html");
 
 	c->client_security = get_conf_string(gkf,"client","security","none");
@@ -189,7 +197,7 @@ struct locid_conf *new_config(char *filename) {
 	if(!strcasecmp("ssl",c->game_security)) {
 		c->game_usessl = 1;
 	}
-	c->game_host = get_conf_string(gkf,"game","host","::");
+	c->game_host = get_conf_string(gkf,"game","host","localhost");
 	c->game_service = get_conf_string(gkf,"game","service","4000");
 	if ( !(c->game_port = atoi(c->game_service)) ) {
 		if( (srv = getservbyname(c->game_service,"tcp")) ) {
@@ -205,7 +213,8 @@ struct locid_conf *new_config(char *filename) {
 	c->chain_file = get_conf_string(gkf,"ssl","chain","");
 	c->locid_proxy_name = get_proxy_name();
 
-	c->db_engine = get_conf_string(gkf, "game-db", "engine", "sqlite3");
+	/* c->db_engine = get_conf_string(gkf, "game-db", "engine", "sqlite3"); */
+	c->db_engine = get_conf_string(gkf, "game-db", "engine", "none");
 	c->db_location = get_conf_string(gkf, "game-db", "location", "locid.db");
 
 	tmpstr = get_conf_string(gkf, "game-db", "suggestions", "open");
@@ -218,7 +227,8 @@ struct locid_conf *new_config(char *filename) {
 	}
 	free(tmpstr);
 
-	tmpstr = get_conf_string(gkf, "game-db", "min_protocol", "mud");
+	/*tmpstr = get_conf_string(gkf, "game-db", "min_protocol", "mud"); */
+	tmpstr = get_conf_string(gkf, "game-db", "min_protocol", "none");
 	if (!strcasecmp(tmpstr,"mssp")) {
 		c->db_min_protocol = CHECK_MSSP;
 	} else if (!strcasecmp(tmpstr,"mud")) {
@@ -297,6 +307,7 @@ int main(int argc, char **argv) {
 	char *s;
 	char buf[1024];
 	sigset_t mask;
+	char filename[PATH_MAX];
 
 	static const struct lws_protocol_vhost_options pvo_mime = {
 		NULL,				/* "next" pvo linked-list */
@@ -397,11 +408,27 @@ int main(int argc, char **argv) {
 		lws_set_log_level(lwslogs, (lws_log_emit_t)locid_log_lws);
 	}
 
+	/* there was no config provided on the command line?  */
 	if(configfilename == NULL) {
-		configfilename = CONFIG_FILE;
+		/* check if a ~/.locid.conf exists.*/
+		const gchar *homedir;
+		if( (homedir = g_get_home_dir()) ) {
+			g_snprintf(filename,sizeof(filename),"%s/.locid.conf",homedir);
+			FILE *t;
+			if((t = fopen(filename,"r"))) {
+				/* ~/.locid.conf exists! */
+				configfilename = filename;
+				fclose(t);
+			} else {
+				/* try the one in CONFIG_FILE. */
+				configfilename = CONFIG_FILE;
+			}
+		}
 	}
 
-	config = new_config(configfilename);
+	if (! (config = new_config(configfilename)) ) {
+		exit(EXIT_FAILURE);
+	}
 	locid_log_init(config->log_file);
 
 	/* init the database. */

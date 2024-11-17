@@ -1,8 +1,8 @@
-# $Id: makefile,v 1.17 2024/10/28 22:33:39 malakai Exp $
+# $Id: makefile,v 1.18 2024/11/17 19:03:32 malakai Exp $
 #
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.17 2024/10/28 22:33:39 malakai Exp $
+# $Id: makefile,v 1.18 2024/11/17 19:03:32 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -24,7 +24,7 @@
 
 # This one location controls the version string that appears in the client,
 # server, and archive files!
-LOCITERM_VERSION = 2.0.6
+LOCITERM_VERSION = 2.0.7
 #
 
 # #### Variable definitions ####
@@ -42,6 +42,7 @@ TARFILE = ../lociterm_$(LOCITERM_VERSION).tgz
 $(info ---------- START OF BUILD -----------)
 all : $(BUILD) $(NPM) server client
 	$(info ---------- END OF BUILD --- SUCCESS! -----------)
+	@echo ---- Run \`make install\` as root to install into $(INSTALL)
 
 .PHONY : server
 server : $(BUILD)
