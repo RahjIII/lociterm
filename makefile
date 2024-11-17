@@ -1,8 +1,8 @@
-# $Id: makefile,v 1.18 2024/11/17 19:03:32 malakai Exp $
+# $Id: makefile,v 1.19 2024/11/17 19:37:25 malakai Exp $
 #
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.18 2024/11/17 19:03:32 malakai Exp $
+# $Id: makefile,v 1.19 2024/11/17 19:37:25 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -40,7 +40,7 @@ TARFILE = ../lociterm_$(LOCITERM_VERSION).tgz
 # #### Recipies Start Here ####
 
 $(info ---------- START OF BUILD -----------)
-all : $(BUILD) $(NPM) server client
+all : $(BUILD) $(NPM) server client distlauncher
 	$(info ---------- END OF BUILD --- SUCCESS! -----------)
 	@echo ---- Run \`make install\` as root to install into $(INSTALL)
 
@@ -55,6 +55,11 @@ client : $(NPM) $(BUILD)
 	cd $(CLIENTDIR); npm version --allow-same-version $(LOCITERM_VERSION)
 	cd $(CLIENTDIR); npm run build
 	cp -r $(CLIENTDIR)/dist/* $(BUILD)/var/www/lociterm
+
+.PHONY : distlauncher
+distlauncher : $(BUILD) server/lociterm.sh
+	cp server/lociterm.sh lociterm
+	chmod +x lociterm
 
 # Create run directory...
 $(BUILD) : 
@@ -81,6 +86,7 @@ cert : $(BUILD)
 clean : 
 	cd $(SERVERDIR)/src; make clean
 	cd $(CLIENTDIR); npm run clean
+	rm lociterm
 
 .PHONY : install
 install :
