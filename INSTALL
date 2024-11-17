@@ -41,11 +41,21 @@ To build type "make".
 The makefile will run npm to install the packages required by the client, build
 the lociterm javascript client files, and then locid proxy binary.  
 
-Assuming all went well... Then "make install".
+Assuming all went well... 
+
+The build will place a test launcher into the top level directory that uses a
+set of default server options.  Try running "./lociterm" to test launching
+lociterm on port 4500.  The launcher should also open a new browser window or
+tab to the correct url.  Lociterm will try to connect to a default game running
+on localhost 4000.
+
+If that worked, great!
+
+To install lociterm on the system, do "make install".
 
 "make certs" to make some self signed ones if you don't have real ones.
 
-"make systemd" to make locid run as lociterm.service
+"make systemd" to make locid run as lociterm.service at boot time.
 
 Edit the locid.conf file (installed as /usr/local/etc/locid.conf by default)
 and edit any parameters as described in the config file.
