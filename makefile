@@ -1,8 +1,8 @@
-# $Id: makefile,v 1.19 2024/11/17 19:37:25 malakai Exp $
+# $Id: makefile,v 1.20 2024/11/17 20:23:23 malakai Exp $
 #
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.19 2024/11/17 19:37:25 malakai Exp $
+# $Id: makefile,v 1.20 2024/11/17 20:23:23 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -105,6 +105,6 @@ systemd:
 .PHONY : tar
 tar :
 	$(info --- Tar file create ----)
-	tar -cvz --exclude-vcs --exclude-from=.exclude  -f $(TARFILE) .
+	tar -C .. -cvz --exclude-vcs --exclude-from=.exclude  -f $(TARFILE) lociterm
 	@echo
 	@echo ---- Tar File is $(TARFILE) ----
