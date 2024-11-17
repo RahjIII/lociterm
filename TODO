@@ -1,8 +1,4 @@
 ------- TODO for 2.1 release --------------
-* document the locid command line functions for DB managment including redatction
-
-* create a "player.locid.conf" file suggestion for ~/.locid.conf
-
 * change the "Diagonal" menu back to LPMud.  Make the "canned" menus
 	auto-select based on the MSSP family name?
 
@@ -13,6 +9,9 @@
 * comments around some of the nastier code bits, particularly the crummy js.
 
 ------- TODO TODO TODO TODO --------------
+* implement a 'word click' stack function to integrate into menus, to speed up
+	select/paste from words on the screen.
+
 * implement the GMCP Loci.Menu protocol for game sending menu definitions to client
 
 * local mode function key editor?
@@ -89,6 +88,10 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ document the locid command line functions for DB managment including redatction
+
+- create a "player.locid.conf" file suggestion for ~/.locid.conf
+
 - BUG - is there some race condtition, or message fragmentation problem wrt
 	gmcp/env data making its way into the in-band datastream?  Is client GMCP
 	buffered correctly? (No, I don't think so.  I believe I was seeing was LO
