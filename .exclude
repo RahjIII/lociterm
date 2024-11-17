@@ -1,3 +1,3 @@
-./dist
-./client/node_modules
-./server/src/build
+lociterm/dist
+lociterm/client/node_modules
+lociterm/server/src/build
