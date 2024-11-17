@@ -1,8 +1,8 @@
-# $Id: makefile,v 1.20 2024/11/17 20:23:23 malakai Exp $
+# $Id: makefile,v 1.21 2024/11/17 20:29:42 malakai Exp $
 #
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.20 2024/11/17 20:23:23 malakai Exp $
+# $Id: makefile,v 1.21 2024/11/17 20:29:42 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -42,7 +42,8 @@ TARFILE = ../lociterm_$(LOCITERM_VERSION).tgz
 $(info ---------- START OF BUILD -----------)
 all : $(BUILD) $(NPM) server client distlauncher
 	$(info ---------- END OF BUILD --- SUCCESS! -----------)
-	@echo ---- Run \`make install\` as root to install into $(INSTALL)
+	@echo ---- Run \`./lociterm\` to test out the build, then
+	@echo ---- run \`make install\` as root to install into $(INSTALL)
 
 .PHONY : server
 server : $(BUILD)
