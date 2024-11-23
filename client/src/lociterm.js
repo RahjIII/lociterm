@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.40 2024/11/23 16:33:25 malakai Exp $
+// $Id: lociterm.js,v 1.41 2024/11/23 16:59:09 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -342,8 +342,9 @@ class LociTerm {
 
 	onSelectionChange(data) {
 		let selection = this.terminal.getSelection();
-		this.wordstack.addSelection(selection);
-		this.wordstack.openMenu();
+		if (this.wordstack.addSelection(selection)) {
+			this.wordstack.openMenu();
+		}
 	}
 
 	paste(data) {

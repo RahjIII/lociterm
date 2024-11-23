@@ -1,6 +1,6 @@
 // wordstack.js - keep track of clicked upon words.
 // Created: Tue Nov 19 09:51:03 PM EST 2024
-// $Id: wordstack.js,v 1.1 2024/11/23 16:33:25 malakai Exp $
+// $Id: wordstack.js,v 1.2 2024/11/23 16:59:09 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -37,7 +37,7 @@ class WordStack {
 
 		let words = selection.split(" ");
 		if(words.length !== 1) {
-			return;
+			return(false);
 		}
 
 		selection = words[0].toLowerCase();  // just the first word, thanks!
@@ -50,7 +50,7 @@ class WordStack {
 		while( punctuation.includes(selection[selection.length-1])) {
 			selection = selection.slice(0,-1);
 		}
-		if(selection === "") return;
+		if(selection === "") return(false);
 
 		let lastselection = this.stack[this.stack.length -1];
 		if(selection !== lastselection) {
@@ -60,6 +60,7 @@ class WordStack {
 			}
 			this.updateMenu();
 		}
+		return(true);
 	}
 
 	getSelection(offset) {
@@ -76,7 +77,7 @@ class WordStack {
 	openMenu() {
 		if(this.stack.length == 0) {
 			this.lociterm.menuhandler.update_oob_message(
-				"Double-tap on a word to select it."
+				"📋︎ Double-tap on a word to select it."
 			);
 			return;
 		}
@@ -86,7 +87,7 @@ class WordStack {
 	toggleMenu() {
 		if(this.stack.length == 0) {
 			this.lociterm.menuhandler.update_oob_message(
-				"Double-tap a word to add."
+				"📋︎ Double-tap a word to add."
 			);
 			return;
 		}
