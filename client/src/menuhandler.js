@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.36 2024/11/17 19:03:33 malakai Exp $
+// $Id: menuhandler.js,v 1.37 2024/11/23 16:33:25 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -150,10 +150,31 @@ class MenuHandler {
 		}
 	};
 
-	// send and done.
+	// send keys through the nerfbar, or the terminal as required.
 	send(keys) {
 		this.done();
-		this.lociterm.paste(keys);
+		if(this.lociterm.nerfbar.nerfstate === 'active') {
+			this.lociterm.nerfbar.paste(keys);
+		} else {
+			this.lociterm.paste(keys);
+		}
+	}
+
+	// send hotkey bytes directly to the terminal, or route a hotkey's "send"
+	// definition through the nerfbar infrastructure.
+	hotkey(id) {
+		this.done();  // close the hotkey menu.
+		/* if the hotkey exists in the menu system... */
+		if( this.hotkeys[id] === undefined ) {
+			return;
+		}
+		/* if it has a .send value, route that through the terminal or nerfbar. */
+		if(this.hotkeys[id].send !== undefined) {
+			this.send(this.hotkeys[id].send);
+			return;
+		}
+		/* otherwise paste the keystroke directly into the terminal. */
+		this.lociterm.paste(this.hotkeys[id].hotkey);
 	}
 
 	prompt(keys) {
@@ -211,8 +232,9 @@ class MenuHandler {
 		if( (this.lociterm.gmcp.charLoginRequested == true) ) {
 			this.lociterm.gmcp.sendCharLoginCredentials(username,password);
 		} else {
-			setTimeout(()=>this.send(`${username}\n`),0);
-			setTimeout(()=>this.send(`${password}\n`),250);
+			// don't route it through the nerfbar, paste directly to the terminal.
+			setTimeout(()=>this.lociterm.paste(`${username}\n`),0);
+			setTimeout(()=>this.lociterm.paste(`${password}\n`),250);
 		}
 
 		return;
@@ -268,15 +290,6 @@ class MenuHandler {
 
 		let buttons = menubox.buttons;
 
-		// Keywords
-		//	name
-		//	menubar
-		//	class
-		//	svgid
-		//	color
-		//	background
-		//	text
-
 		for(let i=0; i<buttons.length; i++) {
 			let item = buttons[i];
 			let container = document.createElement('div');
@@ -285,7 +298,7 @@ class MenuHandler {
 			if ( item.menubar != undefined ) {
 				container.onclick = () => this.start(item.menubar);
 			} else if ( item.send != undefined ) {
-				container.onclick = () => this.send(item.send);
+				container.onclick = (e) => { this.send(item.send); }
 			}
 
 			if( item.color !== undefined) {
@@ -370,7 +383,18 @@ class MenuHandler {
 					s.classList.add('send');
 					s.innerText = item.prompt + "...";
 					s.onclick = () => this.prompt(item.prompt);
+				} 
+				// wordstack action overrides any open or send.
+				if (item.wordstack != undefined) {
+					s.classList.add('open');
+					if(item.wordstack === "") {
+						s.innerText = "Select";
+					} else {
+						s.innerText = item.wordstack; 
+					}
+					s.onclick = () => this.lociterm.wordstack.openMenu();
 				}
+
 				if( item.color !== undefined) {
 					s.style.color = item.color;
 				}
@@ -384,7 +408,10 @@ class MenuHandler {
 				}
 
 				if (item.hotkey != undefined) {
+					s.classList.add('send');
+					s.classList.add('hotkey');
 					this.hotkeys[item.id] = item;
+					s.onclick = () => this.hotkey(item.id);
 				}
 
 				if ( item.disconnect != undefined ) {
@@ -489,7 +516,7 @@ class MenuHandler {
 		let l;
 		let cdiv;
 		let divstack = [];
-		let id = "menu_loginbox";
+		let id = "sys_loginbox";
 
 		let overlay = document.createElement('div');
 		overlay.id=id;
@@ -519,7 +546,7 @@ class MenuHandler {
 			this.done()
 		} );
 		l.classList.add('close');
-		l.title = "Close menu_loginbox";
+		l.title = "Close sys_loginbox";
 		l.innerText = "×";
 
 		l = document.createElement('figure');
@@ -602,7 +629,7 @@ class MenuHandler {
 			()=> {
 				this.saveLogin();
 				this.sendlogin();
-				this.close("menu_loginbox")
+				this.close("sys_loginbox")
 				this.lociterm.focus();
 			}
 		);
@@ -715,7 +742,7 @@ class MenuHandler {
 		let l;
 		let nerf;
 
-		let menuname = "menu_settings";
+		let menuname = "sys_settings";
 
 		overlay = document.createElement('div');
 		overlay.id=menuname;
@@ -727,9 +754,9 @@ class MenuHandler {
 
 		l = document.createElement('span');
 		box.appendChild(l);
-		l.onclick = (()=>this.done("menu_settings"));
+		l.onclick = (()=>this.done("sys_settings"));
 		l.classList.add('close');
-		l.title = "Close menu_loginbox";
+		l.title = "Close sys_loginbox";
 		l.innerText = "×";
 
 		l = this.create_generic_selector(
@@ -876,7 +903,7 @@ class MenuHandler {
 
 	create_filters() {
 		let item;
-		let menuname = "menu_filters";
+		let menuname = "sys_filters";
 
 		let overlay = document.createElement('div');
 		overlay.id=menuname;
@@ -890,10 +917,10 @@ class MenuHandler {
 		box.appendChild(l);
 		l.onclick = (()=> {
 			this.lociterm.crtfilter.save();
-			this.done("menu_filters")
+			this.done("sys_filters")
 		});
 		l.classList.add('close');
-		l.title = "Close menu_filters";
+		l.title = "Close sys_filters";
 		l.innerText = "×";
 
 		item = document.createElement('label');
@@ -958,7 +985,7 @@ class MenuHandler {
 		let cdiv;
 		let divstack = [];
 
-		let elementid = `menu_about`;
+		let elementid = `sys_about`;
 
 		let divs = this.create_generic_window(
 			elementid,
@@ -1028,7 +1055,7 @@ class MenuHandler {
 		let divstack = [];
 		var pgrfs;
 
-		let elementid = `menu_disclaimer`;
+		let elementid = `sys_disclaimer`;
 
 		let divs = this.create_generic_window(
 			elementid,
@@ -1155,7 +1182,7 @@ class MenuHandler {
 		let divstack = [];
 
 		let overlay = document.createElement('div');
-		overlay.id='menu_connect';
+		overlay.id='sys_connect';
 		overlay.classList.add('overlay');
 		divstack.push(overlay);
 		container = overlay;
@@ -1201,7 +1228,7 @@ class MenuHandler {
 		let elem;
 		elem = document.getElementById("connect_status");
 		elem.innerText = msg;
-		this.open("menu_connect");
+		this.open("sys_connect");
 	}
 
 	create_oob_message() {
@@ -1211,7 +1238,7 @@ class MenuHandler {
 		let divstack = [];
 
 		let overlay = document.createElement('div');
-		overlay.id='menu_oob_message';
+		overlay.id='sys_oob_message';
 		overlay.classList.add('overlay');
 		divstack.push(overlay);
 		container = overlay;
@@ -1250,7 +1277,7 @@ class MenuHandler {
 		let elem;
 		elem = document.getElementById("oob_status");
 		elem.innerText = msg;
-		this.open("menu_oob_message");
+		this.open("sys_oob_message");
 	}
 
 	event_print(e) {

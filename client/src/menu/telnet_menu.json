@@ -6,7 +6,7 @@
 		"buttons": [
 			{
 				"name": "Hotkey",
-				"menubar": "menu_hotkey",
+				"menubar": "sys_hotkey",
 				"text": "✨",
 				"color": "Yellow"
 			},

@@ -1,6 +1,7 @@
 :root {
 	--nerfbar-open-display: flex;
 	--nerfbar-close-display: none;
+	--nerfbar-offsetHeight: none;
 }
 
 #nerfbar {
@@ -53,6 +54,7 @@
 
 .nerfbutton {
 	min-height: var(--finger-size);
+	max-height: var(--finger-size);
 	min-width: var(--finger-size);
 	font-size: calc(var(--finger-size)*.75);
 	border-radius: calc(var(--finger-size)/3.0);
@@ -71,3 +73,4 @@
 	border-color: var(--book-cover-color);
 	border-style: solid;
 }
+

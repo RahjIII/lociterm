@@ -1,6 +1,6 @@
 // connect.js - direct connection window
 // Created: Mon Aug  5 08:54:28 AM EDT 2024
-// $Id: connect.js,v 1.8 2024/10/25 15:51:20 malakai Exp $
+// $Id: connect.js,v 1.9 2024/11/23 16:33:25 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -37,14 +37,14 @@ class ConnectGame {
 		this.aboutgame = undefined;
 
 		this.menuhandler.mydiv.appendChild(
-			this.create_connect_direct("menu_connect_direct")
+			this.create_connect_direct("sys_connect_direct")
 		);
 
 		this.menuhandler.mydiv.appendChild(
-			this.create_game_select("menu_game_select")
+			this.create_game_select("sys_game_select")
 		);
 		this.menuhandler.openHandler.set(	
-			"menu_game_select", 
+			"sys_game_select", 
 			() => { 
 				this.wants_to_select = true;
 				this.lociterm.requestGameList(); 
@@ -52,10 +52,10 @@ class ConnectGame {
 		);
 
 		this.menuhandler.mydiv.appendChild(
-			this.create_game_about("menu_game_about")
+			this.create_game_about("sys_game_about")
 		);
 		this.menuhandler.openHandler.set(	
-			"menu_game_about", 
+			"sys_game_about", 
 			() => { 
 				this.about_game_open(); 
 			}
@@ -201,7 +201,7 @@ class ConnectGame {
 		);
 
 		this.menuhandler.openHandler.set(
-			"menu_game_select", 
+			"sys_game_select", 
 			() => { 
 				document.getElementById(`${elementid}_hostname_input`).value = this.host;
 				document.getElementById(`${elementid}_port_input`).value = this.port;
@@ -285,7 +285,7 @@ class ConnectGame {
 		l.onclick = (
 			()=> {
 				this.menuhandler.close(this.elementid);
-				this.menuhandler.open("menu_connect_direct");
+				this.menuhandler.open("sys_connect_direct");
 				this.wants_to_select = false;
 			}
 		);
@@ -296,7 +296,7 @@ class ConnectGame {
 	// update the list of games in the UI.
 	update_game_select(gamedata) {
 
-		let gdiv = document.getElementById("menu_game_select_gamelist");
+		let gdiv = document.getElementById("sys_game_select_gamelist");
 		// Delete all of the items, we're replacing them with what's in the
 		// gamedata object.
 		gdiv.innerText = "";
@@ -382,7 +382,7 @@ class ConnectGame {
 		this.in_use = true;
 		//this.menuhandler.voidLoginAutologin();
 		this.menuhandler.loadLogin();
-		this.menuhandler.close("menu_game_select");
+		this.menuhandler.close("sys_game_select");
 		this.lociterm.resetTerm();
 		this.lociterm.reconnect_key = "";
 		this.lociterm.doConnectGame();
@@ -392,7 +392,7 @@ class ConnectGame {
 	about_gamerow(rownumber) {
 		let game = this.gamelist[rownumber];
 		this.wants_to_select = false;
-		this.menuhandler.open("menu_game_about");
+		this.menuhandler.open("sys_game_about");
 		this.aboutgame = undefined;
 		this.update_game_about(game);  // give it what you've already got.
 		this.lociterm.requestGameInfo(game);
@@ -473,7 +473,7 @@ class ConnectGame {
 		l.innerText = "Connect";
 		l.onclick = (
 			()=> {
-				this.menuhandler.close('menu_game_about');
+				this.menuhandler.close('sys_game_about');
 			}
 		);
 
@@ -500,7 +500,7 @@ class ConnectGame {
 			}
 		}
 
-		let id = "menu_game_about";
+		let id = "sys_game_about";
 		cdiv = document.getElementById(`${id}_imgcontainer`);
 
 		cdiv.innerText = "";

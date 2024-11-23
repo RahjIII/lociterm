@@ -1,6 +1,6 @@
 /* connect.c - <comment goes here> */
 /* Created: Sun Aug  4 10:09:40 PM EDT 2024 malakai */
-/* $Id: connect.c,v 1.4 2024/10/28 22:33:39 malakai Exp $ */
+/* $Id: connect.c,v 1.5 2024/11/23 16:33:25 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -231,6 +231,7 @@ int loci_connect_to_game_host(proxy_conn_t *pc, char *hostname, int port, int ss
 		info.ssl_connection = 0;
 	}
 
+	info.protocol = "";
 	info.local_protocol_name = "loci-game";
 	/* also mark this onward conn with the proxy_conn.  This is take from
 	 * the lws example code.  probably should be lws_set_opaque_user_data()

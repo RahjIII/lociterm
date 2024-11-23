@@ -21,7 +21,7 @@
 			},
 			{
 				"name": "Hotkey",
-				"menubar": "menu_hotkey",
+				"menubar": "sys_hotkey",
 				"Xtext": "⚡",
 				"text": "✨",
 				"color": "Yellow"
@@ -171,6 +171,11 @@
 			"id": "menu_position",
 			"item" : [
 				{
+					"label": "kill ...",
+					"send": "kill ",
+					"open": "sys_wordstack"
+				},
+				{
 					"send": "stand\n"
 				},
 				{
@@ -178,10 +183,6 @@
 				},
 				{
 					"send": "rest\n"
-				},
-				{
-					"label": "Eat & Drink",
-					"send": "eat\ndrink\n"
 				},
 				{
 					"send": "wake\n"

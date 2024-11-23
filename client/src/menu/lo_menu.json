@@ -84,7 +84,7 @@
 			},
 			{
 				"name": "Hotkey",
-				"menubar": "menu_hotkey",
+				"menubar": "sys_hotkey",
 				"svgclass": "ansi12",
 				"svgid": "flash"
 			},
@@ -226,12 +226,12 @@
 				{
 					"label": "Look ...",
 					"send": "look ",
-					"open": "menu_pronoun"
+					"open": "sys_pronoun"
 				},
 				{
 					"label": "Consider ...",
 					"send": "consider ",
-					"open": "menu_pronoun"
+					"open": "sys_pronoun"
 				},
 				{
 					"send": "scan\n"
@@ -242,100 +242,6 @@
 				},
 				{
 					"send": "who\n"
-				}
-			]
-		},
-		{
-			"id": "menu_look",
-			"item" : [
-				{
-					"label": "Look",
-					"send": "look\n"
-				},
-				{
-					"label": "Look ...",
-					"send": "look ",
-					"open": "menu_pronoun"
-				},
-				{
-					"label": "Consider ...",
-					"send": "consider ",
-					"open": "menu_pronoun"
-				},
-				{
-					"label": "Scan",
-					"send": "scan\n"
-				},
-				{
-					"label": "Listen",
-					"send": "listen\n"
-				},
-				{
-					"label": "who",
-					"send": "last\n"
-				}
-			]
-		},
-		{
-			"id": "menu_pronoun",
-			"item" : [
-				{
-					"label": "It",
-					"send": "it\n"
-				},
-				{
-					"label": "Who",
-					"open": "menu_who"
-				},
-				{
-					"label": "What",
-					"open": "menu_what"
-				},
-				{
-					"label": "...",
-					"prompt": ""
-				}
-			]
-		},
-		{
-			"id": "menu_who",
-			"item" : [
-				{
-					"label": "Me",
-					"send": "me\n"
-				},
-				{
-					"label": "Friend",
-					"send": "frend\n"
-				},
-				{
-					"label": "Foe",
-					"send": "foe\n"
-				},
-				{
-					"label": "...",
-					"prompt": ""
-				}
-			]
-		},
-		{
-			"id": "menu_what",
-			"item" : [
-				{
-					"label": "It",
-					"send": "it\n"
-				},
-				{
-					"label": "This",
-					"send": "this\n"
-				},
-				{
-					"label": "That",
-					"send": "that\n"
-				},
-				{
-					"label": "...",
-					"prompt": ""
 				}
 			]
 		},
@@ -374,6 +280,11 @@
 				{
 					"label": "Kill Foe",
 					"send": "kill foe\n"
+				},
+				{
+					"label": "Kill ...",
+					"send": "kill ",
+					"open": "sys_who"
 				},
 				{
 					"label": "Assist",
@@ -451,17 +362,17 @@
 				{
 					"label": "Swap ...",
 					"send": "swap ",
-					"open": "menu_pronoun"
+					"open": "sys_pronoun"
 				},
 				{
 					"label": "Drop ...",
 					"send": "drop ",
-					"open": "menu_pronoun"
+					"open": "sys_pronoun"
 				},
 				{
 					"label": "Get ...",
 					"send": "get ",
-					"open": "menu_pronoun"
+					"open": "sys_pronoun"
 				}
 			]
 		},
@@ -485,7 +396,7 @@
 				{
 					"label": "Get ...",
 					"send": "get ",
-					"open": "menu_pronoun"
+					"open": "sys_pronoun"
 				}
 			]
 		},
@@ -686,31 +597,31 @@
 				{
 					"label": "Sell ...",
 					"send": "sell ",
-					"open": "menu_what"
+					"open": "sys_what"
 				},
 				{
 					"label": "Value ...",
 					"send": "value ",
-					"open": "menu_what"
+					"open": "sys_what"
 				}
 			]
 		},
 		{
-			"id": "menu_whatcure",
+			"id": "sys_whatcure",
 			"item": [
 				{
 					"label": "Light ...",
-					"open": "menu_who",
+					"open": "sys_who",
 					"send": "cast 'cure light' "
 				},
 				{
 					"label": "Serious ...",
-					"open": "menu_who",
+					"open": "sys_who",
 					"send": "cast 'cure serious' "
 				},
 				{
 					"label": "Critical ...",
-					"open": "menu_who",
+					"open": "sys_who",
 					"send": "cast 'cure critic' "
 				}
 			]
@@ -720,16 +631,16 @@
 			"item" : [
 				{
 					"label": "Cure ...",
-					"open": "menu_whatcure"
+					"open": "sys_whatcure"
 				},
 				{
 					"label": "Heal ...",
-					"open": "menu_who",
+					"open": "sys_who",
 					"send": "cast 'heal' "
 				},
 				{
 					"label": "Quaff ...",
-					"open": "menu_what",
+					"open": "sys_what",
 					"send": "quaff "
 				},
 				{
@@ -738,11 +649,11 @@
 				}
 			]
 		},
-		{	"id" : "menu_about_which",
+		{	"id" : "sys_about_which",
 			"item" : [
 				{
 					"label": "Privacy",
-					"open": "menu_disclaimer"
+					"open": "sys_disclaimer"
 				},
 				{
 					"label": "LociTerm",
@@ -750,7 +661,7 @@
 				},
 				{
 					"label": "Game",
-					"open": "menu_game_about"
+					"open": "sys_game_about"
 				}
 			]
 		},
@@ -759,11 +670,11 @@
 			"item" : [
 				{
 					"label": "User Name",
-					"open": "menu_loginbox"
+					"open": "sys_loginbox"
 				},
 				{
 					"label": "New Server",
-					"open": "menu_connect_direct"
+					"open": "sys_connect_direct"
 				}
 			]
 		}

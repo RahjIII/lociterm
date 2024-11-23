@@ -1,40 +1,42 @@
 ------- TODO for 2.1 release --------------
-* change the "Diagonal" menu back to LPMud.  Make the "canned" menus
-	auto-select based on the MSSP family name?
+* FIX why isn't ssl working??  - omg its because its broken in libwebsockets v4.3-stable.  And permessage deflate is broken in v4.4/main .
 
-* screenshots for PWA installer
+* Have UI disable "game server" when no db engine is installed.
 
-* the password entry field probably doesn't blank the nerfbar while in line mode, but it should.
-
-* comments around some of the nastier code bits, particularly the crummy js.
-
-------- TODO TODO TODO TODO --------------
-* implement a 'word click' stack function to integrate into menus, to speed up
-	select/paste from words on the screen.
+* Have UI disable "suggest new" button when suggestions are disabled.
 
 * implement the GMCP Loci.Menu protocol for game sending menu definitions to client
-
-* local mode function key editor?
-
-* General save settings per site?
-
-* Would be cool if the function keys "animated" on screen when they changed via
-	loci.hotkey, so that the player is more aware of it.
-
-* It might be cool to have the screen stay at a fixed width (from font size),
-	but also be able to do a pinch zoom and only have the term panel effected,
-	not the ui buttons.  so not pinch zoom of whole app, but just the xterm
-	pane.
-
-* change prompt menu action to print into the nerfbar if active.  send
-  should send the nerfbar of the nerfbar (if any) without a newline then the
-  send string.
 
 * make it so that ?host=X&port=Y ONLY works if the game has already been
   suggested and allowed, to make it LESS easy to automate suggestions.
 
 * there are times when you might want to allow a numeric ip. make it
   selectable.
+
+* screenshots for PWA installer
+
+* change the "Diagonal" menu back to LPMud.  Make the "canned" menus
+	auto-select based on the MSSP family name?
+
+
+		------- more TODO TODO TODO TODO --------------
+
+* comments around some of the nastier code bits, particularly the crummy js.
+
+* controlable contrast ratio in theme? (can xtermjs do it after setup?)  
+  See xtermoptions.minimumContrastRatio
+
+* local mode function key editor?
+
+* General save settings per site?
+
+* Would be cool if the function keys "animated" on screen when they changed via
+	loci.hotkey, so that the player is more aware of it. (I made a hook, but the indicator of flashing open the menu sucks and needs workd.)
+
+* It might be cool to have the screen stay at a fixed width (from font size),
+	but also be able to do a pinch zoom and only have the term panel effected,
+	not the ui buttons.  so not pinch zoom of whole app, but just the xterm
+	pane.
 
 * Add a "you have login creds here" icon to the games list.
 
@@ -67,9 +69,6 @@
 * Filter out unsupported GMCP messages at the locid level.  No reason to send
   those to the client, and some games are very bad about it.
 
-* controlable contrast ratio in theme? (can xtermjs do it after setup?)  
-	See xtermoptions.minimumContrastRatio
-
 * idea- could do a pure cli lociterm too, for kicks. :)
 
 * There is a bug in libwebsockets, if ip6 hostname resolves but port only open
@@ -88,6 +87,27 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ change prompt menu action to print into the nerfbar if active.  send
+  should send the nerfbar of the nerfbar (if any) without a newline then the
+  send string.
+
++ the password entry field probably doesn't blank the nerfbar while in line
+	mode, but it should.  It does now, but only for true line-mode hidden
+	password mode clients.  char-at-a-time with local line mode enabled won't
+	normally be able to enable password hiding.
+
++ have the menside buttons position north of the nerfbar if nb is open
+
++ Document the menu name in sys_menu that are always available, and maybe rename them from menu_ to sysmenu_  or something like that.
+
++ implement a 'word click' stack function to integrate into menus, to speed up
+  select/paste from words on the screen.
+
++ work on when nerfbar input gets autofocused.  (maybe less of that.) I feel
+  like it is working pretty well now.
+
+* FIX hotkey routing though nerfbar.  (it shouldn't!)
+
 + document the locid command line functions for DB managment including redatction
 
 - create a "player.locid.conf" file suggestion for ~/.locid.conf

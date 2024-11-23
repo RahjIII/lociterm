@@ -101,9 +101,9 @@
 
 .menu {
 	/* text="#443311" bgcolor="#688F9E" link="#cc2600" vlink="#aa2600" alink="#ffb76c" */
-	/* border: solid #404040; */
-	/* color: #443311; */
+	border: none;
 	/* background: rgba(255,0,0,0.5); */
+	min-height: fit-content;
 }
 
 
@@ -142,13 +142,30 @@
 	font-weight: bold;
 	font-family: LOFont, emoji, Noto Sans Symbols2;
 	direction: initial;
+	rotate: 0deg;
+	transition: rotate 0.5s ease-out;
+	transition: scale 0.5s ease-out;
+}
+
+.menubutton:hover {
+	rotate: 0deg;
+	scale: 1.25;
+	transition: scale 0.1s ease-out;
+	transition: rotate 0.1s ease-out;
+	background: transparent;
+}
+.menubutton:active {
+	rotate: 33deg;
+	transition: rotate 0.1s ease-out;
+	background: transparent;
 }
 
 .menuside {
 	float: right;
 	clear: none;
 	min-width: calc(var(--finger-size) * 3);
-	min-height: calc(var(--finger-size) * 3);
+	/* min-height: calc(var(--finger-size) * 3); */
+	min-height: fit-content;
 	position: fixed;
 	display: block;
 	visibility: hidden;
@@ -197,12 +214,12 @@
 	padding: 1.0mm;
 }
 
-.menuside div:hover{
+.menuside div:hover {
 	/* background: hsla(0,0%,35%,0.80); */
 	opacity: 75%;
 }
 
-.menuside div:active{
+.menuside div:active {
 	/* background: hsla(0,0%,45%,0.80); */
 	opacity: 75%;
 }
@@ -219,6 +236,11 @@
 	font-style: italic;
 }
 
+.menuside .wordstack {
+	text-transform: none;
+}
+
+
 .menuside .client {
 	color: var(--book-cover-color);
 	text-transform: capitalize;
@@ -232,6 +254,10 @@
 	width: auto;
 	height: auto;
 	fill: white;
+}
+
+.menuicon:hover {
+	background: none;
 }
 
 

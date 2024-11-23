@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.39 2024/10/25 15:51:20 malakai Exp $
+// $Id: lociterm.js,v 1.40 2024/11/23 16:33:25 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -34,6 +34,7 @@ import { GMCP } from './gmcp.js';
 import { CRTFilter } from './crtfilter.js';
 import { ConnectGame } from './connect.js';
 import BellSound from './snd/Oxygen-Im-Contact-In.mp3';
+import { WordStack } from './wordstack.js';
 
 // The command codes MUST MATCH the defines in server/client.h !
 const Command = {
@@ -136,6 +137,7 @@ class LociTerm {
 		this.terminal.onKey((e) => this.onKey(e) );
 		this.terminal.onData((e) => this.onTerminalData(e) );
 		this.terminal.onBinary((e) => this.onBinaryData(e) );
+		this.terminal.onSelectionChange((e) => this.onSelectionChange(e) );
 
 		// bah xtermjs removed the built in bell in 5.0.0
 		this.terminal.audio = new Audio(BellSound);
@@ -159,6 +161,9 @@ class LociTerm {
 		this.serverhello = "";
 
 		window.addEventListener('resize', (e) => this.onWindowResize(e) );
+
+		this.wordstack = new WordStack(this);
+		this.wordstack.menuid = "sys_wordstack";
 		this.menuhandler = new MenuHandler(this);
 		this.connectgame = new ConnectGame(this,this.menuhandler);
 		this.loadDefaultTheme();
@@ -170,7 +175,7 @@ class LociTerm {
 
 		// if this is the first time ever that they've come in, show the welcome/disclaimer 
 		if(localStorage.getItem("disclaimer") == null) {
-			setTimeout(()=>this.menuhandler.open("menu_disclaimer"),2000);
+			setTimeout(()=>this.menuhandler.open("sys_disclaimer"),2000);
 		}
 	}
 
@@ -214,7 +219,7 @@ class LociTerm {
 		// select-a-different-game window, and the player ends up stuck.   So
 		// if wants_to_select is true, DONT try to connect to a game just yet.
 		if(this.connectgame.wants_to_select == true) {
-			this.menuhandler.open("menu_game_select");
+			this.menuhandler.open("sys_game_select");
 			this.connectgame.wants_to_select = false;
 			return;
 		}
@@ -335,6 +340,12 @@ class LociTerm {
 		this.sendMsg(Command.TERM_DATA,data);
 	}
 
+	onSelectionChange(data) {
+		let selection = this.terminal.getSelection();
+		this.wordstack.addSelection(selection);
+		this.wordstack.openMenu();
+	}
+
 	paste(data) {
 		this.sendMsg(Command.TERM_DATA,data);
 		if(this.echo_mode !=3 ) {
@@ -376,21 +387,22 @@ class LociTerm {
 		// this.terminal.write(`\r\nTrying ${url}... `);
 		console.log(`Connecting to ${url} . `);
 		this.menuhandler.update_connect_message(`🔄Connecting...`);
+		this.socket = undefined;
 		try {
 			this.socket = new WebSocket(this.url, ['loci-client'],
 				{
 					rejectUnauthorized: false,
 				}
 			);
-			this.socket.binaryType = 'arraybuffer';
-			this.socket.onopen = (e) => this.onSocketOpen(e);
-			this.socket.onmessage = (e) => this.onSocketData(e);
-			this.socket.onclose = (e) => this.onSocketClose(e);
-			this.socket.onerror = (e) => this.onSocketError(e);
 		} catch (err) {
 			console.error(`WebSocket Error- ${err.name}-${err.message}`);
-			this.reconnect();
+			return;
 		}
+		this.socket.binaryType = 'arraybuffer';
+		this.socket.onopen = (e) => this.onSocketOpen(e);
+		this.socket.onmessage = (e) => this.onSocketData(e);
+		this.socket.onclose = (e) => this.onSocketClose(e);
+		this.socket.onerror = (e) => this.onSocketError(e);
 	}
 
 	disconnect(how) {
@@ -409,8 +421,9 @@ class LociTerm {
 				return;
 			}
 		}
-		///console.log(`Reconnect in ${this.reconnect_delay}`);
-		this.menuhandler.update_connect_message(`🔁Trying to reconnect...`);
+		//console.log(`Reconnect in ${this.reconnect_delay}`);
+		//this.menuhandler.update_connect_message(`🔁Trying to reconnect...`);
+
 		setTimeout(() => this.connect() , this.reconnect_delay); 
 		if(this.reconnect_delay == 0) {
 			this.reconnect_delay = 1000;
@@ -531,7 +544,7 @@ class LociTerm {
 					if(robj.msg && (robj.msg != "")) {
 						this.menuhandler.update_oob_message(`🤖 ${robj.msg}`);
 					} else {
-						this.menuhandler.close("menu_oob_message");
+						this.menuhandler.close("sys_oob_message");
 					}
 				}
 				let sobj = {};
@@ -574,14 +587,18 @@ class LociTerm {
 					console.log(`Game connection is char-at-a-time.`);
 					/* honor the user's preference. */
 					let nerfbar = localStorage.getItem("nerfbar");
+					this.nerfbar.setHiddenMode(false);
 					if(nerfbar == "true") {
 						this.nerfbar.open();
 					} else {
 						this.nerfbar.close();
 					}
+				} else if (this.echo_mode == 2) {
+					this.nerfbar.setHiddenMode(true);
 				} else {
 					console.log(`Game connection is obsolete line mode.`);
 					/* open the nerfbar. */
+					this.nerfbar.setHiddenMode(false);
 					this.nerfbar.open();
 					this.nerfbar.nofade();
 				}
@@ -621,7 +638,7 @@ class LociTerm {
 
 					// Request connection to the current game.
 					this.doConnectGame(0);
-					this.menuhandler.close("menu_connect");
+					this.menuhandler.close("sys_connect");
 				}
 				break;
 			}
@@ -649,7 +666,10 @@ class LociTerm {
 
 	onSocketError(e) {
 		//this.terminal.write(`\r\n┅┅┅┅┅ Can't reach the Loci server! ┅┅┅┅┅\r\n`);
-		this.menuhandler.update_connect_message("😵Socket Error!");
+		this.menuhandler.update_connect_message("😵 WebSocket Error!");
+		if(this.reconnect_delay == 0 ) {
+			this.reconnect_delay = 1000;
+		}
 		console.log(`Socket Error`);
 	}
 
@@ -801,7 +821,7 @@ class LociTerm {
 				document.documentElement.style.setProperty('--menuside-close-bottom', 'unset');
 			} else {
 				document.documentElement.style.setProperty('--menuside-open-top', 'unset');
-				document.documentElement.style.setProperty('--menuside-open-bottom', 0);
+				document.documentElement.style.setProperty('--menuside-open-bottom', 'var(--nerfbar-offsetHeight)');
 				document.documentElement.style.setProperty('--menuside-close-top', 'unset');
 				document.documentElement.style.setProperty('--menuside-close-bottom', "-100%");
 			}

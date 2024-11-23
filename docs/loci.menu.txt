@@ -1,3 +1,6 @@
+This is the rough structure of a loci menu definition.  See the files in
+client/src/menu/ for specific examples.
+
 Menu Object:
     name "name of menu, lowercase, no spaces"
     label "display name of menu"
@@ -23,6 +26,37 @@ Menu Object:
             prompt "partial text to send to game, must not end in \n"
             send "text to send to game, should end with \n"
             id "hotkey_NAME (special use for hotkey identification.)"
-            hotkey true if item is a programmable hotkey
+            hotkey "value of keystrokes to send immediately to terminal if no 'send' exists"
             color "a css color"
             background "a css color"
+
+Custom menu items should all begin with the "menu_" prefix, and may NOT begin
+with "sys_".
+
+System menus start with the "sys_" prefix.  They are provided by lociterm and
+can not be overridden.  These menus may be dynamic and are re-built
+programatically (ex: sys_hotkey, sys_wordstack), or they may open larger
+requestor windows (ex: sys_about, sys_settings)  Menus in the "sys_" category
+may be opened from a custom menu definition with an "open": "sys_whatever"
+directive.
+
+A partial list of sys_ menus.
+"sys_about"
+"sys_about_which"
+"sys_client"
+"sys_client_settings"
+"sys_connect_direct"
+"sys_disclaimer"
+"sys_disconnect"
+"sys_filters"
+"sys_game_about"
+"sys_game_select"
+"sys_hotkey"
+"sys_loginbox"
+"sys_pronoun"
+"sys_settings"
+"sys_what"
+"sys_who"
+"sys_wordstack"
+
+	

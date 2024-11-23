@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.22 2024/11/17 19:03:33 malakai Exp $ */
+/* $Id: locid.c,v 1.23 2024/11/23 16:33:25 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -395,10 +395,10 @@ int main(int argc, char **argv) {
 
 	/* begin websocket init */
 	if(debug) {
-		//int lwslogs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_CLIENT | LLL_HEADER | LLL_INFO | LLL_DEBUG;
 		// enable lws library debug messages.
-		//int lwslogs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE;
-		int lwslogs = LLL_ERR | LLL_WARN;
+		//int lwslogs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_CLIENT | LLL_HEADER | LLL_INFO | LLL_DEBUG;
+		// int lwslogs = LLL_ERR | LLL_WARN;
+		int lwslogs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE;
 		lws_set_log_level(lwslogs, (lws_log_emit_t)locid_log_lws);
 
 		// enable locid debug messages.  See debug.h for value of DEBUG_ON
@@ -492,6 +492,7 @@ int main(int argc, char **argv) {
 	mount->cache_revalidate = 1;
 	mount->cache_intermediaries = 1;
 	/* this does NOT mean 'do not cache', it means revalidate first. */
+	/* It also doesn't appear to be in libwebsockets v4.3-stable. */
 	mount->cache_no = 1;  
 
 	/* Enable permessage deflate extension */

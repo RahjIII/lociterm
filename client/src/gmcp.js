@@ -1,6 +1,6 @@
 // gmcp.js - generic mud communication protocol for lociterm
 // Created: Wed Apr  3 05:34:00 PM EDT 2024
-// $Id: gmcp.js,v 1.7 2024/10/25 15:51:20 malakai Exp $
+// $Id: gmcp.js,v 1.8 2024/11/23 16:33:25 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -111,11 +111,11 @@ class GMCP {
 					this.lociterm.menuhandler.sendlogin();
 					} else {
 						// open up the login window for manual login.
-						this.lociterm.menuhandler.open("menu_loginbox")
+						this.lociterm.menuhandler.open("sys_loginbox")
 					}
 				} else {
 					// open up the login window for password re-entry
-					this.lociterm.menuhandler.open("menu_loginbox")
+					this.lociterm.menuhandler.open("sys_loginbox")
 				}
 			} else {
 				// Cancel the login attempt, they never entered a username.
@@ -194,7 +194,16 @@ class GMCP {
 		if(message.label != undefined) {
 			item.innerText = message.label;
 		}
+		this.lociHotkeyNotification();
+		return;
+	}
 
+	// flash a screen element or something to indicate a change in hotkey
+	// definitions.
+	lociHotkeyNotification() {
+		// come up with something better.
+		// this.lociterm.menuhandler.open("sys_hotkey");
+		// setTimeout((()=>{ this.lociterm.menuhandler.close("sys_hotkey"); }), 1000);
 		return;
 	}
 

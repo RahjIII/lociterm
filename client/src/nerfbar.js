@@ -1,6 +1,6 @@
 // nerfbar.js - pitiful line mode support
 // Created: Mon 26 Dec 2022 11:55:45 PM EST
-// $Id: nerfbar.js,v 1.6 2024/09/13 14:32:58 malakai Exp $
+// $Id: nerfbar.js,v 1.7 2024/11/23 16:33:25 malakai Exp $
 
 // Copyright © 2023 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -29,6 +29,7 @@ class NerfBar {
 		this.historybuf = [];
 		this.historyoffset = 0;
 		this.historymax = 25;
+		this.hiddenMode = false;
 
 		this.lociterm = lociterm;
 		if ((this.mydiv = document.getElementById(elementid)) == undefined) {
@@ -38,7 +39,13 @@ class NerfBar {
 		}
 		this.mydiv.classList.add('nerfbar');
 		this.focuselement = "";
+		this.revealbtn = "";
 		this.create_nerfbar();
+		document.documentElement.style.setProperty(
+			'--nerfbar-offsetHeight', 
+			`${this.mydiv.offsetHeight}px`
+		);
+		this.setHiddenMode(this.hiddenMode);
 	}
 
 	// Add the NerfBar definition to the DOM.
@@ -48,6 +55,7 @@ class NerfBar {
 		let input;
 		let sendkey;
 		let tabkey;
+		let btn;
 
 		
 		//input = document.createElement('input');
@@ -66,14 +74,11 @@ class NerfBar {
 
 		this.focuselement = input;
 
-		input.onchange = ((e)=>{
-			
-			if(document.hasFocus(e.currentTarget) == false) {
-				return;
-			} 
-			this.lociterm.paste(e.srcElement.value+"\n");
-			e.srcElement.value = "";
-			e.preventDefault();
+		// No, not on change anymore.
+		// input.onchange = ((e)=>{ return; })
+
+		input.onfocus = ((e)=> {
+			this.lociterm.menuhandler.done();
 		});
 
 		input.onkeydown = ((e)=>{
@@ -82,19 +87,19 @@ class NerfBar {
 				this.history_add(e.srcElement.value);
 				this.lociterm.paste(e.srcElement.value+"\n");
 				e.srcElement.value = "";
-				this.focus();
+				// this.focus();
 				e.preventDefault();
 			}
 			// ArrowUp = 38
 			if((e.code == "ArrowUp") || (e.keyCode == 38)) {
 				e.srcElement.value = this.history_roll(1);
-				this.focus();
+				// this.focus();
 				e.preventDefault();
 			}
 			// ArrowDown = 40
 			if((e.code == "ArrowDown") || (e.keyCode == 40)) {
 				e.srcElement.value = this.history_roll(-1);
-				this.focus();
+				// this.focus();
 				e.preventDefault();
 			}
 
@@ -113,7 +118,7 @@ class NerfBar {
 			});
 			input.dispatchEvent(kev);
 			e.preventDefault();
-			this.focus();
+			// this.focus();
 		});
 		sendkey.innerText = "▲";
 		box.appendChild(sendkey);
@@ -131,13 +136,32 @@ class NerfBar {
 			});
 			input.dispatchEvent(kev);
 			e.preventDefault();
-			this.focus();
+			// this.focus();
 		});
 		sendkey.innerText = "▼";
 		box.appendChild(sendkey);
 
 		// Now append the input.
 		box.appendChild(input);
+
+
+		// password reveal button
+		btn = document.createElement('div');
+		btn.classList.add('nerfbutton');
+		btn.setAttribute("type","button");
+		btn.style.display = "none";
+		btn.onclick = ((e)=>{ this.setHiddenMode(false); });
+		btn.innerText = "👁︎";
+		box.appendChild(btn);
+		this.revealbtn = btn;
+
+		// wordstack paste button
+		btn = document.createElement('div');
+		btn.classList.add('nerfbutton');
+		btn.setAttribute("type","button");
+		btn.onclick = ((e)=>{ this.lociterm.wordstack.toggleMenu(); });
+		btn.innerText = "📋︎";
+		box.appendChild(btn);
 
 		// Enter key button.
 		sendkey = document.createElement('div');
@@ -151,7 +175,7 @@ class NerfBar {
 			});
 			input.dispatchEvent(kev);
 			e.preventDefault();
-			this.focus();
+			// this.focus();
 		});
 		sendkey.innerText = "↵";
 		box.appendChild(sendkey);
@@ -166,6 +190,7 @@ class NerfBar {
 		this.lociterm.fitAddon.fit();
 		this.lociterm.doWindowResize();
 		this.nerfstate = "active";
+		document.documentElement.style.setProperty('--nerfbar-offsetHeight', `${this.mydiv.offsetHeight}px`);
 	}
 
 	// make the nerfbar DIE DIE DIE. I hate you, nerfbar.
@@ -176,6 +201,7 @@ class NerfBar {
 		this.lociterm.doWindowResize();
 		this.nerfstate = "inactive";
 		this.mydiv.style.opacity = "";
+		document.documentElement.style.setProperty('--nerfbar-offsetHeight', `${this.mydiv.offsetHeight}px`);
 	}
 
 	nofade() {
@@ -188,6 +214,11 @@ class NerfBar {
 	}
 
 	history_add(line) {
+
+		if(this.hiddenMode === true) {
+			// don't add to the history roll if the hiddenMode is on.
+			return;
+		}
 
 		let lastline = this.historybuf[this.historybuf.length -1];
 		if(lastline != line) {
@@ -211,6 +242,40 @@ class NerfBar {
 			return("");
 		} 
 		return(ret);
+	}
+
+	paste(data) {
+		if( data.endsWith('\n') === true ) {
+			// strip the \n before putting it in the nerfbar
+			data = data.slice(0,-1);
+			this.focuselement.value += data;
+			// and simulate an enter key event in nerfbar.
+			const kev = new KeyboardEvent('keydown', {
+				key: 'Enter',
+				code: 'Enter',
+				which: 13,
+				keyCode: 13
+			});
+			this.focuselement.dispatchEvent(kev);
+		} else {
+			// Just add it to the nerfbar.
+			this.focuselement.value += data;
+		}
+	}
+
+	setHiddenMode( mode ) {
+		this.hiddenMode = mode;
+		if(mode === true) {
+			this.revealbtn.style.display = "flex";
+			this.focuselement.style.color = "transparent";
+			this.focuselement.style.textShadow = "0 0 8px black";
+			this.focuselement.placeholder = "Enter hidden text...";
+		} else {
+			this.revealbtn.style.display = "none";
+			this.focuselement.style.color = "revert";
+			this.focuselement.style.textShadow = "unset";
+			this.focuselement.placeholder = "Enter a command...";
+		}
 	}
 
 }

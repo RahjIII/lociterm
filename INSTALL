@@ -1,7 +1,7 @@
 1. Dependencies
 ---------------
 
-Requires libglib2.0-dev, ctags, openssl, cmake, libwebsockets4.4.0, npm, libjson-c-dev
+Requires libglib2.0-dev, ctags, openssl, cmake, libwebsockets4.3.3, npm, libjson-c-dev
 
 on debian 12-
 
@@ -20,13 +20,22 @@ Note that for the cmake step....
 # -DLWS_IPV6=ON because in deb 11 at least, that wasn't the default.
 
 cd ~/othercode
-git clone https://libwebsockets.org/repo/libwebsockets
+git clone --branch v4.3.3 https://libwebsockets.org/repo/libwebsockets
 cd libwebsockets
 mkdir build
 cd build
 cmake -DLWS_IPV6=ON -DLWS_WITH_ZLIB=ON -DLWS_WITHOUT_EXTENSIONS=OFF ..
 make
 sudo make install
+
+Thu Nov 21 04:22:52 PM EST 2024
+ACK.  libwebsockets main (not v4.3-stable) is broken for permessage-deflate
+https://github.com/warmcat/libwebsockets/issues/3151
+
+git revert c60bff09914b02c320ce87898a95e2f85e228af7
+I also think v4.3-stable has a problem with tls and raw sockets. :/
+
+
 
 2. Building LOciTerm
 --------------------
