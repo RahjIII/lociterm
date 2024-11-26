@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.16 2024/11/26 05:33:10 malakai Exp $ */
+/* $Id: telnet.c,v 1.17 2024/11/26 15:41:08 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -281,9 +281,10 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 			loci_game_write(pc,"\r\n[YES]\r\n",9);
 			break;
 		case TELNET_GA:
+			loci_client_send_gaeor(pc, "GA");
+			break;
 		case TELNET_EOR:
-			/* ignore line termination signals for now */
-			/* could implement a client side GA/EOR indication later */
+			loci_client_send_gaeor(pc, "EOR");
 			break;
 		default:
 			locid_debug(DEBUG_TELNET,pc,"Recieved IAC %d",event->iac.cmd);

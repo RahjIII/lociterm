@@ -1,6 +1,6 @@
 /* proxy.c - LociTerm protocol bridge */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: proxy.c,v 1.6 2024/11/26 05:33:10 malakai Exp $*/
+/* $Id: proxy.c,v 1.7 2024/11/26 15:41:08 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -380,6 +380,25 @@ void loci_client_send_echosga(proxy_conn_t *pc) {
 
 }
 
+void loci_client_send_gaeor(proxy_conn_t *pc, const char *msg) {
+	json_object *r;
+	char *jstr;
+
+	/* not going to validate the msg- but valid messages are: 
+		DO DONT GA EOR
+	*/
+
+	r = json_object_new_object();
+	json_object_object_add(r,"mark",json_object_new_string(msg));
+	
+	jstr = json_object_to_json_string(r);
+	loci_client_send_cmd(pc,GAEOR,jstr,strlen(jstr));
+
+	locid_debug(DEBUG_CLIENT,pc,"sent GAEOR '%s'",jstr);
+	json_object_put(r);
+
+}
+
 void loci_client_invalidate_key(proxy_conn_t *pc) {
 	json_object *r;
 	char *jstr;
@@ -388,8 +407,8 @@ void loci_client_invalidate_key(proxy_conn_t *pc) {
 	json_object_object_add(r,"reconnect",json_object_new_string("invalidate"));
 
 	jstr = json_object_to_json_string(r);
-
 	loci_client_send_cmd(pc,CONNECT,jstr,strlen(jstr));
+	
 	locid_debug(DEBUG_CLIENT,pc,"sent invalidate '%s'",jstr);
 	json_object_put(r);
 }

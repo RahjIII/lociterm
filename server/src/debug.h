@@ -1,6 +1,6 @@
 /* debug.h - Debugging code for locid */
 /* Created: Wed Mar  3 11:09:27 PM EST 2021 malakai */
-/* $Id: debug.h,v 1.7 2024/11/23 16:33:25 malakai Exp $*/
+/* $Id: debug.h,v 1.8 2024/11/26 15:41:08 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -41,8 +41,8 @@
 #define DEBUG_ALL		((1<<DEBUG_MAX)-1)
 
 #define DEBUG_OFF (DEBUG_LOG)
-//#define DEBUG_ON (DEBUG_LOG|DEBUG_PROXY|DEBUG_GAME|DEBUG_CLIENT|DEBUG_TELNET|DEBUG_DB|DEBUG_LWS)
-#define DEBUG_ON DEBUG_ALL
+#define DEBUG_ON (DEBUG_LOG|DEBUG_PROXY|DEBUG_GAME|DEBUG_CLIENT|DEBUG_TELNET|DEBUG_DB|DEBUG_LWS)
+//#define DEBUG_ON DEBUG_ALL
 
 #define locid_debug(facility, pc, args...) if(global_debug_facility & facility) { locid_Debug( __func__, facility, pc, args); }
 

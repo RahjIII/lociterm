@@ -1,6 +1,6 @@
 /* client.h - LociTerm client side protocols */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: client.h,v 1.9 2024/09/19 17:03:30 malakai Exp $ */
+/* $Id: client.h,v 1.10 2024/11/26 15:41:08 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -38,6 +38,7 @@
 #define GMCP_DATA 7
 #define GAME_LIST 8
 #define MORE_INFO 9
+#define GAEOR 10
 /* special reserved numbers, used to detect connection from lociterm 1.0, which
  * doesn't have a HELLO message. */
 #define OLD_LOCITERM_OUTPUT 48
