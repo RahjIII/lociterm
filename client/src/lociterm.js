@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.42 2024/11/26 05:33:10 malakai Exp $
+// $Id: lociterm.js,v 1.43 2024/11/26 17:34:40 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -35,6 +35,7 @@ import { CRTFilter } from './crtfilter.js';
 import { ConnectGame } from './connect.js';
 import BellSound from './snd/Oxygen-Im-Contact-In.mp3';
 import { WordStack } from './wordstack.js';
+import { GaEorHandler } from './gaeor.js';
 
 // The command codes MUST MATCH the defines in server/client.h !
 const Command = {
@@ -47,7 +48,8 @@ const Command = {
 	RESIZE_TERMINAL: 6,
 	GMCP_DATA: 7,
 	GAME_LIST: 8,
-	MORE_INFO: 9
+	MORE_INFO: 9,
+	GAEOR: 10
 }
 
 // IIP support from xterm-addon-image
@@ -165,6 +167,10 @@ class LociTerm {
 		this.wordstack = new WordStack(this);
 		this.wordstack.menuid = "sys_wordstack";
 		this.menuhandler = new MenuHandler(this);
+
+		this.gaeor = new GaEorHandler(this);
+		this.gaeor.onEOR = this.gaeor.example_handler;
+
 		this.connectgame = new ConnectGame(this,this.menuhandler);
 		this.loadDefaultTheme();
 		this.terminal.open(mydiv);
@@ -508,15 +514,16 @@ class LociTerm {
 					// they get garbage chars at this point, oh ??ell.
 					str = new TextDecoder('utf8', {fatal:false}).decode(retry);
 				}
-
+				
+				this.gaeor.write(str);
 				this.terminal.scrollToBottom();
 				this.terminal.write(str);
 				break;
 			case Command.COMMAND:
+				let obj;
 				let msg = new TextDecoder('utf8').decode(rawbuffer).slice(1);
-				let obj = JSON.parse(msg);
-				// Of course, there's nothing implemented yet so...
-				console.warn("Unhandled command: " + msg);
+				try { obj = JSON.parse(msg); } catch { obj = 0; }
+				console.warn(`Unhandled command: ${msg}`);
 				break;
 
 			case Command.CONNECT: {
@@ -608,6 +615,13 @@ class LociTerm {
 					this.nerfbar.nofade();
 				}
 				this.focus();
+				break;
+			}
+			case Command.GAEOR: {
+				let obj;
+				let msg = new TextDecoder('utf8').decode(rawbuffer).slice(1);
+				try { obj = JSON.parse(msg); } catch { obj = 0; }
+				this.gaeor.command(obj);
 				break;
 			}
 			case Command.GAME_LIST: {

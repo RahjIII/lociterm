@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.17 2024/11/26 15:41:08 malakai Exp $ */
+/* $Id: telnet.c,v 1.18 2024/11/26 17:34:40 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -327,6 +327,11 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 			security_checked(pc,CHECK_MUD);
 			loci_client_gmcp_will(pc);
 			break;
+		case TELNET_TELOPT_EOR:
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WILL TELNET_TELOPT_EOR");
+			gc->eor_opt = 1;
+			loci_client_send_gaeor(pc,NULL);
+			break;
 		default: 
 			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WILL: %d", event->neg.telopt);
 			break;
@@ -348,6 +353,11 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		case TELNET_TELOPT_GMCP:
 			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WONT TELNET_TELOPT_GMCP");
 			loci_client_gmcp_wont(pc);
+			break;
+		case TELNET_TELOPT_EOR:
+			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WONT TELNET_TELOPT_EOR");
+			gc->eor_opt = 0;
+			loci_client_send_gaeor(pc,NULL);
 			break;
 		default: 
 			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WONT: %d", event->neg.telopt);

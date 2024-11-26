@@ -79,6 +79,8 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ EOR hook.
+
 + add COLORTERM = truecolor to environment.
 
 + propigate the client interface state into new-env.

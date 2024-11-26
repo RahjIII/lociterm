@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.24 2024/11/26 05:33:10 malakai Exp $ */
+/* $Id: locid.c,v 1.25 2024/11/26 17:34:40 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -404,8 +404,8 @@ int main(int argc, char **argv) {
 	if(debug) {
 		// enable lws library debug messages.
 		//int lwslogs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_CLIENT | LLL_HEADER | LLL_INFO | LLL_DEBUG;
-		// int lwslogs = LLL_ERR | LLL_WARN;
-		int lwslogs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE;
+		// int lwslogs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE;
+		int lwslogs = LLL_ERR | LLL_WARN;
 		lws_set_log_level(lwslogs, (lws_log_emit_t)locid_log_lws);
 
 		// enable locid debug messages.  See debug.h for value of DEBUG_ON

@@ -1,6 +1,6 @@
 /* game.c - LociTerm game side protocols */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: game.c,v 1.9 2024/10/28 22:33:39 malakai Exp $*/
+/* $Id: game.c,v 1.10 2024/11/26 17:34:40 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -65,6 +65,7 @@ game_conn_t *new_game_conn(void) {
 	n->check_protocol = 0;
 	n->echo_opt = 0;
 	n->sga_opt = 0;
+	n->eor_opt = 0;
 	n->data_sent = 0;
 	
 	return(n);

@@ -1,6 +1,6 @@
 /* connect.c - <comment goes here> */
 /* Created: Sun Aug  4 10:09:40 PM EDT 2024 malakai */
-/* $Id: connect.c,v 1.6 2024/11/26 05:33:10 malakai Exp $ */
+/* $Id: connect.c,v 1.7 2024/11/26 17:34:40 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -324,6 +324,7 @@ int loci_connect_to_game_uuid(proxy_conn_t *pc,char *uuid) {
 		get_proxy_state_str(get_client_state(pc))
 	);
 	loci_client_send_echosga(pc);
+	loci_client_send_gaeor(pc,NULL);
 	loci_telnet_send_naws(pc->game->game_telnet,pc->client->width,pc->client->height);
 	
 	return(0);

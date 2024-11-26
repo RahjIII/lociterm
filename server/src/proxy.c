@@ -1,6 +1,6 @@
 /* proxy.c - LociTerm protocol bridge */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: proxy.c,v 1.7 2024/11/26 15:41:08 malakai Exp $*/
+/* $Id: proxy.c,v 1.8 2024/11/26 17:34:40 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -385,11 +385,22 @@ void loci_client_send_gaeor(proxy_conn_t *pc, const char *msg) {
 	char *jstr;
 
 	/* not going to validate the msg- but valid messages are: 
-		DO DONT GA EOR
+		enable disable GA EOR
 	*/
 
 	r = json_object_new_object();
-	json_object_object_add(r,"mark",json_object_new_string(msg));
+
+	if( msg == NULL) {
+		char *status;
+		if(pc->game && pc->game->eor_opt) {
+			status = "enabled";
+		} else {
+			status = "disabled";
+		}
+		json_object_object_add(r,"mark",json_object_new_string(status));
+	} else {
+		json_object_object_add(r,"mark",json_object_new_string(msg));
+	}
 	
 	jstr = json_object_to_json_string(r);
 	loci_client_send_cmd(pc,GAEOR,jstr,strlen(jstr));
