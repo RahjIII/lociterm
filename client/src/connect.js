@@ -1,6 +1,6 @@
 // connect.js - direct connection window
 // Created: Mon Aug  5 08:54:28 AM EDT 2024
-// $Id: connect.js,v 1.9 2024/11/23 16:33:25 malakai Exp $
+// $Id: connect.js,v 1.10 2024/11/26 05:33:09 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -369,6 +369,15 @@ class ConnectGame {
 		}
 
 		gdiv.appendChild(table);
+
+		if(gamedata.suggestions !== undefined) {
+			let sugdiv = document.getElementById("sys_game_select_suggest");
+			if(gamedata.suggestions == 0) {
+				sugdiv.style.display = "none";
+			} else {
+				sugdiv.style.display = "unset";
+			}
+		}
 		return;
 	}
 

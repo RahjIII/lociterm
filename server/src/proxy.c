@@ -1,6 +1,6 @@
 /* proxy.c - LociTerm protocol bridge */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: proxy.c,v 1.5 2024/10/15 02:30:44 malakai Exp $*/
+/* $Id: proxy.c,v 1.6 2024/11/26 05:33:10 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -222,6 +222,9 @@ void set_client_state(proxy_conn_t *pc, proxy_state_t state) {
 		get_proxy_state_str(state)
 	);
 	*was = state;
+	loci_environment_update(pc, TELNET_ENVIRON_VALUE, "CLIENT_STATE",
+		get_proxy_state_str(get_client_state(pc))
+	);
 }
 
 int security_checked(proxy_conn_t *pc,int security_flags) {

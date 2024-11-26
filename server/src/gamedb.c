@@ -1,7 +1,7 @@
 /* gamedb.c - <comment goes here> */
 /* Created: Sun Aug 18 10:43:34 AM EDT 2024 malakai */
 /* Copyright © 2024 Jeffrika Heavy Industries */
-/* $Id: gamedb.c,v 1.6 2024/11/17 19:03:33 malakai Exp $ */
+/* $Id: gamedb.c,v 1.7 2024/11/26 05:33:10 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -312,6 +312,7 @@ int game_db_suggest(proxy_conn_t *pc, char *host, int port, int ssl) {
 	json_object *lookup=NULL;
 	int dbstatus;
 	int retstatus;
+	int do_not_save = 0;
 
 	/* downcase the hostname. */
 	for(char *c=host;*c;c++) {
@@ -349,6 +350,12 @@ int game_db_suggest(proxy_conn_t *pc, char *host, int port, int ssl) {
 
 	/* lets take the default for new suggestions. */
 	dbstatus = config->db_suggestions;
+	if (dbstatus == DBSTATUS_BANNED) {
+		/* corresponds to suggestions being neither "open" nor "queued" i.e.
+		 * "closed"*/
+		locid_debug(DEBUG_DB,NULL,"Configuration suggestions ",host);
+		do_not_save = 1;
+	}
 	
 	if(game_db_port_is_banned(port)) {
 		/* if the port is on the banned list, save this request to the db for
@@ -356,7 +363,7 @@ int game_db_suggest(proxy_conn_t *pc, char *host, int port, int ssl) {
 		dbstatus = DBSTATUS_BANNED;
 	} 
 
-	if(hostname_looks_numeric(host)) {
+	if( (!config->db_allow_numeric_ip) && hostname_looks_numeric(host)) {
 		/* This could be made into a configuration option too, but for now,
 		 * disallow numeric ip address hostnames.  Save them in the db for
 		 * posterity as banned and return banned. */
@@ -369,7 +376,7 @@ int game_db_suggest(proxy_conn_t *pc, char *host, int port, int ssl) {
 	}
 
 	/* update the db. */
-	if(config->db_inuse) { 
+	if(config->db_inuse && !do_not_save) { 
 
 		if ( (sqlite3_open(config->db_location, &db) != SQLITE_OK) ) {
 			locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
@@ -545,57 +552,85 @@ json_object *game_db_get_server_list(void) {
 	char *sqlstr;
 
 	if(!config->db_inuse) { 
-		return(NULL);
-	}
+		
+		jobj = json_object_new_object();
+		aobj = json_object_new_array();
+		json_object_object_add(jobj, "servers", aobj);
+		dobj = json_object_new_object();
 
-	if ( (sqlite3_open(config->db_location, &db) != SQLITE_OK) ) {
-		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
-		return(NULL);
-	}
-
-	sqlstr = sqlite3_mprintf(
-		"SELECT JSON_OBJECT("
-			"'name',NAME, "
-			"'host',HOST, "
-			"'port',PORT, "
-			"'ssl', SSL, "
-			"'icon', ICON, "
-			"'default_game', DEFAULT_GAME, "
-			"'last_update', LAST_UPDATE "
-		") FROM GAMEDB "
-		"WHERE "
-		"(STATUS IS %d) "
-		"ORDER BY "
-			"DEFAULT_GAME DESC, "
-			"STATUS, "
-			"LAST_CONNECTION DESC, "
-			"SSL DESC"
-		";",
-		DBSTATUS_APPROVED
-	);
-
-	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) != SQLITE_OK) ){
-		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
-		sqlite3_free(sqlstr);
-		sqlite3_close(db);
-		return(NULL);
-	}
-
-	jobj = json_object_new_object();
-	aobj = json_object_new_array();
-	json_object_object_add(jobj, "servers", aobj);
-
-	while (sqlite3_step(stmt) != SQLITE_DONE) {
-		dobj = json_tokener_parse((const char*)sqlite3_column_text(stmt, 0));
-
+		json_object_object_add(dobj, "name",	
+			json_object_new_string(config->game_name)
+		);
+		json_object_object_add(dobj, "host",
+			json_object_new_string(config->game_host)
+		);
+		json_object_object_add(dobj, "port",
+			json_object_new_int(config->game_port)
+		);
+		json_object_object_add(dobj, "ssl",
+			json_object_new_int(config->game_usessl)
+		);
+		json_object_object_add(dobj, "default_game",
+			json_object_new_int(1)
+		);
 		json_object_array_add( aobj, dobj );
+	} else {
+		if ( (sqlite3_open(config->db_location, &db) != SQLITE_OK) ) {
+			locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
+			return(NULL);
+		}
+
+		sqlstr = sqlite3_mprintf(
+			"SELECT JSON_OBJECT("
+				"'name',NAME, "
+				"'host',HOST, "
+				"'port',PORT, "
+				"'ssl', SSL, "
+				"'icon', ICON, "
+				"'default_game', DEFAULT_GAME, "
+				"'last_update', LAST_UPDATE "
+			") FROM GAMEDB "
+			"WHERE "
+			"(STATUS IS %d) "
+			"ORDER BY "
+				"DEFAULT_GAME DESC, "
+				"STATUS, "
+				"LAST_CONNECTION DESC, "
+				"SSL DESC"
+			";",
+			DBSTATUS_APPROVED
+		);
+
+		if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) != SQLITE_OK) ){
+			locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
+			sqlite3_free(sqlstr);
+			sqlite3_close(db);
+			return(NULL);
+		}
+
+		jobj = json_object_new_object();
+		aobj = json_object_new_array();
+		json_object_object_add(jobj, "servers", aobj);
+
+		while (sqlite3_step(stmt) != SQLITE_DONE) {
+			dobj = json_tokener_parse((const char*)sqlite3_column_text(stmt, 0));
+
+			json_object_array_add( aobj, dobj );
+		}
+
+		locid_debug(DEBUG_DB,NULL,json_object_to_json_string(jobj));
+
+		sqlite3_free(sqlstr);
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
 	}
 
-	locid_debug(DEBUG_DB,NULL,json_object_to_json_string(jobj));
-
-	sqlite3_free(sqlstr);
-	sqlite3_finalize(stmt);
-	sqlite3_close(db);
+	dobj = json_object_new_object();
+	json_object_object_add(jobj, "suggestions",	
+		json_object_new_int(
+			(config->db_suggestions==DBSTATUS_BANNED)?0:1
+		)
+	);
 
 	return(jobj);
 }

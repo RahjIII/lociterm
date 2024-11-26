@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.41 2024/11/23 16:59:09 malakai Exp $
+// $Id: lociterm.js,v 1.42 2024/11/26 05:33:10 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -300,15 +300,19 @@ class LociTerm {
 				}
 				break;
 			case 3:  // CLOSED
-				this.connect();
+				// this.connect();
 				/* no break! */
+				this.menuhandler.update_connect_message(`🌀 Reconnecting to Web...`);
+				this.reconnect_delay = 0;
+				this.reconnect();
+				break;
 			case 0: // CONNECTING
-				this.menuhandler.update_connect_message(`🔄Connecting...`);
+				this.menuhandler.update_connect_message(`🌀 Connecting to Web...`);
 				setTimeout( ()=>{this.sendMsg();} , 100 );
 				break;
 			case 2: // CLOSING
 				// if for some reason
-				this.menuhandler.update_connect_message(`🌀Closing...`);
+				this.menuhandler.update_connect_message(`🌀 Closing Web...`);
 				/* no break! */
 			default:
 				console.error(`ReadState=${this.socket.readyState}.  Lost ${this.sendq.length} messages`);
@@ -387,7 +391,7 @@ class LociTerm {
 		this.url = url;
 		// this.terminal.write(`\r\nTrying ${url}... `);
 		console.log(`Connecting to ${url} . `);
-		this.menuhandler.update_connect_message(`🔄Connecting...`);
+		this.menuhandler.update_connect_message(`🌀 Connecting...`);
 		this.socket = undefined;
 		try {
 			this.socket = new WebSocket(this.url, ['loci-client'],
@@ -658,7 +662,7 @@ class LociTerm {
 		) {
 			this.reconnect();
 		} else {
-			this.menuhandler.update_connect_message(`🔅Disconnected`);
+			this.menuhandler.update_connect_message(`🌀 Disconnected.`);
 			// this.terminal.write(`\r\n┅┅┅┅┅ Disconnected ┅┅┅┅┅\r\n`);
 			this.autoreconnect = true;
 			this.reconnect_delay = 0;
@@ -667,11 +671,11 @@ class LociTerm {
 
 	onSocketError(e) {
 		//this.terminal.write(`\r\n┅┅┅┅┅ Can't reach the Loci server! ┅┅┅┅┅\r\n`);
-		this.menuhandler.update_connect_message("😵 WebSocket Error!");
+		this.menuhandler.update_connect_message("🌀 Connection Lost.");
 		if(this.reconnect_delay == 0 ) {
 			this.reconnect_delay = 1000;
 		}
-		console.log(`Socket Error`);
+		console.log(`Socket Error, ready state ${this.socket.readyState}, Reconnect in ${this.reconnect_delay}`);
 	}
 
 	loadDefaultTheme() {

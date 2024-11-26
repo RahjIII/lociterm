@@ -1,6 +1,6 @@
 /* proxy.h - LociTerm protocol bridge  */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: proxy.h,v 1.3 2024/09/19 17:03:30 malakai Exp $ */
+/* $Id: proxy.h,v 1.4 2024/11/26 05:33:10 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -107,6 +107,7 @@ proxy_state_t get_game_state(proxy_conn_t *pc);
 proxy_state_t get_client_state(proxy_conn_t *pc);
 void set_game_state(proxy_conn_t *pc, proxy_state_t state);
 void set_client_state(proxy_conn_t *pc, proxy_state_t state);
+char *get_proxy_state_str(proxy_state_t state);
 int security_checked(proxy_conn_t *pc,int security_flags);
 void security_require(proxy_conn_t *pc,int security_flags,int pulses);
 void security_enforcement(proxy_conn_t *pc);

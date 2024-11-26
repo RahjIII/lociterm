@@ -1,6 +1,6 @@
 /* locid.h - LociTerm main and config */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.h,v 1.19 2024/09/13 14:32:58 malakai Exp $ */
+/* $Id: locid.h,v 1.20 2024/11/26 05:33:10 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -61,6 +61,7 @@ struct locid_conf {
 	int db_suggestions;
 	GList *db_banned_ports;
 	int db_min_protocol;
+	int db_allow_numeric_ip;
 };
 
 /* exported global variable declarations */

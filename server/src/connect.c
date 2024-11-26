@@ -1,6 +1,6 @@
 /* connect.c - <comment goes here> */
 /* Created: Sun Aug  4 10:09:40 PM EDT 2024 malakai */
-/* $Id: connect.c,v 1.5 2024/11/23 16:33:25 malakai Exp $ */
+/* $Id: connect.c,v 1.6 2024/11/26 05:33:10 malakai Exp $ */
 
 /* Copyright © 2022-2024 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -320,6 +320,9 @@ int loci_connect_to_game_uuid(proxy_conn_t *pc,char *uuid) {
 
 	loci_client_send_key(pc);
 	loci_renegotiate_env(pc);
+	loci_environment_update(pc, TELNET_ENVIRON_VALUE, "CLIENT_STATE",
+		get_proxy_state_str(get_client_state(pc))
+	);
 	loci_client_send_echosga(pc);
 	loci_telnet_send_naws(pc->game->game_telnet,pc->client->width,pc->client->height);
 	

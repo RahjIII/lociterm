@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.15 2024/11/23 16:33:25 malakai Exp $ */
+/* $Id: telnet.c,v 1.16 2024/11/26 05:33:10 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -151,6 +151,9 @@ void loci_environment_init(proxy_conn_t *pc) {
 	pc->environment = g_list_append(pc->environment,
 		loci_new_env_var(TELNET_ENVIRON_VAR,"MTTS",MTTS_VALUE)
 	);
+	pc->environment = g_list_append(pc->environment,
+		loci_new_env_var(TELNET_ENVIRON_VAR,"COLORTERM","truecolor")
+	);
 
 	if(pc->client) {
 		if(pc->client->useragent) {
@@ -164,7 +167,14 @@ void loci_environment_init(proxy_conn_t *pc) {
 				loci_new_env_var(TELNET_ENVIRON_VAR,"IPADDRESS",pc->client->hostname)
 			);
 		}
+		pc->environment = g_list_append(pc->environment,
+			loci_new_env_var(TELNET_ENVIRON_VAR,"CLIENT_STATE",
+				get_proxy_state_str(get_client_state(pc))
+			)
+		);
 	}
+
+	pc->environment = g_list_reverse(pc->environment);
 
 	return;
 
@@ -180,7 +190,7 @@ void loci_environment_free(proxy_conn_t *f) {
 
 void loci_send_env_var(struct telnet_environ_t *env, telnet_t *telnet) {
 
-	locid_debug(DEBUG_TELNET,NULL,"ENV send: %s = %s",env->var,env->value);
+	locid_debug(DEBUG_TELNET,NULL,"ENV send IS: %s = %s",env->var,env->value);
 
 	telnet_begin_newenviron(telnet,TELNET_ENVIRON_IS);
 	telnet_newenviron_value(telnet,env->type,env->var);
@@ -188,6 +198,45 @@ void loci_send_env_var(struct telnet_environ_t *env, telnet_t *telnet) {
 	telnet_finish_newenviron(telnet);
 
 }
+
+void loci_send_env_var_info(struct telnet_environ_t *env, telnet_t *telnet) {
+
+	locid_debug(DEBUG_TELNET,NULL,"ENV send INFO: %s = %s",env->var,env->value);
+
+	telnet_begin_newenviron(telnet,TELNET_ENVIRON_INFO);
+	telnet_newenviron_value(telnet,env->type,env->var);
+	telnet_newenviron_value(telnet,TELNET_ENVIRON_VALUE,env->value);
+	telnet_finish_newenviron(telnet);
+
+}
+
+void loci_environment_update(proxy_conn_t *pc, int type, char *var, char *value) {
+
+	GList *l;
+	struct telnet_environ_t *t;
+
+	for(l=pc->environment;l;l=l->next) {
+		t = l->data;
+		if (!strcmp(t->var,var)) {
+			/* found the variable. */
+			if(t->value) {
+				free(t->value);
+			}
+			t->value = strdup(value);
+			break;
+		}
+	}
+	if(l == NULL) {
+		t=loci_new_env_var(TELNET_ENVIRON_VAR,var,value);
+		pc->environment = g_list_append(pc->environment,t);
+	}
+	
+	if(pc->game && pc->game->game_telnet) {
+		loci_send_env_var_info(t, pc->game->game_telnet);
+	}
+
+}
+
 
 void loci_telnet_send_naws(telnet_t *telnet, int width, int height) {
 

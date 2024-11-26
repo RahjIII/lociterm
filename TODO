@@ -1,32 +1,24 @@
 ------- TODO for 2.1 release --------------
-* FIX why isn't ssl working??  - omg its because its broken in libwebsockets v4.3-stable.  And permessage deflate is broken in v4.4/main .
-
-* Have UI disable "game server" when no db engine is installed.
-
-* Have UI disable "suggest new" button when suggestions are disabled.
+* FIX why isn't ssl working??  - omg its because its broken in libwebsockets v4.3-stable.  And permessage deflate is broken in v4.4/main .  Add a compile time option to disable PMD temporarily?
 
 * implement the GMCP Loci.Menu protocol for game sending menu definitions to client
 
-* make it so that ?host=X&port=Y ONLY works if the game has already been
-  suggested and allowed, to make it LESS easy to automate suggestions.
-
-* there are times when you might want to allow a numeric ip. make it
-  selectable.
+* local mode function key editor.
 
 * screenshots for PWA installer
 
-* change the "Diagonal" menu back to LPMud.  Make the "canned" menus
-	auto-select based on the MSSP family name?
-
-
 		------- more TODO TODO TODO TODO --------------
+* ICK. - the nerfbar password hider probably needs to be an <input
+  type="password"> field instead of a blurred <textarea>.  On Android with a
+  styled textarea, the IME will still show the password you type in as an
+  autocompletion. *doh!* :) But its good enough for now.
 
 * comments around some of the nastier code bits, particularly the crummy js.
 
 * controlable contrast ratio in theme? (can xtermjs do it after setup?)  
-  See xtermoptions.minimumContrastRatio
-
-* local mode function key editor?
+  See xtermoptions.minimumContrastRatio.  (The problem is games with direct 256
+  or TRUECOLOR that just choose horrible colors from a usability standpoint.
+  #008000 blue on #000000 black, for example.)
 
 * General save settings per site?
 
@@ -53,8 +45,8 @@
 * Should have the systemctl file built at make time, to use the right install
 	 path.
 
-* lociterm... talking to Play.Legendsofterris.Com 31000, got a lot of what
-	looked like oob gmcp?  figure that out.
+* change the "Diagonal" menu back to LPMud.  Make the "canned" menus
+	auto-select based on the MSSP family name?
 
 * config option for verbose suggestion failure message to client.
 
@@ -87,6 +79,28 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ add COLORTERM = truecolor to environment.
+
++ propigate the client interface state into new-env.
+	Done as CLIENT_STATE.  Values are UP or DOWN, and are sent on change and on
+	reconnect.
+
+- lociterm... talking to Play.Legendsofterris.Com 31000, got a lot of what
+	looked like oob gmcp?  figure that out.  ( I looked at a packet trace... its not Lociterm.  That mud is just sending garbage. )
+
++ there are times when you might want to allow a numeric ip. make it
+  selectable.  (gamedb, allow_numeric_ip = yes)  default is no
+
++ make it so that ?host=X&port=Y ONLY works if the game has already been
+  suggested and allowed, to make it LESS easy to automate suggestions.
+
++ Have UI disable "game server" when no db engine is installed. 
+	No, I had it only print the default game.
+
++ Have UI disable "suggest new" button when suggestions are disabled.
+	the suggest new button in the game server list.  If a menu opens
+	sys_connect directly, that'll still work.
+
 + change prompt menu action to print into the nerfbar if active.  send
   should send the nerfbar of the nerfbar (if any) without a newline then the
   send string.

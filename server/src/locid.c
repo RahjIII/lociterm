@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.23 2024/11/23 16:33:25 malakai Exp $ */
+/* $Id: locid.c,v 1.24 2024/11/26 05:33:10 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -221,7 +221,7 @@ struct locid_conf *new_config(char *filename) {
 	if (!strcasecmp(tmpstr,"open")) {
 		c->db_suggestions = DBSTATUS_APPROVED;
 	} else if (!strcasecmp(tmpstr,"queued")) {
-		c->db_suggestions = DBSTATUS_NOT_CHECKED;
+		c->db_suggestions = DBSTATUS_NO_ANSWER; /* no answer until an admin allows it. */
 	} else {
 		c->db_suggestions = DBSTATUS_BANNED;
 	}
@@ -242,6 +242,13 @@ struct locid_conf *new_config(char *filename) {
 		c->db_min_protocol = CHECK_TELNET;
 	}
 	free(tmpstr);
+
+	tmpstr = get_conf_string(gkf, "game-db", "allow_numeric_ip", "no");
+	if (!strcasecmp(tmpstr,"yes")) {
+		c->db_allow_numeric_ip = 1;
+	} else {
+		c->db_allow_numeric_ip = 0;
+	}
 
 	c->db_banned_ports = NULL;
 	tmpstr = get_conf_string(gkf, "game-db", "banned_ports", 

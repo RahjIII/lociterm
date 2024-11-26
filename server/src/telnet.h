@@ -1,6 +1,6 @@
 /* telnet.h - LociTerm libtelnet handlers */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.h,v 1.5 2024/09/13 14:32:59 malakai Exp $ */
+/* $Id: telnet.h,v 1.6 2024/11/26 05:33:10 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -45,5 +45,6 @@ void loci_telnet_send_gmcp(telnet_t *telnet, const char *buffer, size_t size);
 void loci_environment_init(proxy_conn_t *pc);
 void loci_environment_free(proxy_conn_t *pc);
 void loci_renegotiate_env(proxy_conn_t *pc);
+void loci_environment_update(proxy_conn_t *pc, int type, char *var, char *value);
 
 #endif /* LO_TELNET_H */
