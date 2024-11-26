@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.43 2024/11/26 17:34:40 malakai Exp $
+// $Id: lociterm.js,v 1.44 2024/11/26 17:35:26 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -169,7 +169,7 @@ class LociTerm {
 		this.menuhandler = new MenuHandler(this);
 
 		this.gaeor = new GaEorHandler(this);
-		this.gaeor.onEOR = this.gaeor.example_handler;
+		// this.gaeor.onEOR = this.gaeor.example_handler;
 
 		this.connectgame = new ConnectGame(this,this.menuhandler);
 		this.loadDefaultTheme();
