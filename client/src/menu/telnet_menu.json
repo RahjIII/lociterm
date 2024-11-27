@@ -30,11 +30,11 @@
 			"item" : [
 				{
 					"label": "ESC",
-					"send": "\u001b"
+					"direct": "\u001b"
 				},
 				{
 					"label": "TAB",
-					"send": "\u0009"
+					"direct": "\u0009"
 				},
 				{
 					"label": "Ctrl ...",
@@ -51,23 +51,23 @@
 			"item" : [
 				{
 					"label": "Ctrl-A",
-					"send": "\u0001"
+					"direct": "\u0001"
 				},
 				{
 					"label": "Ctrl-C",
-					"send": "\u0003"
+					"direct": "\u0003"
 				},
 				{
 					"label": "Ctrl-D",
-					"send": "\u0004"
+					"direct": "\u0004"
 				},
 				{
 					"label": "Ctrl-X",
-					"send": "\u0018"
+					"direct": "\u0018"
 				},
 				{
 					"label": "Ctrl-Z",
-					"send": "\u001a"
+					"direct": "\u001a"
 				}
 			]
 		},
@@ -76,19 +76,19 @@
 			"item" : [
 				{
 					"label": "Up",
-					"send": "\u001b\u005b\u0041"
+					"direct": "\u001b\u005b\u0041"
 				},
 				{
 					"label": "Down",
-					"send": "\u001b\u005b\u0042"
+					"direct": "\u001b\u005b\u0042"
 				},
 				{
 					"label": "Left",
-					"send": "\u001b\u005b\u0044"
+					"direct": "\u001b\u005b\u0044"
 				},
 				{
 					"label": "Right",
-					"send": "\u001b\u005b\u0043"
+					"direct": "\u001b\u005b\u0043"
 				}
 			]
 		},

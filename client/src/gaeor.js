@@ -1,6 +1,6 @@
 // gaeor.js - Telnet GA and EOR handler
 // Created: Tue Nov 19 09:51:03 PM EST 2024
-// $Id: gaeor.js,v 1.1 2024/11/26 17:34:40 malakai Exp $
+// $Id: gaeor.js,v 1.2 2024/11/27 18:18:42 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -18,6 +18,7 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with LociTerm.  If not, see <https://www.gnu.org/licenses/>.
+
 
 class GaEorHandler {
 
@@ -66,8 +67,12 @@ class GaEorHandler {
 	}
 
 	// example handler
+	// lociterm is the instance of lociterm that got the marker.
+	// buffer is the string of bytes seen since the previous marker.
+	// 
 	// In, say, lociterm.js you might assign
 	//		this.gaeor.onEOR = this.gaeor.example_handler;
+	// to see how this handler works.
 	example_handler(lociterm,buffer) {
 		console.log(`gaeor: ${buffer.length} bytes in that record.`);
 		lociterm.terminal.write(`\n──────── EOR ────────\n`);

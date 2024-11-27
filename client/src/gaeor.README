@@ -1,0 +1,32 @@
+// ----  BIG FAT NOTE OF WARNING FROM THE AUTHOR  ----
+//
+// EOR and GA markers make it a lot easier for a client to parse the output
+// from a game and act upon it, for doing things like client side triggers or
+// botting.  I've added these hooks into gaeor.js because I'm sure that someone
+// someday is going to want to do something with record parsing, and I figure
+// it is better for me to hook GA/EOR support into this lociterm / locid / game
+// dataflow now, than it will be to try to help multiple people debug their own
+// implementations of it later.
+//
+// If you are a game operator and think that you need triggers or scripting on
+// the client side, I STRONGLY urge you to put that functionality into your
+// game server, not into this client, so that it is available to all of your
+// players, no matter how they connect.
+//
+// If you are hell-bent on adding client side triggers or scripting to
+// LociTerm, that's fine, but BE WARNED that your code will need to have an
+// easy way to remove the functionality for other LociTerm sites that DON'T
+// want to provide that to their players.  In fact, if your triggering /
+// scripting / colorzing code isn't completely disabled by default, your
+// patches aren't likely to get accepted back into the main project.
+//
+// Finally, if you are a LociTerm user and trying to write yourself some kind
+// of bot for a game that you don't have any control over, please be aware that
+// there are much better mud client alternatives available for automation than
+// LociTerm.  Mudlet and TinTin++ already have excellent scripting capabilities
+// that are ready and waiting for you to use for that.
+//
+// PLEASE, do not use these hooks for evil.
+//
+// Thanks, and good luck! -jsj
+

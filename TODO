@@ -1,8 +1,6 @@
 ------- TODO for 2.1 release --------------
 * FIX why isn't ssl working??  - omg its because its broken in libwebsockets v4.3-stable.  And permessage deflate is broken in v4.4/main .  Add a compile time option to disable PMD temporarily?
 
-* implement the GMCP Loci.Menu protocol for game sending menu definitions to client
-
 * local mode function key editor.
 
 * screenshots for PWA installer
@@ -79,6 +77,9 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ implement the GMCP Loci.Menu protocol for game sending menu definitions to
+	client, and document it.
+
 + EOR hook.
 
 + add COLORTERM = truecolor to environment.

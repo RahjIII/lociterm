@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.37 2024/11/23 16:33:25 malakai Exp $
+// $Id: menuhandler.js,v 1.38 2024/11/27 18:18:42 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -254,11 +254,15 @@ class MenuHandler {
 			menubox.width = Math.max(custom.menubox.width , menubox.width);
 			menubox.height = Math.max(custom.menubox.height , menubox.height);
 			menubox.buttons = menubox.buttons.concat(custom.menubox.buttons);
+		} else {
+			console.warn(`Custom menu contained no menubox definition. ${custom}`);
 		}
 
 		let menubar = menu.menubar;
 		if(custom.menubar) {
 			menubar = menubar.concat(custom.menubar);
+		} else {
+			console.warn(`Custom menu contained no menubar definition. ${custom}`);
 		}
 
 		var div;
@@ -405,6 +409,14 @@ class MenuHandler {
 				// label goes inside the div.
 				if ( item.label != undefined ) {
 					s.innerText = item.label;
+				}
+
+				if (item.direct != undefined) {
+					// send directly to the terminal, bypassing any nerfbar.
+					s.onclick = () => {
+						this.done();
+						this.lociterm.paste(item.direct);
+					}
 				}
 
 				if (item.hotkey != undefined) {

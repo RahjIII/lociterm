@@ -1,6 +1,6 @@
 // gmcp.js - generic mud communication protocol for lociterm
 // Created: Wed Apr  3 05:34:00 PM EDT 2024
-// $Id: gmcp.js,v 1.8 2024/11/23 16:33:25 malakai Exp $
+// $Id: gmcp.js,v 1.9 2024/11/27 18:18:42 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -29,7 +29,8 @@ class GMCP {
 	// register the supported modules here.
 	supportsSet = [
 		"Char.Login 1",
-		"Loci.Hotkey 1"
+		"Loci.Hotkey 1",
+		"Loci.Menu 1"
 	];
 
 	modules = new Map();
@@ -49,6 +50,10 @@ class GMCP {
 		this.modules.set("core.goodbye",(m) => this.coreGoodbye(m));
 		this.modules.set("loci.hotkey.set",(m) => this.lociHotkeySet(m));
 		this.modules.set("loci.hotkey.reset",(m) => this.lociHotkeyReset(m));
+		this.modules.set("loci.menu.set",(m) => this.lociMenuSet(m));
+		this.modules.set("loci.menu.reset",(m) => this.lociMenuReset(m));
+		this.modules.set("loci.menu.open",(m) => this.lociMenuOpen(m));
+		this.modules.set("loci.menu.close",(m) => this.lociMenuClose(m));
 	}
 
 	isEnabled() {
@@ -158,6 +163,8 @@ class GMCP {
 	}
 	
 	coreGoodbye(message) {
+		this.lociHotkeyReset();
+		this.lociMenuReset();
 		this.charLoginRequested = false;
 		this.lociterm.menuhandler.update_oob_message(
 			`${message}`
@@ -207,9 +214,9 @@ class GMCP {
 		return;
 	}
 
-	lociHotkeyReset(message) {
+	lociHotkeyReset(message={}) {
 
-		if(message.name != undefined) {
+		if(message.name !== undefined) {
 			let id = `hotkey_${message.name}`;
 			let item = document.getElementById(id);
 			if(item == undefined) {
@@ -228,10 +235,43 @@ class GMCP {
 			for (let id in this.lociterm.menuhandler.hotkeys ) {
 				let defaults = this.lociterm.menuhandler.hotkeys[id];
 				let item = document.getElementById(id);
-				item.innerText = defaults.label;
+				if(item !== null) {
+					item.innerText = defaults.label;
+				}
 			}
 		}
 	} 
+
+
+	// Loci.Menu handlers.
+	lociMenuGet(m) {
+		let obj = new Object();
+		this.send("Loci.Menu.Get",obj);
+	}
+
+	lociMenuSet(m) {
+		this.lociterm.mydiv.insertBefore(
+			this.lociterm.menuhandler.create_custom_menus(m),
+			this.lociterm.mydiv.firstChild
+		);
+	}
+
+	lociMenuReset(m) {
+		let menuthemename = localStorage.getItem("menuthemename");
+		if( menuthemename !== undefined) {
+			this.lociterm.menuhandler.applyMenuName(menuthemename);
+		} else {
+			this.lociterm.menuhandler.applyMenuNo(0);
+		}
+	}
+
+	lociMenuOpen(m) {
+		this.lociterm.menuhandler.open(m);
+	}
+
+	lociMenuClose(m) {
+		this.lociterm.menuhandler.close(m);
+	}
 
 }
 

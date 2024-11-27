@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.44 2024/11/26 17:35:26 malakai Exp $
+// $Id: lociterm.js,v 1.45 2024/11/27 18:18:42 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -547,6 +547,9 @@ class LociTerm {
 
 						// re-request any hotkeys
 						this.gmcp.lociHotkeyGet();
+
+						// re-request any loci.menus
+						this.gmcp.lociMenuGet();
 
 						// at least in LO, ctrl-r requests a redraw. 
 						this.paste("\x12");
