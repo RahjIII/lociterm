@@ -1,6 +1,6 @@
 # makefile - LociTerm locid server
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.10 2024/09/19 17:03:30 malakai Exp $
+# $Id: makefile,v 1.11 2024/11/30 16:46:52 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -19,7 +19,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with LociTerm.  If not, see <https://www.gnu.org/licenses/>.
 
-
 # $(LOCI) is the name of the LociTerm server binary. Make install will copy
 # it to ../$(LOCI).next so that the guardian script can pick it up on the next
 # reboot.
@@ -29,6 +28,12 @@ LOCI = locid
 # This is only here so that if you make only the server, there's at least some
 # version number.
 LOCITERM_VERSION ?= 2.0.0-dev
+
+# If your version of libwebsocket has a broken permessage-deflate handler (i.e.
+# libwebsockets main branch, with git commit
+# c60bff09914b02c320ce87898a95e2f85e228af7 applied and neither fixed nor
+# reverted yet), uncomment this line, and PMD won't be used.
+# LOCI_DISABLE_PMD = 1
 
 # List the LOCI .c files here.  Order doesn't matter.  Dont worry
 # about header file dependencies, this makefile will figure them out
@@ -50,7 +55,11 @@ CDEBUG = -g
 # CDEBUG = -g  -fsanitize=address
 
 # CDEFINES, for passing version number in through makefiles.
-CDEFINES = -D'LOCITERM_VERSION="$(LOCITERM_VERSION)"'
+CDEFINES = -D'LOCITERM_VERSION="$(LOCITERM_VERSION)"' 
+
+ifdef LOCI_DISABLE_PMD
+CDEFINES += -DLOCI_DISABLE_PMD
+endif
 
 # #### Flags and linklibs definitions ####
 

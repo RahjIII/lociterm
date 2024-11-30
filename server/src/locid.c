@@ -1,6 +1,6 @@
 /* locid.c - LociTerm main entry and config parsing */
 /* Created: Wed Apr 27 11:11:03 AM EDT 2022 malakai */
-/* $Id: locid.c,v 1.25 2024/11/26 17:34:40 malakai Exp $ */
+/* $Id: locid.c,v 1.26 2024/11/30 16:46:52 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -534,8 +534,13 @@ int main(int argc, char **argv) {
 
 	/* could make this configurable later. */
 	info.retry_and_idle_policy = &retry;
+#ifdef LOCI_DISABLE_PMD
+	locid_log("LWS permessage-deflate extention is DISABLED.\n");
+#else
 	/* Enable permessage deflate extension */
 	info.extensions = extensions;
+#endif
+	
 
 
 	context = lws_create_context(&info);

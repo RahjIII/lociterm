@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.45 2024/11/27 18:18:42 malakai Exp $
+// $Id: lociterm.js,v 1.46 2024/11/30 16:46:52 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -169,6 +169,10 @@ class LociTerm {
 		this.menuhandler = new MenuHandler(this);
 
 		this.gaeor = new GaEorHandler(this);
+		// ...for example... 
+		// ...enable this line to defer terminal output to the eor handler.
+		// this.gaeor.preventDefault = true; 
+		// ...and use this as the eor handler.
 		// this.gaeor.onEOR = this.gaeor.example_handler;
 
 		this.connectgame = new ConnectGame(this,this.menuhandler);
@@ -515,9 +519,10 @@ class LociTerm {
 					str = new TextDecoder('utf8', {fatal:false}).decode(retry);
 				}
 				
-				this.gaeor.write(str);
-				this.terminal.scrollToBottom();
-				this.terminal.write(str);
+				if( this.gaeor.write(str) === false ) {
+					this.terminal.scrollToBottom();
+					this.terminal.write(str);
+				}
 				break;
 			case Command.COMMAND:
 				let obj;

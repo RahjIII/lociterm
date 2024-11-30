@@ -1,6 +1,6 @@
 // gmcp.js - generic mud communication protocol for lociterm
 // Created: Wed Apr  3 05:34:00 PM EDT 2024
-// $Id: gmcp.js,v 1.9 2024/11/27 18:18:42 malakai Exp $
+// $Id: gmcp.js,v 1.10 2024/11/30 16:46:52 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -42,6 +42,7 @@ class GMCP {
 		this.lociterm = lociterm;
 		this.enabled = false;
 
+		// These are the GMCP commands that the client knows how to respond to.
 		// the keys MUST be in lower case!
 		this.modules.set("core.enable",(m) => this.coreEnable(m));
 		this.modules.set("core.disable",(m) => this.coreDisable(m));
