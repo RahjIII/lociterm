@@ -1,9 +1,14 @@
 ------- TODO for 2.1 release --------------
-* FIX why isn't ssl working??  - omg its because its broken in libwebsockets v4.3-stable.  And permessage deflate is broken in v4.4/main .  Add a compile time option to disable PMD temporarily?
+* GMCP - enable/disable per protocol module, and a pref selector?
 
-* local mode function key editor.
+* nerfbar should probably react to actual function hotkey presses too.
 
 * screenshots for PWA installer
+
++ wordstack lociterm keyboard entry disable- set class="xterm-helper-textarea"
+to disabled might work for keeping IME from poping up in line mode! (Yep, added
+that.)
+
 
 		------- more TODO TODO TODO TODO --------------
 * ICK. - the nerfbar password hider probably needs to be an <input
@@ -16,12 +21,14 @@
 * controlable contrast ratio in theme? (can xtermjs do it after setup?)  
   See xtermoptions.minimumContrastRatio.  (The problem is games with direct 256
   or TRUECOLOR that just choose horrible colors from a usability standpoint.
-  #008000 blue on #000000 black, for example.)
+  #008000 blue on #000000 black, for example.)  (It can, but until I have a
+  different place for extra options like that, "themes" is too crowded for it.
+  You can always set it in a theme.)
 
 * General save settings per site?
 
 * Would be cool if the function keys "animated" on screen when they changed via
-	loci.hotkey, so that the player is more aware of it. (I made a hook, but the indicator of flashing open the menu sucks and needs workd.)
+	loci.hotkey, so that the player is more aware of it.
 
 * It might be cool to have the screen stay at a fixed width (from font size),
 	but also be able to do a pinch zoom and only have the term panel effected,
@@ -54,8 +61,6 @@
 
 * Config option for how frequently to re-check MSSP.
 
-* try to fix TAB and SHIFT TAB in the ui.
-
 * Filter out unsupported GMCP messages at the locid level.  No reason to send
   those to the client, and some games are very bad about it.
 
@@ -77,6 +82,22 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ local mode function key editor. - in progress hotkey.js
+	+ (make mud accept loci.hotkey.edit definitions. for testing)
+	+ make hotkey ui send updates back via loci.hotkey.edit
+	+ make terminal send local hotkey definitions on keystroke (done)
+	+ add hotkey save function. (done)
+	+ (make mud translate between | and \n when sending/recv macros) (done)
+	+ hotkey subsystem revamped, hotkey.js
+	+ document loci.hotkey name: label: and macro: sends: options.
+
+
++ try to fix TAB and SHIFT TAB in the ui.
+
++ FIX why isn't ssl working??  - omg its because its broken in libwebsockets
+v4.3-stable.  And permessage deflate is broken in v4.4/main .  Add a compile
+time option to disable PMD temporarily?
+
 + implement the GMCP Loci.Menu protocol for game sending menu definitions to
 	client, and document it.
 

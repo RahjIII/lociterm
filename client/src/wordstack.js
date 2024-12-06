@@ -1,6 +1,6 @@
 // wordstack.js - keep track of clicked upon words.
 // Created: Tue Nov 19 09:51:03 PM EST 2024
-// $Id: wordstack.js,v 1.2 2024/11/23 16:59:09 malakai Exp $
+// $Id: wordstack.js,v 1.3 2024/12/06 04:59:51 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -82,6 +82,10 @@ class WordStack {
 			return;
 		}
 		this.lociterm.menuhandler.open(`${this.menuid}`);
+	}
+
+	closeMenu() {
+		this.lociterm.menuhandler.close(`${this.menuid}`);
 	}
 
 	toggleMenu() {

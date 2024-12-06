@@ -1,6 +1,6 @@
 // nerfbar.js - pitiful line mode support
 // Created: Mon 26 Dec 2022 11:55:45 PM EST
-// $Id: nerfbar.js,v 1.7 2024/11/23 16:33:25 malakai Exp $
+// $Id: nerfbar.js,v 1.8 2024/12/06 04:59:51 malakai Exp $
 
 // Copyright © 2023 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -191,6 +191,7 @@ class NerfBar {
 		this.lociterm.doWindowResize();
 		this.nerfstate = "active";
 		document.documentElement.style.setProperty('--nerfbar-offsetHeight', `${this.mydiv.offsetHeight}px`);
+		this.lociterm.keyboardEnable(false);
 	}
 
 	// make the nerfbar DIE DIE DIE. I hate you, nerfbar.
@@ -202,6 +203,7 @@ class NerfBar {
 		this.nerfstate = "inactive";
 		this.mydiv.style.opacity = "";
 		document.documentElement.style.setProperty('--nerfbar-offsetHeight', `${this.mydiv.offsetHeight}px`);
+		this.lociterm.keyboardEnable(true);
 	}
 
 	nofade() {

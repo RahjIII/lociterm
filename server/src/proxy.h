@@ -1,6 +1,6 @@
 /* proxy.h - LociTerm protocol bridge  */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: proxy.h,v 1.5 2024/11/26 15:41:08 malakai Exp $ */
+/* $Id: proxy.h,v 1.6 2024/12/06 04:59:51 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -117,6 +117,7 @@ const char *loci_get_game_uuid(proxy_conn_t *pc);
 
 void loci_client_shutdown(proxy_conn_t *pc);
 void loci_client_send_echosga(proxy_conn_t *pc);
+void loci_client_send_gmcp(proxy_conn_t *pc);
 void loci_client_send_gaeor(proxy_conn_t *pc, const char *msg);
 void loci_client_invalidate_key(proxy_conn_t *pc);
 void loci_game_send(proxy_conn_t *pc, const char *buffer, size_t size);

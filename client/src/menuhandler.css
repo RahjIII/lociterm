@@ -58,17 +58,10 @@
 	transition: opacity 0.25s ease-in-out;
 }
 
-#menubox:active {
-	opacity: 1.0;
-	transition: opacity 0.25s ease-in-out;
-}
-
 .menugrid {
     display: grid;
-    /* grid-template-rows: repeat(4,1fr); */
-    /* grid-template-columns: repeat(4,1fr); */
     grid-gap: 0mm;
-	background: #000000C0;
+	background: #00000080;
 }
 
 .menugrid *:hover{
@@ -105,7 +98,6 @@
 	/* background: rgba(255,0,0,0.5); */
 	min-height: fit-content;
 }
-
 
 .menu button {
 	background: inherit;
@@ -379,6 +371,7 @@
 
 .menupop select,
 .menupop input,
+.menupop textarea,
 .menupop input.checkbox,
 .menupop button {
 	min-height: calc(var(--finger-size)/1.0);
@@ -447,4 +440,24 @@
 
 .gamelist tr:nth-child(even) {
 	background: var(--book-paper-color);
+}
+
+.genericbutton button {
+	/* width: 80%; */
+	height: calc(var(--finger-size));
+}
+.genericbutton {
+	justify-items: center;
+}
+
+/* try and match .menuside .send */
+.hotkeylabel input {
+	font-weight: bold;
+	color: var(--book-link-color);
+	text-transform: capitalize;
+	font-style: italic;
+}
+
+.hotkeymacro textarea {
+	background: var(--book-altpaper-color);
 }

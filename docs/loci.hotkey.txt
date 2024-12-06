@@ -4,8 +4,11 @@ Client must support:  "Loci.Hotkey 1"
 
 	If client claims support, server will send hotkey definition update
 	messages asynchronosly, as they become available, at the server's
-	discretion.  The client SHOULD NOT cache updated definitions betweeen
-	sessions.  
+	discretion. 
+
+	Defined Values for the hotkey "name:" are-
+		pgup, pgdn, home, end, f1 - f20
+
 
 Client to Server: 
 	"Loci.Hotkey.Get" { }
@@ -15,16 +18,39 @@ Client to Server:
 	indicate to server that all previously sent updates may have been lost due
 	to a client reset, and need to be resent.  
 
+	"Loci.Hotkey.Edit" {          // (v2 only)
+		name: "<keyname>",        // required
+		label: "<display label>"  // optional
+		macro: "alphanumeric string to set" // optional
+		sends: "seq" or "macro"   // optional (v2 only)
+	}
+
+	Message from client to server to set a server side hotkey expansion.
+	Expectation is that if the server recieves the vt/xterm hotkey sequence, it
+	will substitute in the provided macro text.  May be sent at any time, when
+	the client wishes to inform the server of a definition or change, such as
+	when user edits a hotkey with the client UI.
+
 Server to Client: 
 	
 	"Loci.Hotkey.Set" { 
 		name: "<keyname>",        // required
-		label: "<display label>"  // required
+		label: "<display label>"  // optional
+		macro: "alphanumeric string to set" // optional
+		sends: "seq" or "macro"   // optional (v2 only)
 	}
 
 	Message from server to client containing a hotkey definition.  May be sent
 	at any time.  name: is a required field.  label: is a UI display name,
 	intended to be used in on-screen buttons.
+
+	The sends: <seq|macro> paramter indicates to the client whether it should
+	send a vt/xterm function key sequence, or the text of the macro: parameter
+	when a function key is hit.  The macro: string should always be sent with
+	at least one terminating '\n' newline character, whether the macro string
+	ends in a \n or not.  Note that if the macro: string isn't defined, the
+	client should send the vt/xterm function key sequence instead of sending an
+	empty line.
 
 	"Loci.Hotkey.Reset" {
 		name: "<keyname>"	// optional

@@ -1,6 +1,6 @@
 /* telnet.c - LociTerm libtelnet event handling code */
 /* Created: Fri Apr 29 03:01:13 PM EDT 2022 malakai */
-/* $Id: telnet.c,v 1.18 2024/11/26 17:34:40 malakai Exp $ */
+/* $Id: telnet.c,v 1.19 2024/12/06 04:59:51 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -260,6 +260,14 @@ void loci_renegotiate_env(proxy_conn_t *pc) {
 	}
 }
 
+void loci_renegotiate_gmcp(proxy_conn_t *pc) {
+	if(pc && pc->game && pc->game->game_telnet) {
+		telnet_negotiate(pc->game->game_telnet, TELNET_WILL, TELNET_TELOPT_GMCP);
+	}
+	loci_client_gmcp_will(pc);
+}
+
+
 void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_data) {
 
 	game_conn_t *gc = (game_conn_t *)user_data;
@@ -325,6 +333,7 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		case TELNET_TELOPT_GMCP:
 			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WILL TELNET_TELOPT_GMCP");
 			security_checked(pc,CHECK_MUD);
+			gc->gmcp_opt = 1;
 			loci_client_gmcp_will(pc);
 			break;
 		case TELNET_TELOPT_EOR:
@@ -352,6 +361,7 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 			break;
 		case TELNET_TELOPT_GMCP:
 			locid_debug(DEBUG_TELNET,pc,"TELNET TELNET_EV_WONT TELNET_TELOPT_GMCP");
+			gc->gmcp_opt = 0;
 			loci_client_gmcp_wont(pc);
 			break;
 		case TELNET_TELOPT_EOR:

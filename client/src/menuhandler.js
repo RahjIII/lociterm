@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.38 2024/11/27 18:18:42 malakai Exp $
+// $Id: menuhandler.js,v 1.39 2024/12/06 04:59:51 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -44,7 +44,6 @@ class MenuHandler {
 
 		this.lociterm = lociterm;
 		this.openwindow = [];
-		this.hotkeys = [];
 		this.openHandler = new Map();
 		this.menuThemes = this.consolodateMenuThemes();
 
@@ -160,22 +159,6 @@ class MenuHandler {
 		}
 	}
 
-	// send hotkey bytes directly to the terminal, or route a hotkey's "send"
-	// definition through the nerfbar infrastructure.
-	hotkey(id) {
-		this.done();  // close the hotkey menu.
-		/* if the hotkey exists in the menu system... */
-		if( this.hotkeys[id] === undefined ) {
-			return;
-		}
-		/* if it has a .send value, route that through the terminal or nerfbar. */
-		if(this.hotkeys[id].send !== undefined) {
-			this.send(this.hotkeys[id].send);
-			return;
-		}
-		/* otherwise paste the keystroke directly into the terminal. */
-		this.lociterm.paste(this.hotkeys[id].hotkey);
-	}
 
 	prompt(keys) {
 		this.send(keys);
@@ -229,8 +212,8 @@ class MenuHandler {
 		let password = document.getElementById("current-password").value;
 		
 		// Check for gmcp auth availability
-		if( (this.lociterm.gmcp.charLoginRequested == true) ) {
-			this.lociterm.gmcp.sendCharLoginCredentials(username,password);
+		if( (this.lociterm.gmcp.mod("CharLogin").charLoginRequested == true) ) {
+			this.lociterm.gmcp.mod("CharLogin").sendCharLoginCredentials(username,password);
 		} else {
 			// don't route it through the nerfbar, paste directly to the terminal.
 			setTimeout(()=>this.lociterm.paste(`${username}\n`),0);
@@ -419,11 +402,21 @@ class MenuHandler {
 					}
 				}
 
-				if (item.hotkey != undefined) {
+				// hotkey binding hook
+				if ( this.lociterm.hotkey.keyIdx(item.hotkey) !== -1 ) {
+					item.hotkey = item.hotkey.toLowerCase();
 					s.classList.add('send');
 					s.classList.add('hotkey');
-					this.hotkeys[item.id] = item;
-					s.onclick = () => this.hotkey(item.id);
+					s.classList.add(item.hotkey);
+					if(item.label !== undefined) {
+						this.lociterm.hotkey.setLabel(item.hotkey,item.label);
+					} 
+					s.innerText = this.lociterm.hotkey.getLabel(item.hotkey);
+
+					if(item.str != undefined) {
+						this.lociterm.hotkey.setStr(item.hotkey,item.str);
+					}
+					s.onclick = () => this.lociterm.hotkey.sendKey(item.hotkey);
 				}
 
 				if ( item.disconnect != undefined ) {
@@ -554,7 +547,7 @@ class MenuHandler {
 		cdiv.appendChild(l);
 		l.onclick = (()=> {
 			this.saveLogin();
-			this.lociterm.gmcp.charLoginCancel();
+			this.lociterm.gmcp.mod("CharLogin").charLoginCancel();
 			this.done()
 		} );
 		l.classList.add('close');
@@ -668,7 +661,7 @@ class MenuHandler {
 					}
 				}
 				let submit = document.getElementById(`${id}_submit`);
-				if( (this.lociterm.gmcp.charLoginRequested == true) ) {
+				if( (this.lociterm.gmcp.mod("CharLogin").charLoginRequested == true) ) {
 					submit.innerText = "Login";
 				} else {
 					submit.innerText = "Send Text";
@@ -1161,7 +1154,7 @@ class MenuHandler {
 			"authorized to use, and that you will not use LociTerm to bypass, " +
 			"obfuscate, or probe for network or system access. ",
 
-			"Parental discresion is advised. We suggest you wear a helmet and bring a jacket.",
+			"Parental discretion is advised. We suggest you wear a helmet and bring a jacket.",
 
 			"Thanks for reading. Go have fun!"
 		];
@@ -1417,11 +1410,71 @@ class MenuHandler {
 		return(ret);
 	}
 
+	create_generic_input(named="",labeled="", type="", placeholder="",onchange={}) {
+
+		let cdiv  = document.createElement('div');
+		let l;
+
+		l = document.createElement('label');
+		cdiv.appendChild(l);
+		l.setAttribute("for",named);
+		l.innerText = labeled;
+
+		l = document.createElement('input');
+		cdiv.appendChild(l);
+		l.setAttribute("type",type);
+		l.setAttribute("placeholder",placeholder);
+		l.setAttribute("name",named);
+		l.id = named;
+		l.addEventListener('change',onchange);
+
+		return(cdiv);
+	}
+
+	create_generic_textarea(named="",labeled="", type="", placeholder="",onchange={}) {
+
+		let cdiv  = document.createElement('div');
+		let l;
+
+		l = document.createElement('label');
+		cdiv.appendChild(l);
+		l.setAttribute("for",named);
+		l.innerText = labeled;
+
+		l = document.createElement('textarea');
+		cdiv.appendChild(l);
+		l.setAttribute("type",type);
+		l.setAttribute("placeholder",placeholder);
+		l.setAttribute("name",named);
+		l.id = named;
+		l.addEventListener('change',onchange);
+
+		return(cdiv);
+	}
+
+	create_generic_button(named="",labeled="", type="",onclick={}) {
+
+		let cdiv  = document.createElement('div');
+		cdiv.classList.add('genericbutton');
+
+		let l = document.createElement('button');
+		cdiv.appendChild(l);
+		l.id = named;
+		l.setAttribute("type",type);
+		l.innerText = labeled;
+		l.onclick = onclick;
+
+		return(cdiv);
+
+	}
+
 	applyMenuNo(index) {
 		let theme = this.menuThemes[index];
 		this.mydiv.insertBefore(this.create_custom_menus(theme),this.mydiv.firstChild);
 		localStorage.setItem("menuthemename",theme.name);
-		this.lociterm.gmcp.lociHotkeyGet();
+		if( this.lociterm.gmcp.mod("LociHotkey") !== undefined) {
+		//	this.lociterm.gmcp.mod("LociHotkey").sendGet();
+		}
 	}
 
 	applyMenuName(name) {

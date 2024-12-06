@@ -75,7 +75,7 @@ Menu Object:
             open "id of menubar to open"
             prompt "partial text to send to game, possibly through nerfbar, must not end in \n"
             send "text to send to game, possibly through nerfbar, should end with \n"
-            id "hotkey_NAME (special use for hotkey identification.)"
+            id "hotkey id (special use for hotkey identification.)"
             hotkey "value of keystrokes to send immediately to terminal if no 'send' exists, skipping nerfbar"
             color "a css color"
             background "a css color"

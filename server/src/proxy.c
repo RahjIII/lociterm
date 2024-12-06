@@ -1,6 +1,6 @@
 /* proxy.c - LociTerm protocol bridge */
 /* Created: Sun May  1 10:42:59 PM EDT 2022 malakai */
-/* $Id: proxy.c,v 1.8 2024/11/26 17:34:40 malakai Exp $*/
+/* $Id: proxy.c,v 1.9 2024/12/06 04:59:51 malakai Exp $*/
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -377,6 +377,18 @@ void loci_client_send_echosga(proxy_conn_t *pc) {
 	loci_client_send_cmd(pc,ECHO_MODE,jstr,strlen(jstr));
 	locid_debug(DEBUG_CLIENT,pc,"send ECHO_MODE '%s'",jstr);
 	json_object_put(jobj);
+
+}
+
+void loci_client_send_gmcp(proxy_conn_t *pc) {
+
+	if(pc->game && pc->game->gmcp_opt) {
+		char module[]="Core.Enable";
+		loci_client_send_cmd(pc,GMCP_DATA,module,strlen(module));
+	} else {
+		char module[]="Core.Disable";
+		loci_client_send_cmd(pc,GMCP_DATA,module,strlen(module));
+	}
 
 }
 

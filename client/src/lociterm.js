@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.46 2024/11/30 16:46:52 malakai Exp $
+// $Id: lociterm.js,v 1.47 2024/12/06 04:59:51 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -36,6 +36,7 @@ import { ConnectGame } from './connect.js';
 import BellSound from './snd/Oxygen-Im-Contact-In.mp3';
 import { WordStack } from './wordstack.js';
 import { GaEorHandler } from './gaeor.js';
+import { HotkeyHandler } from './hotkey.js';
 
 // The command codes MUST MATCH the defines in server/client.h !
 const Command = {
@@ -166,6 +167,7 @@ class LociTerm {
 
 		this.wordstack = new WordStack(this);
 		this.wordstack.menuid = "sys_wordstack";
+		this.hotkey = new HotkeyHandler(this);
 		this.menuhandler = new MenuHandler(this);
 
 		this.gaeor = new GaEorHandler(this);
@@ -174,6 +176,9 @@ class LociTerm {
 		// this.gaeor.preventDefault = true; 
 		// ...and use this as the eor handler.
 		// this.gaeor.onEOR = this.gaeor.example_handler;
+
+		// create hotkey menu after menuhandler is installed
+		this.hotkey.createEditorDiv();
 
 		this.connectgame = new ConnectGame(this,this.menuhandler);
 		this.loadDefaultTheme();
@@ -252,6 +257,11 @@ class LociTerm {
 		} else {
 			this.menuhandler.update_oob_message(`🔀Connecting...`);
 		}
+		// reset the hotkeys to any users saved default.  (clears out any
+		// hotkeys dynamically set in the session.)
+		this.hotkey.reset();
+
+		// ...and make it so.
 		console.log(`Connecting to ${JSON.stringify(request)}`);
 		this.sendMsg(Command.CONNECT,JSON.stringify(request));
 	}
@@ -332,19 +342,47 @@ class LociTerm {
 	}
 
 	onKey(e) {
+		// prevent tab/shift-tab from selecting the next ui element.
+		if(e.domEvent !== undefined) {
+			if(e.domEvent.code === "Tab") {
+				// This stops the event from going to the rest of the UI, but
+				// doesn't actually stop the key from going to the terminal.
+				// You'll have to hook into onTerminalData() to intercept that.
+				e.domEvent.preventDefault();
+			}
+		}
 		// Kinda hokey, but if the xtermjs temrinal gets a keystroke while the
 		// client is in line mode, try and activate the nerfbar instead.
-		if(this.echo_mode != 3) {
+		// if(this.echo_mode != 3) {  FIXME
+		if(this.nerfbar.nerfstate == "active") {
 			this.focus();
 		}
 	}
 
 	onTerminalData(data) {
-		/* char at a time mode */
+
+		// data can definately contain more than just the bytes for one
+		// keystroke.  but it sure seems like actual keystrokes show up as just
+		// their own seqence.  So that's what we are going to trigger on for
+		// intercepting and substituting in a function key based on its
+		// definition.  This may not be the right way to do this thing, it may
+		// prove to have problems.  Or it may just work.  
+
+		// intercept a defined hotkey sequence, and process it differently.
+		let key = this.hotkey.seqToKey.get(data);
+		if( (key !== undefined) ) {
+			this.hotkey.sendKey(key);
+			return;
+		}
+
+		// char at a time mode is 3
 		if(this.echo_mode == 3) {
+			// Send that data on up the websocket pipe.
 			this.sendMsg(Command.TERM_DATA,data);
 			return;
 		} else {
+			// The nerfbar better get all the keystrokes from now on.  We don't
+			// want 'em.
 			this.focus();
 		}
 	}
@@ -358,6 +396,8 @@ class LociTerm {
 		let selection = this.terminal.getSelection();
 		if (this.wordstack.addSelection(selection)) {
 			this.wordstack.openMenu();
+		} else {
+			this.wordstack.closeMenu();
 		}
 	}
 
@@ -544,17 +584,11 @@ class LociTerm {
 				}
 				if (robj.state) {
 					// reset the gcmp login mode.
-					try { this.gmcp.charLoginRequested = false } catch {};
+					try { this.gmcp.mod("CharLogin").charLoginRequested = false } catch {};
 
 					if(robj.state == "reconnect") {
 						// let 'em know if we've changed size.
 						this.doWindowResize();
-
-						// re-request any hotkeys
-						this.gmcp.lociHotkeyGet();
-
-						// re-request any loci.menus
-						this.gmcp.lociMenuGet();
 
 						// at least in LO, ctrl-r requests a redraw. 
 						this.paste("\x12");
@@ -942,6 +976,19 @@ class LociTerm {
 		setTimeout( ()=> {this.terminal.scrollToBottom();}, 300);
 	}
 
+	keyboardEnable(enabled=true) {
+	
+		let helpers = document.getElementsByClassName("xterm-helper-textarea");
+		if(enabled === false) {
+			for(let i=0;i<helpers.length;i++) {
+				helpers[i].setAttribute("disabled","true");
+			}
+		} else {
+			for(let i=0;i<helpers.length;i++) {
+				helpers[i].removeAttribute("disabled");
+			}
+		}
+	}
 }
 
 export { LociTerm }

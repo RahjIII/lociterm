@@ -1,6 +1,6 @@
 /* game.h - <comment goes here> */
 /* Created: Thu Apr 28 09:52:16 AM EDT 2022 malakai */
-/* $Id: game.h,v 1.5 2024/11/26 17:34:40 malakai Exp $ */
+/* $Id: game.h,v 1.6 2024/12/06 04:59:51 malakai Exp $ */
 
 /* Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
  *
@@ -45,6 +45,7 @@ typedef struct game_conn {
 	int echo_opt;					/* Is game server providing echo? */
 	int sga_opt;					/* Is game server supressing the GA protocol? */
 	int eor_opt;					/* Is game server sending EOR? */
+	int gmcp_opt;					/* Is game server sending GMCP? */
 	int data_sent;
 
 	proxy_conn_t *pc;				/* pointer to parent proxy context. */

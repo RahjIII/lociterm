@@ -1,6 +1,6 @@
 # makefile - LociTerm locid server
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.11 2024/11/30 16:46:52 malakai Exp $
+# $Id: makefile,v 1.12 2024/12/06 04:59:51 malakai Exp $
 
 # Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 #
@@ -27,7 +27,8 @@ LOCI = locid
 # Ideally, this should match the LOCITERM_VERSION in the toplevel makefile.
 # This is only here so that if you make only the server, there's at least some
 # version number.
-LOCITERM_VERSION ?= 2.0.0-dev
+TS = $(shell date +%H%M%S)
+LOCITERM_VERSION ?= 2.0-dev$(TS)
 
 # If your version of libwebsocket has a broken permessage-deflate handler (i.e.
 # libwebsockets main branch, with git commit

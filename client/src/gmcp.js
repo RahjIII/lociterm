@@ -1,6 +1,6 @@
 // gmcp.js - generic mud communication protocol for lociterm
 // Created: Wed Apr  3 05:34:00 PM EDT 2024
-// $Id: gmcp.js,v 1.10 2024/11/30 16:46:52 malakai Exp $
+// $Id: gmcp.js,v 1.11 2024/12/06 04:59:51 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -19,23 +19,20 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with LociTerm.  If not, see <https://www.gnu.org/licenses/>.
 //
-// This is a gmcp protocol handler class for lociterm, and it includes hooks
-// for handling Char.Login password-credentials type.
+// This is a gmcp protocol handler class for lociterm.  It includes hooks for
+// handling some of the Core functionality, and for loading up other modules
+// out of the gmcp source directory.
 
 import PackageData from '../package.json';
+import { LociHotkey } from './gmcp/loci_hotkey.js';
+import { LociMenu } from './gmcp/loci_menu.js';
+import { CharLogin } from './gmcp/char_login.js';
 
 class GMCP {
 
-	// register the supported modules here.
-	supportsSet = [
-		"Char.Login 1",
-		"Loci.Hotkey 1",
-		"Loci.Menu 1"
-	];
-
-	modules = new Map();
-	charLoginTypes = { type: [] };
-	charLoginRequested = false;
+	module = [];
+	supportsSet = [];
+	command = new Map(); // A map of registered command handlers
 
 	constructor(lociterm) {
 		// Get us a path back to the parent terminal.
@@ -44,27 +41,39 @@ class GMCP {
 
 		// These are the GMCP commands that the client knows how to respond to.
 		// the keys MUST be in lower case!
-		this.modules.set("core.enable",(m) => this.coreEnable(m));
-		this.modules.set("core.disable",(m) => this.coreDisable(m));
-		this.modules.set("char.login.default",(m) => this.charLoginDefault(m));
-		this.modules.set("char.login.result",(m) => this.charLoginResult(m));
-		this.modules.set("core.goodbye",(m) => this.coreGoodbye(m));
-		this.modules.set("loci.hotkey.set",(m) => this.lociHotkeySet(m));
-		this.modules.set("loci.hotkey.reset",(m) => this.lociHotkeyReset(m));
-		this.modules.set("loci.menu.set",(m) => this.lociMenuSet(m));
-		this.modules.set("loci.menu.reset",(m) => this.lociMenuReset(m));
-		this.modules.set("loci.menu.open",(m) => this.lociMenuOpen(m));
-		this.modules.set("loci.menu.close",(m) => this.lociMenuClose(m));
+		this.addCommand("core.enable",(m) => this.coreEnable(m));
+		this.addCommand("core.disable",(m) => this.coreDisable(m));
+		this.addCommand("core.goodbye",(m) => this.coreGoodbye(m));
+
+		this.initModule(new CharLogin(this));
+		this.initModule(new LociHotkey(this));
+		this.initModule(new LociMenu(this));
+
+	}
+
+	mod(name) {
+		return(this.module[name])
+	}
+
+	initModule(mod) {
+		this.supportsSet.push(`${mod.moduleName} ${mod.moduleVersion}`);
+		let modname = mod.codeName;
+		this.module[modname] = mod;
 	}
 
 	isEnabled() {
 		return(this.enabled);
 	}
 
+	addCommand(command,fn) {
+		// ensure the command gets added to the map in lower case.
+		this.command.set(command.toLowerCase(),fn);
+	}
+
 	// parse out the module, and handle the message. 
 	parse(module,message) {
 
-		var fn = this.modules.get(module.toLowerCase());
+		var fn = this.command.get(module.toLowerCase());
 		if(fn == undefined) {
 			console.warn("Unsupported module: " + module);
 			return;
@@ -78,8 +87,17 @@ class GMCP {
 		}
 	}
 
-	send_supports() {
+	sendSupports() {
+		if(this.enabled === false) return;
+
+		console.log(`Core.Supports.Set ${this.supportsSet}`);
 		this.send("Core.Supports.Set",this.supportsSet);
+
+		for (const [key, module] of Object.entries(this.module)) {
+			if( module.init !== undefined ) {
+				module.init();
+			}
+		}
 	}
 
 	coreEnable(message) {
@@ -91,187 +109,24 @@ class GMCP {
 		obj.version = `${PackageData.version}`
 		this.send("Core.Hello",obj);
 		// send the supports list.
-		this.send_supports();
+		this.sendSupports();
 	}
 
-	coreDisable(message) {
-		console.log("GMCP Disabled.");
-		this.enabled = false;
-	}
-
-	// this indicates a start of authentication request.
-	charLoginDefault(message) {
-
-		this.charLoginTypes = message;
-
-		console.log("GMCP Login requested.");
-		this.charLoginRequested = true;
-		// check if the type is supported.
-		if( (this.charLoginTypes.type != undefined) &&
-			(this.charLoginTypes.type.indexOf('password-credentials') != -1)
-		) {
-			if(this.lociterm.menuhandler.getLoginUsername() != "") {
-				if(this.lociterm.menuhandler.getLoginPassword() != "") {
-					if(this.lociterm.menuhandler.getLoginAutologin() == true) {
-					// ok to send.
-					this.lociterm.menuhandler.sendlogin();
-					} else {
-						// open up the login window for manual login.
-						this.lociterm.menuhandler.open("sys_loginbox")
-					}
-				} else {
-					// open up the login window for password re-entry
-					this.lociterm.menuhandler.open("sys_loginbox")
-				}
-			} else {
-				// Cancel the login attempt, they never entered a username.
-				// (Could open the window up here instead, but then newbies
-				// would always experience a login window they couldn't use,
-				// and oldbies who don't want to use the client login feature
-				// would always have to dismiss it.  I think it plays better
-				// leaveing gmcp login as a feature returning players enable.
-				this.charLoginCancel({});
-			}
-		} else {
-			// ooops we don't support that type.
-			this.charLoginCancel({});
-		}
-	}
-
-	// cancel the login attempt. 
-	charLoginCancel(message) {
-		if(this.charLoginRequested == true) {
-			console.log("GMCP Login canceled.");
-			this.send("Char.Login.Credentials",{});
-			// No, don't forget about the request in case of a request.
-			// this.charLoginRequested = false;
-		}
-	}
-
-	charLoginResult(message) {
-		// end the request. 
-		//this.charLoginRequested = false;
-
-		if( (message.success != undefined) &&
-			(message.success == false) 
-		) {
-			this.lociterm.menuhandler.voidLoginAutologin();
-			console.log("GMCP Login Failed: " + message.message);
-			this.lociterm.menuhandler.update_oob_message(
-				`⛔ ${message.message}`
-			);
-		}
-	}
-	
 	coreGoodbye(message) {
-		this.lociHotkeyReset();
-		this.lociMenuReset();
+		for (const [key, module] of Object.entries(this.module)) {
+			if( module.goodbye !== undefined ) {
+				module.goodbye(message);
+			}
+		}
 		this.charLoginRequested = false;
 		this.lociterm.menuhandler.update_oob_message(
 			`${message}`
 		);
 	}
 
-	// send the name and login via GMCP
-	sendCharLoginCredentials(account,password) {
-
-		let obj = new Object();
-		obj.account = account;
-		obj.password = password;
-		this.send("Char.Login.Credentials",obj);
-	}
-
-	// generate a loci.hotkey.get message.
-	lociHotkeyGet() {
-		this.send("Loci.Hotkey.Get",{});
-	}
-
-	// handle a loci.hotkey.set message.
-	lociHotkeySet(message) {
-
-		// console.log("GMCP Loci.Hotkey.Set requested.");
-
-		let id = `hotkey_${message.name}`;
-
-		let item = document.getElementById(id);
-		if(item == undefined) {
-			console.error(`GMCP Loci.Hotkey.Set can't find id ${id}`);
-			return;
-		}
-
-		if(message.label != undefined) {
-			item.innerText = message.label;
-		}
-		this.lociHotkeyNotification();
-		return;
-	}
-
-	// flash a screen element or something to indicate a change in hotkey
-	// definitions.
-	lociHotkeyNotification() {
-		// come up with something better.
-		// this.lociterm.menuhandler.open("sys_hotkey");
-		// setTimeout((()=>{ this.lociterm.menuhandler.close("sys_hotkey"); }), 1000);
-		return;
-	}
-
-	lociHotkeyReset(message={}) {
-
-		if(message.name !== undefined) {
-			let id = `hotkey_${message.name}`;
-			let item = document.getElementById(id);
-			if(item == undefined) {
-				console.error(`GMCP Loci.Hotkey.Reset can't find id ${id}`);
-				return;
-			}
-			let defaults = this.lociterm.menuhandler.hotkeys[id];
-			if(defaults == undefined) {
-				console.error(`GMCP Loci.Hotkey.Reset can't find defaults for id ${id}`);
-				return;
-			}
-			item.innerText = defaults.label;
-			return;
-		} else {
-			// reset everthing.
-			for (let id in this.lociterm.menuhandler.hotkeys ) {
-				let defaults = this.lociterm.menuhandler.hotkeys[id];
-				let item = document.getElementById(id);
-				if(item !== null) {
-					item.innerText = defaults.label;
-				}
-			}
-		}
-	} 
-
-
-	// Loci.Menu handlers.
-	lociMenuGet(m) {
-		let obj = new Object();
-		this.send("Loci.Menu.Get",obj);
-	}
-
-	lociMenuSet(m) {
-		this.lociterm.mydiv.insertBefore(
-			this.lociterm.menuhandler.create_custom_menus(m),
-			this.lociterm.mydiv.firstChild
-		);
-	}
-
-	lociMenuReset(m) {
-		let menuthemename = localStorage.getItem("menuthemename");
-		if( menuthemename !== undefined) {
-			this.lociterm.menuhandler.applyMenuName(menuthemename);
-		} else {
-			this.lociterm.menuhandler.applyMenuNo(0);
-		}
-	}
-
-	lociMenuOpen(m) {
-		this.lociterm.menuhandler.open(m);
-	}
-
-	lociMenuClose(m) {
-		this.lociterm.menuhandler.close(m);
+	coreDisable(message) {
+		console.log("GMCP Disabled.");
+		this.enabled = false;
 	}
 
 }
