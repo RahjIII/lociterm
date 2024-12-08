@@ -43,7 +43,7 @@ module.exports = {
 					force: true
 				},
 				{
-					from: "./src/pwa/ss*.png",
+					from: "./src/pwa/ss*.webp",
 					to: "pwa/[name]",
 					force: true
 				},
