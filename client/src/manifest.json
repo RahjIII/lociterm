@@ -3,7 +3,7 @@
   "dir": "ltr",
   "name": "LociTerm",
   "short_name": "LociTerm",
-  "description": "Last Outpost Client Interface Terminal, a Web-based Telnet and MUD Client.",
+  "description": "LociTerm is a Web-based MUD and Telnet Client.  Play online text adventure games from where ever you are!",
   "icons": [
     {
       "src": "img/lociterm512x512.png",
@@ -18,5 +18,39 @@
   "display": "standalone",
   "display_override": ["standalone"],
   "orientation": "portrait",
-  "categories": ["games","utilities"]
+  "categories": ["games","utilities"],
+  "screenshots": [
+    {
+        "src": "pwa/ssm1.webp",
+        "sizes": "540x1080",
+        "type": "image/webp",
+        "label": "Side Menu Open"
+    },
+    {
+        "src": "pwa/ssm2.webp",
+        "sizes": "540x1080",
+        "type": "image/webp",
+        "label": "Keyboard Open"
+    },
+    {
+        "src": "pwa/ssw1.webp",
+        "sizes": "830x485",
+        "type": "image/webp",
+        "form_factor": "wide",
+        "label": "LociTerm"
+    },
+    {
+        "src": "pwa/ssw2.webp",
+        "sizes": "830x485",
+        "type": "image/webp",
+        "form_factor": "wide",
+        "label": "Retro CRT Terminal"
+    },
+    {
+        "src": "pwa/ssw3.webp",
+        "sizes": "830x485",
+        "type": "image/webp",
+        "form_factor": "wide",
+        "label": "Side Menu Open"
+    } ]
 }

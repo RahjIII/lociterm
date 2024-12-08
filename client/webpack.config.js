@@ -42,6 +42,11 @@ module.exports = {
 					to: "menu",
 					force: true
 				},
+				{
+					from: "./src/pwa/ss*.png",
+					to: "pwa/[name]",
+					force: true
+				},
 			]
 			}
 		)

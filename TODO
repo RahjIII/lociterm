@@ -1,14 +1,9 @@
 ------- TODO for 2.1 release --------------
+* fix the theme selector updating itself.
+
 * GMCP - enable/disable per protocol module, and a pref selector?
 
 * nerfbar should probably react to actual function hotkey presses too.
-
-* screenshots for PWA installer
-
-+ wordstack lociterm keyboard entry disable- set class="xterm-helper-textarea"
-to disabled might work for keeping IME from poping up in line mode! (Yep, added
-that.)
-
 
 		------- more TODO TODO TODO TODO --------------
 * ICK. - the nerfbar password hider probably needs to be an <input
@@ -82,6 +77,12 @@ that.)
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ screenshots for PWA installer
+
++ wordstack lociterm keyboard entry disable- set class="xterm-helper-textarea"
+to disabled might work for keeping IME from poping up in line mode! (Yep, added
+that.)
+
 + local mode function key editor. - in progress hotkey.js
 	+ (make mud accept loci.hotkey.edit definitions. for testing)
 	+ make hotkey ui send updates back via loci.hotkey.edit

@@ -1,7 +1,7 @@
 // menuhandler.js - LociTerm menu driver code
 // Adapted from loinabox, Used with permission from The Last Outpost Project
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: menuhandler.js,v 1.39 2024/12/06 04:59:51 malakai Exp $
+// $Id: menuhandler.js,v 1.40 2024/12/08 04:28:38 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -961,6 +961,13 @@ class MenuHandler {
 		);
 		box.appendChild(item);
 
+		item = this.create_generic_checkbox("scanline-select","Scanlines",
+			((e)=>{
+				this.lociterm.crtfilter.opts.scanline = e.srcElement.checked;
+				this.lociterm.crtfilter.update();
+			})
+		);
+		box.appendChild(item);
 
 		item = this.create_generic_slider("barrel-slider","Barrel Distortion",
 			0,256,0.5,0,

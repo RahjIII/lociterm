@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.47 2024/12/06 04:59:51 malakai Exp $
+// $Id: lociterm.js,v 1.48 2024/12/08 04:28:38 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -37,6 +37,7 @@ import BellSound from './snd/Oxygen-Im-Contact-In.mp3';
 import { WordStack } from './wordstack.js';
 import { GaEorHandler } from './gaeor.js';
 import { HotkeyHandler } from './hotkey.js';
+import { CpDecoder } from './cpdecoder.js';
 
 // The command codes MUST MATCH the defines in server/client.h !
 const Command = {
@@ -119,6 +120,7 @@ class LociTerm {
 		this.echo_mode = 0;
 		this.gmcp = new GMCP(this);
 		this.crtfilter = new CRTFilter("crtfilter");
+		this.cpdecoder = new CpDecoder();
 
 		// code. 
 		this.terminal.loadAddon(this.unicode11Addon);
@@ -541,7 +543,7 @@ class LociTerm {
 					// fatal:true here because we want the thing to fail if there's a
 					// partial sequence.
 					str = new TextDecoder('utf8', {fatal:true}).decode(output);
-				} catch {
+				} catch (e) {
 					let v = new DataView(output);
 					let i=v.byteLength -1;
 					/* skip backwards from the last byte, over any sequence bytes */
@@ -554,9 +556,21 @@ class LociTerm {
 					// next send attempt.
 					this.leftover = (output).slice(i,v.byteLength);
 
-					// fatal:false, cause there's nothing else we know how to fix.  If
-					// they get garbage chars at this point, oh ??ell.
-					str = new TextDecoder('utf8', {fatal:false}).decode(retry);
+					// this next TextDecoder used to be fatal:false, cause
+					// there was nothing else we know how to fix, so
+					// substitution ??s were the last recourse.  Since I added
+					// a cp437 decoder, we can fall back to that to get rid of
+					// tofus, and the terminal should work with a lot of
+					// internet BBS's by default.  It could get wonky if there
+					// is a mix of valid UTF-8 and (invalid) cp437 stuff in the
+					// same data chunk, the utf-8 is likely gonna get tossed or
+					// corrupted.  If that happnes... fix something.
+
+					try {
+						str = new TextDecoder('utf8', {fatal:true}).decode(retry);
+					} catch (e) {
+						str = this.cpdecoder.decode(retry);
+					}
 				}
 				
 				if( this.gaeor.write(str) === false ) {
@@ -951,7 +965,6 @@ class LociTerm {
 			localStorage.setItem("locithemename",theme.name);
 			this.themeName = theme.name;
 		}
-		
 		
 		if(theme.crtoptions != undefined) {
 			this.crtfilter.update(this.crtfilter.defaultopts);

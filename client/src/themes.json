@@ -130,6 +130,7 @@
 	},
 	{
 		"name": "XTerm",
+		"fontSize": "16px",
 		"xtermoptions": {
 			"fontSize": 16,
 			"fontFamily": "courier, LOFont, monospace",
@@ -143,6 +144,61 @@
 		},
 		"crtoptions": {
 			"enabled": false
+		}
+	},
+	{
+		"name": "ANSI-VGA",
+		"fontSize": "16px",
+		"background": "#000000",
+		"xtermoptions": {
+			"fontSize": 16,
+			"fontFamily": "Courier New, LOFont, monospace",
+			"bellStyle": "sound",
+			"cursorBlink": true,
+			"screenReaderMode": true,
+			"scrollback": 1000,
+			"scrollOnUserInput": true,
+			"theme": {
+			}
+		},
+		"crtoptions": {
+			"enabled":true,
+			"monotone":{"enabled":false},
+			"scanline":false,
+			"bloom":{"bloom":"0.5"},
+			"barrel":{"scale":"9.5"}
+		},
+		"xtermoptions": {
+			"drawBoldTextInBrightColors": 1,
+			"minimumContrastRatio": 1,
+			"bellStyle": "sound",
+			"fontSize": "16",
+			"fontFamily": "LOFont,courier",
+			"cursorBlink": true,
+			"cursorStyle": "block",
+			"cursorInactiveStyle": "outline",
+			"screenReaderMode": true,
+			"scrollback": 1000,
+			"scrollOnUserInput": true,
+			"theme": {
+				"black": "#000000",
+				"red": "#AA0000",
+				"green": "#00AA00",
+				"yellow": "#AA5500",
+				"blue": "#0000AA",
+				"magenta": "#AA00AA",
+				"cyan": "#00AAAA",
+				"white": "#AAAAAA",
+
+				"brightBlack": "#555555",
+				"brightRed": "#ff5555",
+				"brightGreen": "#ffaa55",
+				"brightYellow": "#ffff55",
+				"brightBlue": "#5555ff",
+				"brightMagenta": "#ff55ff",
+				"brightCyan": "#5555ff",
+				"brightWhite": "#ffffff"
+			}
 		}
 	},
 	{

@@ -1,6 +1,6 @@
 // crtfilter.js - create <svg> DOM node with custom filters.
 // Created: Tue Apr 30 11:45:30 AM EDT 2024
-// $Id: crtfilter.js,v 1.3 2024/05/11 17:20:21 malakai Exp $
+// $Id: crtfilter.js,v 1.4 2024/12/08 04:28:38 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -72,6 +72,7 @@ class CRTFilter {
 			monotone: {
 				enabled: true,
 			},
+			scanline: true,
 			hue_rotate: 0,
 			bloom: {
 				bloom: 1.0,
@@ -144,6 +145,7 @@ class CRTFilter {
 
 			if(opts.scanline) {
 				filterstring += ` url(#${this.filterid}_scanline)`;
+				document.setElementById("scanline-select", opts.scanline);
 			}
 
 			if(opts.dotstretch) {
