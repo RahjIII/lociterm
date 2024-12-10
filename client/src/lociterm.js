@@ -1,6 +1,6 @@
 // lociterm.js - LociTerm xterm.js driver
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-// $Id: lociterm.js,v 1.48 2024/12/08 04:28:38 malakai Exp $
+// $Id: lociterm.js,v 1.49 2024/12/10 03:29:15 malakai Exp $
 
 // Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -217,6 +217,7 @@ class LociTerm {
 				if(this.lastResize != currentSize) {
 					this.sendMsg(Command.RESIZE_TERMINAL,currentSize);
 					this.lastResize = currentSize;
+					console.info(`Resize: ${this.terminal.cols}x${this.terminal.rows}`);
 				} else {
 					// this.terminal.write(`\r\nSame Resize supressed.\r\n`);
 				}
@@ -396,11 +397,12 @@ class LociTerm {
 
 	onSelectionChange(data) {
 		let selection = this.terminal.getSelection();
-		if (this.wordstack.addSelection(selection)) {
+		if (this.wordstack.addSelection(selection) === true) {
 			this.wordstack.openMenu();
 		} else {
 			this.wordstack.closeMenu();
 		}
+		return;
 	}
 
 	paste(data) {
@@ -564,7 +566,8 @@ class LociTerm {
 					// internet BBS's by default.  It could get wonky if there
 					// is a mix of valid UTF-8 and (invalid) cp437 stuff in the
 					// same data chunk, the utf-8 is likely gonna get tossed or
-					// corrupted.  If that happnes... fix something.
+					// corrupted.  Or possibly also if the data arrives very
+					// slowly.  If that happens... fix something else.
 
 					try {
 						str = new TextDecoder('utf8', {fatal:true}).decode(retry);
@@ -990,7 +993,6 @@ class LociTerm {
 	}
 
 	keyboardEnable(enabled=true) {
-	
 		let helpers = document.getElementsByClassName("xterm-helper-textarea");
 		if(enabled === false) {
 			for(let i=0;i<helpers.length;i++) {

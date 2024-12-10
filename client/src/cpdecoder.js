@@ -1,6 +1,6 @@
 // cpdecode.js - last shot at tofu removal
 // Created: Sat Dec  7 11:39:12 AM EST 2024
-// $Id: cpdecoder.js,v 1.1 2024/12/08 04:28:38 malakai Exp $
+// $Id: cpdecoder.js,v 1.2 2024/12/10 03:29:15 malakai Exp $
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
 // This file is part of LociTerm - Last Outpost Client Implementation Terminal
@@ -21,7 +21,7 @@
 class CpDecoder {
 
 	constructor(encoding="cp437",options={}) {
-		// suggestions take from https://en.wikipedia.org/wiki/Code_page_437
+		// suggestions taken from https://en.wikipedia.org/wiki/Code_page_437
 		const cp437 = new Uint16Array( [
 			0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7,
 			0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf,

@@ -1,6 +1,6 @@
 // wordstack.js - keep track of clicked upon words.
 // Created: Tue Nov 19 09:51:03 PM EST 2024
-// $Id: wordstack.js,v 1.3 2024/12/06 04:59:51 malakai Exp $
+// $Id: wordstack.js,v 1.4 2024/12/10 03:29:15 malakai Exp $
 
 // Copyright © 2024 Jeff Jahr <malakai@jeffrika.com>
 //
@@ -31,9 +31,9 @@ class WordStack {
 
 	addSelection(selection) {
 
-		const punctuation = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
+		if(selection === "") return(false);
 
-		this.lociterm.terminal.blur();
+		const punctuation = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
 
 		let words = selection.split(" ");
 		if(words.length !== 1) {
