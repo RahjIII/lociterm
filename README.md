@@ -1,3 +1,4 @@
+![LociTerm Logo](client/src/img/lociterm512x512.png)
 ## LociTerm MUD Telnet Client
 
 **LociTerm is a Progressive Web App that provides MUD Telnet connectivity to any platform with a JavaScript enabled Web Browser, through a hosted server component.**
@@ -22,6 +23,8 @@ These sites are great, but they are all line mode only MUD clients rather than t
 
 LociTerm started out as a dedicated client for The Last Outpost MUD (<https://www.last-outpost.com/>), a game that uses character mode, and is more enjoyable to play that way.   None of the existing open web clients could do that mode, so the **Last Outpost Client Implementation Terminal** project was started out of necessity.
 
+![Mobile LociTerm Screenshot](client/src/pwa/ssm1.webp)
+
 ## LociTerm Feature Support
 
 - Supports Character at a Time Mode and XTERM Terminal emulation.
@@ -39,17 +42,19 @@ LociTerm started out as a dedicated client for The Last Outpost MUD (<https://ww
 - End-to-end Compression- Websocket Per-Message Compression for client to server, MUD Client Compression Protocol for server to game
 - Standard Supported Telnet Options- TTYPE, EOR, NAWS, ECHO, SGA, NEW-ENVIRON, Old Line Mode, Character-at-a-Time Mode
 - MUD Telnet Options- MCCP2, MTTS, MSSP, GMCP
-- GMCP Support for Char.Login and Loci.Hotkey
+- GMCP Support for Char.Login, Loci.Hotkey and Loci.Menu
 - Terminal support for UTF-8, Emoji, ANSI Color/256/Truecolor, fully XTERM VT compatible, Mouse tracking,  SIXEL and IIP inline graphics display.
 - About Game shows server MSSP data, including Icon, location, contact info and web links.
+- Local function key editor and function key menu.
+- CP437 fallback for Telnet BBS systems
 
 ## How LociTerm Works
 
 LociTerm is two programs, one that runs on a dedicated server "in the cloud", and one that runs inside each user's web browser.   The two programs work together to translate the Telnet protocol from a game into one that can be displayed in the browser. 
 
-The Server side of LociTerm is written in C, and runs under Linux.  It implements a web server for sending the client program to the user's web browser, and a custom WebSockets protocol (libwebsockets) server for talking to the client side program, a MUD Telnet client for talking to game servers (libtelnet), and a database component (sqlite3) for managing a directory of known games.  It provides service for multiple clients and games simultaneously.
+The Server side of LociTerm is written in C, and runs under Linux.  It implements a web server for sending the client program to the user's web browser, and a custom WebSockets protocol (via libwebsockets) server for talking to the client side program, a MUD Telnet client for talking to game servers (via libtelnet), and a database component (via sqlite3) for managing a directory of known games.  It provides service for multiple clients and games simultaneously.
 
-The Client side of LociTerm is written in JavaScript, and runs in a web browser.  It implements the same WebSockets protocol as the server, runs a terminal component (xterm.js) that can render ANSI/XTERM data directly into a browser window, input components that handle line or keystroke entry, and some convenient on screen buttons and menus.
+The Client side of LociTerm is written in JavaScript, and runs in a web browser.  It implements the same WebSockets protocol as the server, runs a terminal component (via xterm.js) that can render ANSI/XTERM data directly into a browser window, input components that handle line or keystroke entry, and some convenient on screen buttons and menus.
 
 When a player connects to a game, the LociTerm client component contacts the LociTerm server component, and the server component connects to the game.  The server bridges the data between the game and the LociTerm client running in the user's web browser.
 
@@ -132,7 +137,7 @@ take the server off the --list-denied list before another connection attempt
 can be made.
 
 --approve allows the entry to appear in the db without any further security or
-protocol checks.  This is useful for adminstrative approval of a game that
+protocol checks.  This is useful for administrative approval of a game that
 didn't pass the protocol or port checks, or was offline when it was suggested.
 
 --redact keeps the entry in the db and allows connections via the URL or
