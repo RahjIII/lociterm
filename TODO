@@ -77,6 +77,8 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ Move the development from cvs to git.
+
 + screenshots for PWA installer
 
 + wordstack lociterm keyboard entry disable- set class="xterm-helper-textarea"
