@@ -24,7 +24,7 @@
 
 # This one location controls the version string that appears in the client,
 # server, and archive files!
-LOCITERM_VERSION = 2.0.12
+LOCITERM_VERSION = 2.1.0
 #
 
 # #### Variable definitions ####

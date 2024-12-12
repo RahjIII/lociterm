@@ -1,7 +1,7 @@
 {
   "name": "LociTerm",
   "longname": "Last Outpost Client Interface Terminal",
-  "version": "2.0.12",
+  "version": "2.1.0",
   "description": "The preferred game client for The Last Outpost",
   "homepage": "https://www.last-outpost.com/pubcode",
   "author": "Jeff Jahr <rahjiii@jeffrika.com>",

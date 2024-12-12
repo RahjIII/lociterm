@@ -28,7 +28,7 @@ LOCI = locid
 # This is only here so that if you make only the server, there's at least some
 # version number.
 TS = $(shell date +%H%M%S)
-LOCITERM_VERSION ?= 2.0-dev$(TS)
+LOCITERM_VERSION ?= 2.1-dev$(TS)
 
 # If your version of libwebsocket has a broken permessage-deflate handler (i.e.
 # libwebsockets main branch, with git commit

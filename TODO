@@ -1,4 +1,8 @@
 ------- TODO for 2.1 release --------------
+* pref for putting scrollbar back.
+
+* pref for BS/DEL  for bbs support
+
 * fix the theme selector updating itself.
 
 * GMCP - enable/disable per protocol module, and a pref selector?
