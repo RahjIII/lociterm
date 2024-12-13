@@ -19,6 +19,12 @@
   styled textarea, the IME will still show the password you type in as an
   autocompletion. *doh!* :) But its good enough for now.
 
+* Server to server data sharing protocol?
+
+* Online Adminsitration Interface.
+
+* Password protection for "private" online LociTerm server instances.
+
 * More comments around some of the nastier code bits, particularly the crummy
 	js that you didn't know how to write well.
 

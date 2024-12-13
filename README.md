@@ -4,6 +4,8 @@
 
 **LociTerm is a Progressive Web App that provides MUD Telnet connectivity to any platform with a JavaScript enabled Web Browser, through a hosted server component.**
 
+## Introduction to LociTerm
+
 Telnet is a network protocol from the early days of the Internet that allows
 one computer to log into another computer.  In the 1990's, before the creation
 of the World Wide Web, Telnet was ubiquitous.  Every networked computer at the
@@ -32,7 +34,9 @@ the mobile ones.
 
 This is where LociTerm comes in!  
 
-## Why LociTerm
+![Mobile LociTerm Screenshot](client/src/pwa/ssm1.webp)
+
+## What and Why of LociTerm
 
 First and foremost, LociTerm is a Web Enabled Telnet Client with a terminal
 emulator, making it more than a simple line mode MUD client with color support.    
@@ -55,7 +59,22 @@ enjoyable to play that way.   None of the existing open web clients could do
 that mode, so the **Last Outpost Client Implementation Terminal** project was
 started out of necessity.
 
-![Mobile LociTerm Screenshot](client/src/pwa/ssm1.webp)
+## Who and Where of LociTerm
+
+Players: If you are just looking to use LociTerm to connect to games, there is
+no need to download and build LociTerm yourself.  You should be able to connect
+to an open LociTerm instance, suggest your favorite MUD, and connect to it from
+there.  See [SITES.md](SITES.md) for a list of LociTerm servers.
+
+However, if you want to avoid sending your traffic through a 3rd party LociTerm
+server, you can build and run your own private local instance of LociTerm that
+runs entirely on a single machine.
+
+Mud Operators: LociTerm is a great way to add mobile connectivity for players.
+LociTerm can be configured in a dedicated mode to only allow connections to
+your own game, or it can be configured as an open server to allow connections
+to other games in addition to your own.  You can run the server component on
+the same system as the game, on your web server, or elsewhere 'in the cloud'.
 
 ## LociTerm Feature Support
 
@@ -79,6 +98,7 @@ started out of necessity.
 - About Game shows server MSSP data, including Icon, location, contact info and web links.
 - Local function key editor and function key menu.
 - CP437 fallback for Telnet BBS systems
+
 
 ## How LociTerm Works
 
