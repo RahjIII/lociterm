@@ -4,8 +4,7 @@ Client must support:  "Loci.Menu 1"
 
 	If client claims support, server will send menu definition update
 	messages asynchronosly, as they become available, at the server's
-	discretion.  The client SHOULD NOT cache updated definitions betweeen
-	sessions.  
+	discretion.
 
 Client to Server: 
 	"Loci.Menu.Get" { }
@@ -27,11 +26,13 @@ Server to Client:
 
 	Message from server to client containing the complete menu theme
 	redefinition.  May be sent at any time.  name: is a required field.  label:
-	is a UI display name.  Note that sending Loci.Hotkey.Set MAY reset some
-	sys_menus that are generated dynamically, like sys_hotkey and
-	sys_wordstack.  Intent is to send the complete menu redefinition early in
-	the session and not change it after that. Server should avoid changing the
-	menus "by surprise" in the middle of a game session.
+	is a UI display name.  Intent is to send the complete menu redefinition
+	early in the session and not change it after that. Server should avoid
+	changing the menus "on the fly" in the middle of a game session, since the
+	Set command performs a wholesale replacement of the current menuing
+	system, and the player might be actively navigating some menu.  A more
+	targeted update and replace for single items in the menu tree is deferrd to
+	a future Loci.Menu release.
 
 	"Loci.Menu.Reset" { }
 
@@ -76,7 +77,7 @@ Menu Object:
             prompt "partial text to send to game, possibly through nerfbar, must not end in \n"
             send "text to send to game, possibly through nerfbar, should end with \n"
             id "hotkey id (special use for hotkey identification.)"
-            hotkey "value of keystrokes to send immediately to terminal if no 'send' exists, skipping nerfbar"
+            hotkey "keystrokes to send immediately to terminal if no 'send' exists, skipping nerfbar"
             color "a css color"
             background "a css color"
             direct "non-hotkey, value of keystrokes to send immediately to terminal, skipping nerfbar"
@@ -84,12 +85,12 @@ Menu Object:
 Notes:
 
 The menu definition will automatically include a button in the upper right
-corner of the menubox to allow opening a client system menu. This can NOT be
-overridden.  The user is always expected to be3 able to access a local client
-control menu through that button.
+corner of the menubox to allow opening the client's system menu. This can NOT
+be overridden.  The user is always expected to be able to access a local
+client control menu through that button.
 
-Custom menu names should all begin with the "menu_" prefix, and may NOT begin
-with "sys_".
+Custom menu names SHOULD all begin with the "menu_" prefix. They MUST NOT begin
+with "sys_", and that prefix will be ignored.
 
 Built in system menus should start with the "sys_" prefix.  They are provided
 by the client locally. These menus may be dynamic and re-built programatically
@@ -97,7 +98,7 @@ by the client locally. These menus may be dynamic and re-built programatically
 sys_about, sys_settings).  Menus in the "sys_" category may be opened from a
 custom menu definition with an "open": "sys_<whatever>" directive.  HOWEVER, it
 is understood that sys_ menus are client implmentation specific, and may not be
-available in all clients that support the Loci.Menu protocol!
+available in all clients that support the Loci.Menu protocol!  
 
 For maximum compatibility, a Loci.Menu.Set defintion should try and define all
 of the sub menus that it needs as menu_ type menus, and not rely on local sys_
@@ -106,7 +107,7 @@ menus at all.
 It is also recommended that a client implmenting the Loci.Hotkey protocol
 SHOULD make a list of hotkeys available under the sys_hotkey menu definition.
 
-Some sys_menu definitions available in LociTerm:
+Some sys_menu definitions that are available in LociTerm:
 
 "sys_about"
 "sys_about_which"
@@ -125,3 +126,6 @@ Some sys_menu definitions available in LociTerm:
 "sys_what"
 "sys_who"
 "sys_wordstack"
+
+(A command to list the available sys_ menu items to the server is deferred to a
+future Loci.Menu release.)

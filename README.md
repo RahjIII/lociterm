@@ -1,27 +1,59 @@
+## LociTerm MUD Client Telnet
+
 ![LociTerm Logo](client/src/img/lociterm512x512.png)
-## LociTerm MUD Telnet Client
 
 **LociTerm is a Progressive Web App that provides MUD Telnet connectivity to any platform with a JavaScript enabled Web Browser, through a hosted server component.**
 
-Telnet is a network protocol from the early days of the Internet that allows one computer to log into another computer.  In the 1990's, before the creation of the World Wide Web, Telnet was ubiquitous.  Every networked computer at the time had a Telnet Client, just as every networked computer today has a Web Browser.     
+Telnet is a network protocol from the early days of the Internet that allows
+one computer to log into another computer.  In the 1990's, before the creation
+of the World Wide Web, Telnet was ubiquitous.  Every networked computer at the
+time had a Telnet Client, just as every networked computer today has a Web
+Browser.     
   
-MUDs ("Multi User Dungeons") are one of the first type of multi-player online games to take advantage of the growth of the Internet in the 1990's.  They are typically modeled after a table top Dungeons and Dragons game, with the computer playing the role of the DM.  Because MUDs started in the text-only Internet of the early 1990's, they were written to use the Telnet protocol for access.  
+MUDs ("Multi User Dungeons") are one of the first type of multi-player online
+games to take advantage of the growth of the Internet in the 1990's.  They are
+typically modeled after a table top RPG Dungeons and Dragons style game, with
+the computer playing the role of the DM.  Because MUDs started in the text-only
+Internet of the early 1990's, they were written to use the Telnet protocol for
+access.  
 
-As the Internet grew, the Telnet protocol was gradually replaced by more secure options, and the text-only Telnet Internet was replaced by the graphically rich Web Browser Internet.  The Telnet Client, which was once available by default on every computer, is now increasingly difficult to install- if a Telnet Client is available for a platform at all.
+As the Internet grew, the Telnet protocol was gradually replaced by more secure
+options, and the text-only Telnet Internet was replaced by the graphically rich
+Web Browser Internet.  The Telnet Client, which was once available by default
+on every computer, is now increasingly difficult to install- if a Telnet Client
+is available for a platform at all.
 
-MUDs, however, live on!  There is a community of gamers who have been playing and adding to these text only Telnet games since their inception, and still need a Telnet Client to play them.   There are MUD Telnet clients available for Windows, MacOS, Linux, Android and iOS, but they are typically built for those specific operating systems, or are available on the desktop systems, but not on the mobile ones.  
+MUDs, however, live on!  There is a community of gamers who have been playing
+and adding to these text only Telnet games since their inception, and still
+need a Telnet Client to play them.   There are MUD Telnet clients available for
+Windows, MacOS, Linux, Android and iOS, but they are typically built for those
+specific operating systems, or are available on the desktop systems, but not on
+the mobile ones.  
 
 This is where LociTerm comes in!  
 
 ## Why LociTerm
 
-First and foremost, LociTerm is a Web Enabled Telnet Client with a terminal emulator, making it more than a simple line mode MUD client with color support.    
+First and foremost, LociTerm is a Web Enabled Telnet Client with a terminal
+emulator, making it more than a simple line mode MUD client with color support.    
   
-There are several Web Based MUD client sites that players can use to connect to MUD games.  Notable among them are Grapevine (<https://grapevine.haus/>) , MudSlinger (<https://mudslinger.net/play/>), and MudPortal (<http://www.mudportal.com/>).  
+There are several Web Based MUD client sites that players can use to connect to
+MUD games.  Notable among them are Grapevine (<https://grapevine.haus/>) ,
+MudSlinger (<https://mudslinger.net/play/>), and MudPortal
+(<http://www.mudportal.com/>).  
 
-These sites are great, but they are all line mode only MUD clients rather than true Telnet Network Virtual Terminal emulators.  They simply don't work with games or other services that need terminal emulation or character at a time support.   Also, while those sites work and look great on a desktop browser for line mode MUD games, none of them work well on a mobile platform.   They were designed for desktop use.
+These sites are great, but they are all line mode only MUD clients rather than
+true Telnet Network Virtual Terminal emulators.  They simply don't work with
+games or other services that need terminal emulation or character at a time
+support.   Also, while those sites work and look great on a desktop browser for
+line mode MUD games, none of them work well on a mobile platform.   They were
+designed for desktop use.
 
-LociTerm started out as a dedicated client for The Last Outpost MUD (<https://www.last-outpost.com/>), a game that uses character mode, and is more enjoyable to play that way.   None of the existing open web clients could do that mode, so the **Last Outpost Client Implementation Terminal** project was started out of necessity.
+LociTerm started out as a dedicated client for The Last Outpost MUD
+(<https://www.last-outpost.com/>), a game that uses character mode, and is more
+enjoyable to play that way.   None of the existing open web clients could do
+that mode, so the **Last Outpost Client Implementation Terminal** project was
+started out of necessity.
 
 ![Mobile LociTerm Screenshot](client/src/pwa/ssm1.webp)
 
@@ -50,34 +82,58 @@ LociTerm started out as a dedicated client for The Last Outpost MUD (<https://ww
 
 ## How LociTerm Works
 
-LociTerm is two programs, one that runs on a dedicated server "in the cloud", and one that runs inside each user's web browser.   The two programs work together to translate the Telnet protocol from a game into one that can be displayed in the browser. 
+LociTerm is two programs, one that runs on a dedicated server "in the cloud",
+and one that runs inside each user's web browser.   The two programs work
+together to translate the Telnet protocol from a game into one that can be
+displayed in the browser. 
 
-The Server side of LociTerm is written in C, and runs under Linux.  It implements a web server for sending the client program to the user's web browser, and a custom WebSockets protocol (via libwebsockets) server for talking to the client side program, a MUD Telnet client for talking to game servers (via libtelnet), and a database component (via sqlite3) for managing a directory of known games.  It provides service for multiple clients and games simultaneously.
+The Server side of LociTerm is written in C, and runs under Linux.  It
+implements a web server for sending the client program to the user's web
+browser, and a custom WebSockets protocol (via libwebsockets) server for
+talking to the client side program, a MUD Telnet client for talking to game
+servers (via libtelnet), and a database component (via sqlite3) for managing a
+directory of known games.  It provides service for multiple clients and games
+simultaneously.
 
-The Client side of LociTerm is written in JavaScript, and runs in a web browser.  It implements the same WebSockets protocol as the server, runs a terminal component (via xterm.js) that can render ANSI/XTERM data directly into a browser window, input components that handle line or keystroke entry, and some convenient on screen buttons and menus.
+The Client side of LociTerm is written in JavaScript, and runs in a web
+browser.  It implements the same WebSockets protocol as the server, runs a
+terminal component (via xterm.js) that can render ANSI/XTERM data directly into
+a browser window, input components that handle line or keystroke entry, and
+some convenient on screen buttons and menus.
 
-When a player connects to a game, the LociTerm client component contacts the LociTerm server component, and the server component connects to the game.  The server bridges the data between the game and the LociTerm client running in the user's web browser.
+When a player connects to a game, the LociTerm client component contacts the
+LociTerm server component, and the server component connects to the game.  The
+server bridges the data between the game and the LociTerm client running in the
+user's web browser.
 
 ## INSTALL
 
-LociTerm requires libglib2.0-dev, ctags, openssl, cmake, libwebsockets4.4.0, npm, libjson-c-dev.  On a Debian 12 system:
+LociTerm requires libglib2.0-dev, ctags, openssl, cmake, libwebsockets4.4.0,
+npm, libjson-c-dev.  On a Debian 12 system:
 
-`apt-get install gcc libglib2.0-dev exuberant-ctags openssl cmake npm libjson-c-dev libsqlite3-dev pkg-config`
+`apt-get install gcc libglib2.0-dev exuberant-ctags openssl cmake npm
+libjson-c-dev libsqlite3-dev pkg-config`
 
-Will install all of the required development packages to build LociTerm EXCEPT libwebsockets.  The version of libwebsockets that ships with Debian 12 is not the right version, is missing some compile time options, and so needs to be re-built from the most up to date source.   
+Will install all of the required development packages to build LociTerm EXCEPT
+libwebsockets.  The version of libwebsockets that ships with Debian 12 is not
+the right version, is missing some compile time options, and so needs to be
+re-built from the most up to date source.   
 
-Once the packages are installed, running  `make` and `make install` will install LociTerm  into the /usr/local directory.  There are additional steps for making the terminal available under its own apache2 document root, and having it start up automatically from systemd.  
+Once the packages are installed, running  `make` and `make install` will
+install LociTerm  into the /usr/local directory.  There are additional steps
+for making the terminal available under its own apache2 document root, and
+having it start up automatically from systemd.  
 
 See the file **INSTALL.txt** for those details.
 
 Once the locid.conf file is configured with a service port and security model
 (or as a forwarded host from Apache), clients will be able to connect by going
-to the configured URL.
-For a test system, that might look like:
+to the configured URL.  For a test system, that might look like:
 
 `http://localhost:4500`  
 
-For a production system with Apache port forwarding and live certificates, that might look like:
+For a production system with Apache port forwarding and live certificates, that
+might look like:
 
 `https://www.last-outpost.com/lociterm/`.
 
@@ -156,8 +212,8 @@ will be given a new ID.
 
 ### Installing LociTerm Locally as a PWA
 
-The LociTerm cliet is a "Progressive Web App", or PWA.  This means that on many
-systems, it can be installed as a naitive style app that runs outside of a
+The LociTerm client is a "Progressive Web App", or PWA.  This means that on many
+systems, it can be installed as a native style app that runs outside of a
 browser window.  On mobile systems, this usually gives the ability to launch
 the program directly from the home screen, and frees up a little screen space
 by getting rid of the browser's location bar.  On desktop systems, the app can
@@ -206,8 +262,16 @@ Please see the AUTHORS file, and the "About LociTerm" menu in the client.
 
 ## LICENSE
 
-"LociTerm - Last Outpost Client Implementation Terminal" is free software:  you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.   
+"LociTerm - Last Outpost Client Implementation Terminal" is free software:  you
+can redistribute it and/or modify it under the terms of the GNU Lesser General
+Public License as published by the Free Software Foundation, either version 3
+of the License, or (at your option) any later version.   
   
-LociTerm is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.   
+LociTerm is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+details.   
   
-You should have received a copy of the GNU Lesser General Public License along with LociTerm.  If not, see [https://www.gnu.org/licenses/](https://www.gnu.org/licenses/)
+You should have received a copy of the GNU Lesser General Public License along
+with LociTerm.  If not, see
+[https://www.gnu.org/licenses/](https://www.gnu.org/licenses/)

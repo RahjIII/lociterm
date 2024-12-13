@@ -1,21 +1,26 @@
-------- TODO for 2.1 release --------------
-* pref for putting scrollbar back.
+------- TODO --------------
+
+* [requested] pref for putting scrollbar back.
+
+* [requested] pref for scrollback length.
 
 * pref for BS/DEL  for bbs support
 
-* fix the theme selector updating itself.
+* fix the theme selector updating itself after theme loads
+
+* encoding selector to override utf-8 with big5 or cp437.
 
 * GMCP - enable/disable per protocol module, and a pref selector?
 
 * nerfbar should probably react to actual function hotkey presses too.
 
-		------- more TODO TODO TODO TODO --------------
 * ICK. - the nerfbar password hider probably needs to be an <input
   type="password"> field instead of a blurred <textarea>.  On Android with a
   styled textarea, the IME will still show the password you type in as an
   autocompletion. *doh!* :) But its good enough for now.
 
-* comments around some of the nastier code bits, particularly the crummy js.
+* More comments around some of the nastier code bits, particularly the crummy
+	js that you didn't know how to write well.
 
 * controlable contrast ratio in theme? (can xtermjs do it after setup?)  
   See xtermoptions.minimumContrastRatio.  (The problem is games with direct 256
@@ -39,15 +44,12 @@
 * Add an About->Conennection window, to show connection time, i/o stats, and
   maybe operating parameters like telnet and gmcp negotiations.
 
-* Add a db state DBSTATUS_TEST_SERVER that allows connections, but does not get
-  shown in the list.  (and a way to set it from the CLI.)
-
 * Think about a GMCP Loci.Font protocol for d/l'in and using a private EUA font set?
 
 * check security_enforcement(), should it be using shutdown_game() instead?
 
 * Should have the systemctl file built at make time, to use the right install
-	 path.
+	 path instead of user having to edit it..
 
 * change the "Diagonal" menu back to LPMud.  Make the "canned" menus
 	auto-select based on the MSSP family name?
@@ -56,7 +58,7 @@
 
 * DB - save first few K of data, for admin review later?
 
-* Figure out how to alter the tables without whacking them.
+* Use xterm serialize to save buffer as html or raw terminal codes.
 
 * Config option for how frequently to re-check MSSP.
 
@@ -81,6 +83,13 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ Figure out how to alter the DB tables without whacking them. (decided against
+doing it.  implmented db update sql scripts instead, stored in a directory for
+use at any time with any db file.)
+
++ Add a db state DBSTATUS_TEST_SERVER that allows connections, but does not get
+  shown in the list.  and a way to set it from the CLI.  (Done.  "redacted".)
+
 + Move the development from cvs to git.
 
 + screenshots for PWA installer

@@ -1,6 +1,6 @@
 GMCP Loci.Hotkey
 
-Client must support:  "Loci.Hotkey 1"
+Client must support:  "Loci.Hotkey 2"
 
 	If client claims support, server will send hotkey definition update
 	messages asynchronosly, as they become available, at the server's

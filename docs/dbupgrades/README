@@ -1,0 +1,6 @@
+Scripts for updating the lociterm db file go here.
+
+Generally, locid will not update the structure of a db it knows about on its
+own, since that db might be in use by multiple tools.  Any schema breaking
+updates need to be applied manually to each db file in use, via these scripts.
+
