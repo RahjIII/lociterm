@@ -8,8 +8,7 @@
 				"name": "Client Settings",
 				"svgid": "cog",
 				"svgclass": "ghost",
-				"menubar": "sys_client",
-				"send": ""
+				"menubar": "sys_client"
 			}
 		]
 	},

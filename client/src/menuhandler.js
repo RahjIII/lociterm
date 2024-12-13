@@ -30,6 +30,7 @@ import * as ObjDeep from './objdeep.js';
 import SystemMenu from './menu/system_menu.json';
 import LoMenu from './menu/lo_menu.json';
 import DiagonalMenu from './menu/diagonal_menu.json';
+import CardinalMenu from './menu/cardinal_menu.json';
 import TelnetMenu from './menu/telnet_menu.json';
 
 import PackageData from '../package.json';
@@ -77,9 +78,10 @@ class MenuHandler {
 
 	consolodateMenuThemes() {
 		var themes = [];
-		themes.push(LoMenu);
+		themes.push(CardinalMenu);
 		themes.push(DiagonalMenu);
 		themes.push(TelnetMenu);
+		themes.push(LoMenu);
 		themes.push({ name: "None" });
 		return(themes);
 	}

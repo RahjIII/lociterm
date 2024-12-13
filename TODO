@@ -1,4 +1,5 @@
 ------- TODO --------------
+* have color of the gear icon reflect the connection status.
 
 * [requested] pref for putting scrollbar back.
 
@@ -57,9 +58,6 @@
 * Should have the systemctl file built at make time, to use the right install
 	 path instead of user having to edit it..
 
-* change the "Diagonal" menu back to LPMud.  Make the "canned" menus
-	auto-select based on the MSSP family name?
-
 * config option for verbose suggestion failure message to client.
 
 * DB - save first few K of data, for admin review later?
@@ -89,6 +87,11 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
+- change the "Diagonal" menu back to LPMud.  Make the "canned" menus
+	auto-select based on the MSSP family name? (I added "cardinal" as the
+	default, copied after lomenu, and didn't change the names to the mud
+	family.  Could always do it later.
+
 + Figure out how to alter the DB tables without whacking them. (decided against
 doing it.  implmented db update sql scripts instead, stored in a directory for
 use at any time with any db file.)
