@@ -269,7 +269,7 @@ class MenuHandler {
 	// Add the Menubox definition to the DOM.
 	create_menubox(menubox) {
 
-		let box = document.createElement('div');
+		let box = document.createElement('nav');
 		box.id='menubox';
 		box.classList.add('menugrid');
 		let width = menubox.width;
@@ -299,6 +299,11 @@ class MenuHandler {
 			}
 			if( item.text !== undefined) {
 				container.innerText = item.text;
+			}
+
+			if(item.name != undefined) {
+				container.setAttribute("aria-label",item.name);
+				container.setAttribute("role","button");
 			}
 
 			// add the svg.  Could add a plain old img adder too, but.. later
@@ -335,7 +340,7 @@ class MenuHandler {
 
 		for(let i=0; i<menubar.length; i++) {
 			let side = menubar[i];
-			let c = document.createElement('div');
+			let c = document.createElement('nav');
 			c.id = side.id
 			c.classList.add('menu');
 			c.classList.add('menuside');
@@ -384,6 +389,9 @@ class MenuHandler {
 					}
 					s.onclick = () => this.lociterm.wordstack.openMenu();
 				}
+
+				s.setAttribute("role","button");
+				s.setAttribute("aria-label",s.innerText);
 
 				if( item.color !== undefined) {
 					s.style.color = item.color;
@@ -1097,7 +1105,7 @@ class MenuHandler {
 
 		// localecho
 		l = this.create_generic_checkbox(
-			`${menuname}_commandchains`,
+			`${menuname}_localecho`,
 			"Line Mode Local Echo",
 			this.lociterm.pref.get("nerf.localecho"),
 			((e)=>{
@@ -1689,6 +1697,7 @@ class MenuHandler {
 		}
 		l.classList.add('close');
 		l.title = `Close ${named}`;
+		l.setAttribute("aria-label","Close");
 		l.innerText = "×";
 
 		let content = document.createElement('div');

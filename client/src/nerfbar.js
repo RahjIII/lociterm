@@ -33,11 +33,11 @@ class NerfBar {
 
 		this.lociterm = lociterm;
 		if ((this.mydiv = document.getElementById(elementid)) == undefined) {
-			this.mydiv = document.createElement('div');
 			this.mydiv.id='elementid';
 			this.lociterm.mydiv.appendChild(this.mydiv);
 		}
 		this.mydiv.classList.add('nerfbar');
+		this.mydiv.setAttribute("aria-label","Input Bar");
 		this.focuselement = "";
 		this.revealbtn = "";
 		this.create_nerfbar();
@@ -67,6 +67,7 @@ class NerfBar {
 		input.setAttribute("autococorrect","off");
 		input.placeholder = "Enter a command...";
 		//
+		input.setAttribute("aria-label","Linemode Input");
 		input.setAttribute("aria-multiline","false");
 		input.setAttribute("rows","1");
 		//
@@ -114,6 +115,8 @@ class NerfBar {
 		sendkey = document.createElement('div');
 		sendkey.classList.add('nerfbutton');
 		sendkey.setAttribute("type","button");
+		sendkey.setAttribute("aria-label","History Up");
+		sendkey.setAttribute("role","button");
 		sendkey.onclick = ((e)=>{
 			const kev = new KeyboardEvent('keydown', {
 				key: 'ArrowUp',
@@ -132,6 +135,8 @@ class NerfBar {
 		sendkey = document.createElement('div');
 		sendkey.classList.add('nerfbutton');
 		sendkey.setAttribute("type","button");
+		sendkey.setAttribute("aria-label","History Down");
+		sendkey.setAttribute("role","button");
 		sendkey.onclick = ((e)=>{
 			const kev = new KeyboardEvent('keydown', {
 				key: 'ArrowDown',
@@ -154,6 +159,7 @@ class NerfBar {
 		btn = document.createElement('div');
 		btn.classList.add('nerfbutton');
 		btn.setAttribute("type","button");
+		btn.setAttribute("role","button");
 		btn.style.display = "none";
 		btn.onclick = ((e)=>{ this.setHiddenMode(false); });
 		btn.innerText = "👁︎";
@@ -164,6 +170,8 @@ class NerfBar {
 		btn = document.createElement('div');
 		btn.classList.add('nerfbutton');
 		btn.setAttribute("type","button");
+		btn.setAttribute("aria-label","Open Wordstack");
+		btn.setAttribute("role","button");
 		btn.onclick = ((e)=>{ this.lociterm.wordstack.toggleMenu(); });
 		btn.innerText = "📋︎";
 		box.appendChild(btn);
@@ -171,6 +179,8 @@ class NerfBar {
 		// Enter key button.
 		sendkey = document.createElement('div');
 		sendkey.classList.add('nerfbutton');
+		sendkey.setAttribute("aria-label","Send Command");
+		sendkey.setAttribute("role","button");
 		sendkey.onclick = ((e)=>{
 			const kev = new KeyboardEvent('keydown', {
 				key: 'Enter',

@@ -69,7 +69,7 @@
 				"send": "down\n"
 			},
 			{
-				"label": "Loot",
+				"name": "Loot",
 				"menubar": "menu_loot",
 				"color": "red",
 				"text": "🎒"
