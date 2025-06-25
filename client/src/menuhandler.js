@@ -107,14 +107,14 @@ class MenuHandler {
 		}
 		// open the requested window.
 		e.style.visibility = 'visible';
-		e.setAttribute("tabindex","0");
+		e.setAttribute("tabindex",0);
 		if(e.classList.contains("menuside")) {
 			//e.style.right = '0%';
 			e.classList.remove("menuside-close");
 			e.classList.add("menuside-open");
 		}
 		this.openwindow[name] =1;
-		e.focus();
+		setTimeout(()=>{e.focus();},100);
 
 		if( (call = this.openHandler.get(name)) ) {
 			call(name);
@@ -126,6 +126,7 @@ class MenuHandler {
 		var e = document.getElementById(name);
 		if(e == null) return;
 		e.style.visibility = 'hidden';
+		e.setAttribute("tabindex",-1);
 		if(e.classList.contains("menuside")) {
 			//	e.style.right = '-100%';
 			e.classList.remove("menuside-open");
@@ -270,6 +271,7 @@ class MenuHandler {
 	create_menubox(menubox) {
 
 		let box = document.createElement('nav');
+		box.setAttribute("aria-label","Main Button Grid");
 		box.id='menubox';
 		box.classList.add('menugrid');
 		let width = menubox.width;
@@ -282,7 +284,8 @@ class MenuHandler {
 
 		for(let i=0; i<buttons.length; i++) {
 			let item = buttons[i];
-			let container = document.createElement('div');
+			//let container = document.createElement('div');
+			let container = document.createElement('button');
 			container.classList.add('menubutton');
 			// assign the correct onclick function to the container..
 			if ( item.menubar != undefined ) {
@@ -304,6 +307,7 @@ class MenuHandler {
 			if(item.name != undefined) {
 				container.setAttribute("aria-label",item.name);
 				container.setAttribute("role","button");
+				container.setAttribute("tabindex",0);
 			}
 
 			// add the svg.  Could add a plain old img adder too, but.. later
@@ -345,6 +349,7 @@ class MenuHandler {
 			c.classList.add('menu');
 			c.classList.add('menuside');
 			c.classList.add('menuside-close');
+			c.setAttribute("aria-label",c.id);
 
 			// Keywords:
 			//	label
@@ -356,7 +361,7 @@ class MenuHandler {
 
 			for(let j=0; j<side.item.length; j++) {
 				let item = side.item[j];
-				let s = document.createElement('div');
+				let s = document.createElement('button');
 				if(item.id != undefined) {
 					s.id = item.id
 				}
@@ -392,6 +397,7 @@ class MenuHandler {
 
 				s.setAttribute("role","button");
 				s.setAttribute("aria-label",s.innerText);
+				s.setAttribute("tabindex",0);
 
 				if( item.color !== undefined) {
 					s.style.color = item.color;
@@ -1762,6 +1768,7 @@ class MenuHandler {
 		cdiv.appendChild(l);
 		l.id = named;
 		l.setAttribute("type",type);
+		l.setAttribute("aria-label",labeled);
 		l.innerText = labeled;
 		l.onclick = onclick;
 

@@ -91,9 +91,19 @@ class NerfBar {
 				// add the pre-parsed value into the history.
 				this.history_add(e.srcElement.value);
 				let line = this.preparse(e.srcElement.value)
+
+				// This brief focus to the terminal, followed by a steal back
+				// is to trigger the terminals onBlur() registrations,
+				// specifially to clear out the xterm.js
+				// AccessibilityMananger's live-area div, so that it can take
+				// new fresh input for a screen reader.  If there was a method
+				// provided for it, we'd do that, but there is not.  So this.
+				let active = document.activeElement;
+				this.lociterm.terminal.focus();
+				active.focus();
+				//
 				this.lociterm.paste(line+"\n");
 				e.srcElement.value = "";
-				// this.focus();
 				e.preventDefault();
 			}
 			// ArrowUp = 38

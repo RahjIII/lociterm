@@ -124,11 +124,13 @@
 	visibility: hidden;
 }
 
+/*
 .menubar button {
 	display: inline;
 	width: initial;
 	padding: 1em;
 }
+*/
 
 .menubutton {
 	color: var(--book-altpaper-color);
@@ -141,6 +143,14 @@
 	rotate: 0deg;
 	transition: rotate 0.5s ease-out;
 	transition: scale 0.5s ease-out;
+}
+
+button.menubutton {
+	background: #00000000;
+	border-style: none;
+	border-width: 0px;
+	padding-block: 0px;
+	padding: 0px;
 }
 
 .menubutton:hover {
@@ -170,7 +180,7 @@
 	font-size: var(--font-size);
 }
 
-.menuside button {
+.menusideE button {
 	display: block;
 	width: 100%;
 	margin: 1em auto;
@@ -179,7 +189,7 @@
 	margin: 0em;
 }
 
-.menuside button:hover {
+.menusideE button:hover {
 }
 
 .menuside-open {
@@ -196,7 +206,7 @@
 	right:	var(--menuside-close-right);
 }
 
-.menuside div {
+.menuside button, .menuside div {
 	align-content: center;
 	background: var(--book-paper-color);
 	border-color: var(--book-cover-color);
@@ -208,14 +218,16 @@
 	margin: 0.5mm;
 	min-height:	var(--finger-size);
 	padding: 1.0mm;
+	font-family: LOFont, emoji, Noto Sans Symbols2;
+	font-size: var(--font-size);
 }
 
-.menuside div:hover {
+.menuside button:hover, .menuside div:hover {
 	/* background: hsla(0,0%,35%,0.80); */
 	opacity: 75%;
 }
 
-.menuside div:active {
+.menuside button:hover, .menuside div:active {
 	/* background: hsla(0,0%,45%,0.80); */
 	opacity: 75%;
 }
@@ -555,3 +567,16 @@ div.gameabout {
 	background: var(--book-paper-color);
 }
 
+/* for aria live region debugging.
+.xterm .live-region {
+	position: absolute;
+	overflow: default;
+	width: 80%;
+	height: unset;
+	left: 0px;
+	top: 0px;
+	border: solid red;
+	color: red;
+	background: pink;
+}
+*/
