@@ -272,6 +272,8 @@ class MenuHandler {
 
 		let box = document.createElement('nav');
 		box.setAttribute("aria-label","Main Button Grid");
+		box.setAttribute("role","menu");
+		box.setAttribute("tabindex",0);
 		box.id='menubox';
 		box.classList.add('menugrid');
 		let width = menubox.width;
@@ -350,6 +352,7 @@ class MenuHandler {
 			c.classList.add('menuside');
 			c.classList.add('menuside-close');
 			c.setAttribute("aria-label",c.id);
+			c.setAttribute("role","menu");
 
 			// Keywords:
 			//	label
@@ -395,7 +398,7 @@ class MenuHandler {
 					s.onclick = () => this.lociterm.wordstack.openMenu();
 				}
 
-				s.setAttribute("role","button");
+				s.setAttribute("role","menuitem");
 				s.setAttribute("aria-label",s.innerText);
 				s.setAttribute("tabindex",0);
 

@@ -138,7 +138,7 @@
 	text-align: center;
 	align-content: center;
 	font-weight: bold;
-	font-family: LOFont, emoji, Noto Sans Symbols2;
+	font-family: LOFont, emoji, Noto Sans Symbols;
 	direction: initial;
 	rotate: 0deg;
 	transition: rotate 0.5s ease-out;
@@ -180,18 +180,6 @@ button.menubutton {
 	font-size: var(--font-size);
 }
 
-.menusideE button {
-	display: block;
-	width: 100%;
-	margin: 1em auto;
-	border-width: 1px 0px 1px 0px;
-	padding: 1em;
-	margin: 0em;
-}
-
-.menusideE button:hover {
-}
-
 .menuside-open {
 	top:	var(--menuside-open-top);
 	bottom:	var(--menuside-open-bottom);
@@ -215,12 +203,16 @@ button.menubutton {
 	border-width: 1mm;
 	display: flex;
 	flex-wrap: wrap;
-	margin: 0.5mm;
+	/* margin: 0.5mm -1mm; */
 	min-height:	var(--finger-size);
-	padding: 1.0mm;
-	font-family: LOFont, emoji, Noto Sans Symbols2;
+	padding: 2.0mm;
+	font-family: LOFont, emoji, Noto Sans Symbols;
 	font-size: var(--font-size);
 }
+
+.menuside button {
+}
+
 
 .menuside button:hover, .menuside div:hover {
 	/* background: hsla(0,0%,35%,0.80); */

@@ -37,7 +37,7 @@ class NerfBar {
 			this.lociterm.mydiv.appendChild(this.mydiv);
 		}
 		this.mydiv.classList.add('nerfbar');
-		this.mydiv.setAttribute("aria-label","Input Bar");
+		this.mydiv.setAttribute("aria-label","Line Input Bar");
 		this.focuselement = "";
 		this.revealbtn = "";
 		this.create_nerfbar();
@@ -67,7 +67,7 @@ class NerfBar {
 		input.setAttribute("autococorrect","off");
 		input.placeholder = "Enter a command...";
 		//
-		input.setAttribute("aria-label","Linemode Input");
+		input.setAttribute("aria-label","Line Mode Input");
 		input.setAttribute("aria-multiline","false");
 		input.setAttribute("rows","1");
 		//
@@ -127,6 +127,7 @@ class NerfBar {
 		sendkey.setAttribute("type","button");
 		sendkey.setAttribute("aria-label","History Up");
 		sendkey.setAttribute("role","button");
+		sendkey.setAttribute("aria-hidden","true");
 		sendkey.onclick = ((e)=>{
 			const kev = new KeyboardEvent('keydown', {
 				key: 'ArrowUp',
@@ -146,6 +147,7 @@ class NerfBar {
 		sendkey.classList.add('nerfbutton');
 		sendkey.setAttribute("type","button");
 		sendkey.setAttribute("aria-label","History Down");
+		sendkey.setAttribute("aria-hidden","true");
 		sendkey.setAttribute("role","button");
 		sendkey.onclick = ((e)=>{
 			const kev = new KeyboardEvent('keydown', {
@@ -170,6 +172,7 @@ class NerfBar {
 		btn.classList.add('nerfbutton');
 		btn.setAttribute("type","button");
 		btn.setAttribute("role","button");
+		btn.setAttribute("aria-hidden","true");
 		btn.style.display = "none";
 		btn.onclick = ((e)=>{ this.setHiddenMode(false); });
 		btn.innerText = "👁︎";
@@ -182,6 +185,7 @@ class NerfBar {
 		btn.setAttribute("type","button");
 		btn.setAttribute("aria-label","Open Wordstack");
 		btn.setAttribute("role","button");
+		btn.setAttribute("aria-hidden","true");
 		btn.onclick = ((e)=>{ this.lociterm.wordstack.toggleMenu(); });
 		btn.innerText = "📋︎";
 		box.appendChild(btn);
@@ -191,6 +195,7 @@ class NerfBar {
 		sendkey.classList.add('nerfbutton');
 		sendkey.setAttribute("aria-label","Send Command");
 		sendkey.setAttribute("role","button");
+		sendkey.setAttribute("aria-hidden","true");
 		sendkey.onclick = ((e)=>{
 			const kev = new KeyboardEvent('keydown', {
 				key: 'Enter',
