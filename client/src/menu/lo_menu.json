@@ -17,7 +17,7 @@
 				"svgid": "chevron-top"
 			},
 			{
-				"name": "Main Menu",
+				"name": "Info Menu",
 				"menubar": "menu_top",
 				"svgclass": "ansi10",
 				"svgid": "command"

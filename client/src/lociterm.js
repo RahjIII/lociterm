@@ -838,13 +838,24 @@ class LociTerm {
 		}
 	}
 
-	// Currently, the only custom key event this handles is for remapping bs and del.
+	// Handle ctrl-m menu activation and bs/del remapping.
 	customKeyEvent(ev) {
+		if (ev.type === 'keydown') {
+			// KeyM + ctrlKey opens the main menu.
+			if( (ev.key == "m") && (ev.ctrlKey === true) ) {
+				this.menuhandler.focusMainMenu();
+				return false;
+			}
 
-		if(this.pref.get("lociterm.bsSendsDel")===true) {
-			return true;
+			// seems like wierd logic on the pref, but handle backspace
+			if( (ev.key == "Backspace") &&
+				(this.pref.get("lociterm.bsSendsDel")===true)
+			) {
+				return true;
+			}
 		}
 
+		// other keycodes can be remapped here.
 		const keymap = [
 			{ "key": "Backspace", "ctrlKey": false, "mapCode": 8 },
 			{ "key": "Backspace", "ctrlKey": true, "mapCode": 127 }

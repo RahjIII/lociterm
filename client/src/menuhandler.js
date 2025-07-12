@@ -96,7 +96,7 @@ class MenuHandler {
 	};
 
 	// always open a single menu item.
-	open(name) {
+	open(name,focus) {
 		var e = document.getElementById(name);
 		let call = undefined;
 		// close everthing that's open.
@@ -114,7 +114,21 @@ class MenuHandler {
 			e.classList.add("menuside-open");
 		}
 		this.openwindow[name] =1;
-		setTimeout(()=>{e.focus();},100);
+		// This is on a setTimeout because the window might not be animated
+		// onto the screen yet, and can't get focus until it is.
+		setTimeout(()=>{	
+			if(focus != undefined) {
+				// if there was a recommended focus point, use it.
+				document.getElementById(focus).focus();
+			} else {
+				let focusme = e.getElementsByClassName("overlay_content")[0];
+				if( focusme != null ) {
+					focusme.firstElementChild.focus();
+				} else {
+					e.firstElementChild.focus();
+				}
+			}
+		},100);
 
 		if( (call = this.openHandler.get(name)) ) {
 			call(name);
@@ -228,6 +242,13 @@ class MenuHandler {
 
 	}
 
+	focusMainMenu(id) {
+		if( id == undefined ) {
+			id = "menubox";
+		}
+		let menu = document.getElementById(id);
+		menu.firstElementChild.focus();
+	}
 
 	// A unified call for adding in a custom menubox/menubar definition.
 	create_custom_menus(custom) {
@@ -273,7 +294,7 @@ class MenuHandler {
 		let box = document.createElement('nav');
 		box.setAttribute("aria-label","Main Button Grid");
 		box.setAttribute("role","menu");
-		box.setAttribute("tabindex",0);
+		box.setAttribute("tabindex",-1);
 		box.id='menubox';
 		box.classList.add('menugrid');
 		let width = menubox.width;
@@ -308,9 +329,70 @@ class MenuHandler {
 
 			if(item.name != undefined) {
 				container.setAttribute("aria-label",item.name);
-				container.setAttribute("role","button");
-				container.setAttribute("tabindex",0);
 			}
+			container.setAttribute("role","menuitem");
+			container.setAttribute("tabindex",-1);
+
+			// The arrow keys navigate the grid, but 'falling off the edge'
+			// takes focus to to the next element such that all elements can be
+			// traversed by holding down a direction.  This is for aria
+			// accessibility.
+			container.onkeydown = ((e)=> {
+				let sib = null;
+				if(e.key === "ArrowLeft") {
+					sib = e.currentTarget.nextSibling;
+				}
+				if(e.key === "ArrowRight") {
+					sib = e.currentTarget.previousSibling;
+				}
+				if(e.key === "ArrowUp") {
+					sib = e.currentTarget.previousSibling;
+					for( let i=1; (sib) && (i<menubox.width); i++) {
+						sib = sib.previousSibling;
+					}
+					if( sib === null ) {
+						// Fell off the edge- go the long way around.
+						sib = e.currentTarget.previousSibling;
+						let skip = (menubox.width * (menubox.height -1))
+						for( let i=0; (sib) && (i<skip); i++) {
+							sib = sib.nextSibling;
+						}
+					}
+				}
+				if(e.key === "ArrowDown") {
+					sib = e.currentTarget.nextSibling;
+					for( let i=1; (sib) && (i< menubox.width); i++) {
+						sib = sib.nextSibling;
+					}
+					if(sib === null) {
+						// Fell off the edge- go the long way around.
+						sib = e.currentTarget.nextSibling;
+						let skip = (menubox.width * (menubox.height -1))
+						for( let i=0; (sib) && (i<skip); i++) {
+							sib = sib.previousSibling;
+						}
+					}
+				}
+				if(e.key === "Home") {
+					sib = e.currentTarget.parentElement.firstElementChild;
+				}
+				if(e.key === "End") {
+					sib = e.currentTarget;
+					while(sib.nextSibling) {
+						sib = sib.nextSibling;
+					}
+				}
+				if(sib) {
+					// one of those keypresses set a new focus target.
+					sib.focus();
+					return;
+				}
+				// Any other keys to intercept?
+				if(e.key === "Escape") {
+					this.lociterm.focus();
+				}
+				// nope, nothing we're interested in.
+			});
 
 			// add the svg.  Could add a plain old img adder too, but.. later
 			if( item.svgid != undefined) {
@@ -333,6 +415,8 @@ class MenuHandler {
 
 			box.appendChild(container);
 		}
+		box.firstElementChild.setAttribute("tabindex",0);
+		box.firstElementChild.setAttribute("aria-keyshortcuts","control+m");
 		return(box);
 	}
 
@@ -381,6 +465,7 @@ class MenuHandler {
 					s.innerText = item.send;
 				} else if ( item.open != undefined ) {
 					s.classList.add('open');
+					s.setAttribute("aria-haspopup","true");
 					s.onclick = () => this.open(item.open);
 				} else if ( item.prompt != undefined ) {
 					s.classList.add('send');
@@ -401,6 +486,7 @@ class MenuHandler {
 				s.setAttribute("role","menuitem");
 				s.setAttribute("aria-label",s.innerText);
 				s.setAttribute("tabindex",0);
+
 
 				if( item.color !== undefined) {
 					s.style.color = item.color;
@@ -448,6 +534,35 @@ class MenuHandler {
 					s.classList.add('send');
 					s.onclick = () => this.lociterm.reconnect();
 				}
+
+				s.onkeydown = ((e)=> {
+					let sib = null;
+					if(e.key === "ArrowDown" || e.key === "ArrowRight") {
+						sib = e.currentTarget.nextSibling;
+					}
+					if(e.key === "ArrowUp" || e.key === "ArrowLeft") {
+						sib = e.currentTarget.previousSibling;
+					}
+					if(e.key === "Home") {
+						sib = e.currentTarget.parentElement.firstElementChild;
+					}
+					if(e.key === "End") {
+						sib = e.currentTarget;
+						while(sib.nextSibling) {
+							sib = sib.nextSibling;
+						}
+					}
+					if(sib) {
+						sib.focus();
+						return;
+					}
+					// Any other keys to intercept?
+					if(e.key === "Escape") {
+						this.lociterm.focus();
+					}
+					// nope, nothing we're interested in.
+				});
+
 
 				c.appendChild(s);
 			}
@@ -1509,6 +1624,7 @@ class MenuHandler {
 
 				l = document.createElement('div');
 				l.classList.add('textflow');
+				l.setAttribute("aria-live","assertive");
 				container.appendChild(l);
 				divstack.push(container);
 				container = l;
@@ -1523,9 +1639,17 @@ class MenuHandler {
 			// login      NOT RIGHT
 			l = document.createElement('button');
 			container.appendChild(l);
-			l.setAttribute("type","submit");
+			//l.setAttribute("type","submit");
+			l.id = "sys_connect_reconnect";
 			l.innerText = "Reconnect";
 			l.onclick = (()=> { this.done(); this.lociterm.connect() });
+			l.onkeypres = ((e)=> { 
+				if(e.key === "Enter") {
+					e.preventDefault();
+					this.done(); 
+					this.lociterm.connect() 
+				}
+			});
 
 		return(overlay);
 	}
@@ -1534,7 +1658,7 @@ class MenuHandler {
 		let elem;
 		elem = document.getElementById("connect_status");
 		elem.innerText = msg;
-		this.open("sys_connect");
+		this.open("sys_connect","sys_connect_reconnect");
 	}
 
 	create_oob_message() {
@@ -1565,6 +1689,7 @@ class MenuHandler {
 
 				l = document.createElement('div');
 				l.classList.add('textflow');
+				l.setAttribute("aria-live","assertive");
 				container.appendChild(l);
 				divstack.push(container);
 				container = l;
@@ -1678,6 +1803,15 @@ class MenuHandler {
 		let overlay = document.createElement('div');
 		overlay.id=id;
 		overlay.classList.add('overlay');
+		overlay.setAttribute("role","dialog");
+		overlay.setAttribute("aria-live","polite");
+		overlay.setAttribute("aria-label",named);
+		overlay.onkeydown = ((e)=>{
+			if(e.key === "Escape") {
+				this.done();
+				this.lociterm.focus();
+			}
+		});
 		divstack.push(overlay);
 		cdiv = overlay;
 
@@ -1712,6 +1846,7 @@ class MenuHandler {
 		let content = document.createElement('div');
 		cdiv.appendChild(content);
 		content.id = `${id}_content`;
+		content.classList.add('overlay_content');
 
 		let ret = [];
 		ret[0] = overlay;
@@ -1774,7 +1909,6 @@ class MenuHandler {
 		l.setAttribute("aria-label",labeled);
 		l.innerText = labeled;
 		l.onclick = onclick;
-
 		return(cdiv);
 
 	}

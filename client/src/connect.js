@@ -147,7 +147,7 @@ class ConnectGame {
 
 		l = document.createElement('label');
 		cdiv.appendChild(l);
-		l.innerText = "💡Suggest a Game";
+		l.innerText = "💡Games must have a DNS hostname, and be open to the public. Connections to non-telnet ports are queued for adminstrative approval, and will not be immediately available.";
 
 		divstack.pop(); //imgcontainer
 		cdiv = divstack[divstack.length-1];

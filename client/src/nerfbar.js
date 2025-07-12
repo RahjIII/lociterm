@@ -118,7 +118,9 @@ class NerfBar {
 				// this.focus();
 				e.preventDefault();
 			}
-
+			if((e.code == "KeyM") && (e.ctrlKey === true)) {
+				this.lociterm.menuhandler.focusMainMenu();
+			}
 		});
 
 		// History up button

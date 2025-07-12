@@ -1,5 +1,13 @@
 ## What's New
 
+### Version 2.6.0
+
+- Reworked keyboard accessibility for the button grid and side menus.
+- Added Ctrl-m shortcut to jump focus to the Client Settings menu.
+- Added ARIA hinting around the newly keyboard navigable menus.
+- Fixed a layout bug that caused popup menu buttons to not have the same button
+  height as the grid menu buttons.
+
 ### Version 2.5.2
 
 - Tweaks and bugfixes for GMCP Client.Media sound and music.
