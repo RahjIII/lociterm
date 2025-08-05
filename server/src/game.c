@@ -356,10 +356,22 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 
 		iostat_checkpoint(pc->game->ios,0.9);
 
+		/* grab a copy of the current tcp info */
+		int infolen = sizeof(struct tcp_info);
+		getsockopt(
+			lws_get_socket_fd(wsi),
+			IPPROTO_TCP,TCP_INFO,
+			&(pc->game->tcp_info),
+			(socklen_t *)&infolen
+		);
+
 		if(global_debug_facility & DEBUG_GAME) {
 			char buf[4096];
 			iostat_printhrate(buf,sizeof(buf),pc->game->ios);
 			locid_debug(DEBUG_GAME,pc,buf);
+			locid_debug(DEBUG_GAME,pc,"tcp rtt = %0.1fms",
+				pc->game->tcp_info.tcpi_rtt/1000.0
+			);
 		}
 
 		/* don't forget to reschedule. */

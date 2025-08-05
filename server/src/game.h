@@ -24,6 +24,7 @@
 #define LO_GAME_H
 
 #include "iostats.h"
+#include <netinet/tcp.h>
 
 /* global #defines */
 
@@ -40,6 +41,7 @@ typedef struct game_conn {
 	int ssl;						/* for ease of access */
 
 	struct iostat_data *ios;		/* iostat structure for bytes in/out */
+	struct tcp_info tcp_info;		/* for monitoring tcp stats like rtt */
 
 	int check_wait;					/* Protocol verification timer */
 	int check_protocol;				/* Protocol verification flags */

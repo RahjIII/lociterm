@@ -581,7 +581,11 @@ void loci_client_send_netstat(proxy_conn_t *pc) {
 	json_object_object_add(cobj,"rate",
 		json_object_new_string(buf)
 	);
-
+	json_object_object_add(cobj,"rtt",
+		json_object_new_int(
+			pc->client->tcp_info.tcpi_rtt
+		)
+	);
 
 	// game side info
 	gobj = json_object_new_object();
@@ -619,6 +623,11 @@ void loci_client_send_netstat(proxy_conn_t *pc) {
 		iostat_printhrate(buf,sizeof(buf),gc->ios);
 		json_object_object_add(gobj,"rate",
 			json_object_new_string(buf)
+		);
+		json_object_object_add(gobj,"rtt",
+			json_object_new_int(
+				pc->game->tcp_info.tcpi_rtt
+			)
 		);
 
 	}

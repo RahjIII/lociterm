@@ -24,6 +24,7 @@
 #define LO_CLIENT_H
 
 #include "iostats.h"
+#include <netinet/tcp.h>
 
 /* global #defines */
 
@@ -57,6 +58,7 @@ typedef struct client_conn {
 	int connections;
 
 	struct iostat_data *ios;		/* iostat structure for bytes in/out */
+	struct tcp_info tcp_info;		/* for monitoring tcp stats like rtt */
 
 	char *hostname;					/* Hostname of the calling client. */
 	gchar *useragent;				/* User agent reported by clients browser */

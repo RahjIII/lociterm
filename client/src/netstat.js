@@ -131,6 +131,12 @@ class NetStat {
 			l = document.createElement('div');
 			l.innerText = `${data.client.rate}`;
 			deets.appendChild(l);
+
+			l = document.createElement('div');
+			let rtt = data.client.rtt / 1000.0;
+			l.innerText = `TCP RTT: ${rtt.toFixed(2)} ms`;
+			deets.appendChild(l);
+
 		}
 
 		if(data.proxycount) {
@@ -165,6 +171,11 @@ class NetStat {
 
 			l = document.createElement('div');
 			l.innerText = `${data.server.rate}`;
+			deets.appendChild(l);
+
+			l = document.createElement('div');
+			let rtt = data.server.rtt / 1000.0;
+			l.innerText = `TCP RTT: ${rtt.toFixed(2)} ms`;
 			deets.appendChild(l);
 			
 			if(data.server.reconnections) {

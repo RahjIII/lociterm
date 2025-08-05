@@ -75,6 +75,8 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ add tcp rtt to network stats
+
 + get loops working in mcmp
 
 + GMCP - enable/disable per protocol module, and a pref selector?
