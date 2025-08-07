@@ -370,7 +370,7 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 			iostat_printhrate(buf,sizeof(buf),pc->game->ios);
 			locid_debug(DEBUG_GAME,pc,buf);
 			locid_debug(DEBUG_GAME,pc,"tcp rtt = %0.1fms",
-				pc->game->tcp_info.tcpi_rtt/1000.0
+				pc->game->tcp_info.tcpi_rcv_rtt/1000.0
 			);
 		}
 

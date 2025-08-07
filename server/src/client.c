@@ -465,7 +465,7 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 			iostat_printhrate(buf,sizeof(buf),pc->client->ios);
 			locid_debug(DEBUG_CLIENT,pc,buf);
 			locid_debug(DEBUG_CLIENT,pc,"tcp rtt = %0.1fms",
-				pc->client->tcp_info.tcpi_rtt/1000.0
+				pc->client->tcp_info.tcpi_rcv_rtt/1000.0
 			);
 		}
 
