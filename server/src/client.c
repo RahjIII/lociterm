@@ -63,6 +63,7 @@ client_conn_t *new_client_conn() {
 	n->ios = iostat_new();
 
 	n->hostname = NULL;
+	n->hostforwarder = NULL;
 	n->width = 80;
 	n->height = 25;
 	n->useragent = NULL;
@@ -93,6 +94,9 @@ void free_client_conn(client_conn_t *f) {
 
 	if(f->hostname) free(f->hostname);
 	f->hostname = NULL;
+
+	if(f->hostforwarder) free(f->hostforwarder);
+	f->hostforwarder = NULL;
 	
 	if(f->useragent) g_free(f->useragent);
 	f->useragent = NULL;
@@ -335,8 +339,12 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 		/* grab a string copy of the peer's address */
 		if(lws_hdr_copy(pc->client->wsi_client,buf,sizeof(buf),WSI_TOKEN_X_FORWARDED_FOR) > 0) {
 			locid_info(pc,"Using x-forwarded-for as the hostname: '%s'", buf);
-			if(pc->client->hostname) free(pc->client->hostname);
+			if(pc->client->hostforwarder) free(pc->client->hostforwarder);
+			pc->client->hostforwarder = pc->client->hostname;
 			pc->client->hostname = strdup(buf);
+		} else {
+			if(pc->client->hostforwarder) free(pc->client->hostforwarder);
+			pc->client->hostforwarder = strdup(pc->client->hostname);
 		}
 
 		if(lws_hdr_copy(pc->client->wsi_client,buf,sizeof(buf),WSI_TOKEN_HTTP_USER_AGENT) > 0) {
@@ -464,9 +472,6 @@ int callback_loci_client(struct lws *wsi, enum lws_callback_reasons reason,
 			char buf[4096];
 			iostat_printhrate(buf,sizeof(buf),pc->client->ios);
 			locid_debug(DEBUG_CLIENT,pc,buf);
-			locid_debug(DEBUG_CLIENT,pc,"tcp rtt = %0.1fms",
-				pc->client->tcp_info.tcpi_rcv_rtt/1000.0
-			);
 		}
 
 		/* don't forget to reschedule. */

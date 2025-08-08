@@ -569,6 +569,9 @@ void loci_client_send_netstat(proxy_conn_t *pc) {
 	json_object_object_add(cobj,"host",
 		json_object_new_string(cc->hostname)
 	);
+	json_object_object_add(cobj,"forwarder",
+		json_object_new_string(cc->hostforwarder)
+	);
 	json_object_object_add(cobj,"connections",
 		json_object_new_int(cc->connections)
 	);
@@ -584,6 +587,11 @@ void loci_client_send_netstat(proxy_conn_t *pc) {
 	json_object_object_add(cobj,"rtt",
 		json_object_new_int(
 			pc->client->tcp_info.tcpi_rtt
+		)
+	);
+	json_object_object_add(cobj,"rttvar",
+		json_object_new_int(
+			pc->client->tcp_info.tcpi_rttvar
 		)
 	);
 
@@ -627,6 +635,11 @@ void loci_client_send_netstat(proxy_conn_t *pc) {
 		json_object_object_add(gobj,"rtt",
 			json_object_new_int(
 				pc->game->tcp_info.tcpi_rtt
+			)
+		);
+		json_object_object_add(gobj,"rttvar",
+			json_object_new_int(
+				pc->game->tcp_info.tcpi_rttvar
 			)
 		);
 

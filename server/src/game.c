@@ -369,9 +369,6 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 			char buf[4096];
 			iostat_printhrate(buf,sizeof(buf),pc->game->ios);
 			locid_debug(DEBUG_GAME,pc,buf);
-			locid_debug(DEBUG_GAME,pc,"tcp rtt = %0.1fms",
-				pc->game->tcp_info.tcpi_rcv_rtt/1000.0
-			);
 		}
 
 		/* don't forget to reschedule. */

@@ -117,12 +117,19 @@ class NetStat {
 			if(openstatus[deets.name]==true) {
 				deets.setAttribute("open","");
 			} else if (openstatus[deets.name]==undefined) {
-				deets.setAttribute("open","");
+				// naw, default it to closed.
+				// deets.setAttribute("open","");
 			}
 
 			l = document.createElement('div');
 			l.innerText = this.hostline(data.client.host,data.client.state,data.client.ssl);
 			deets.appendChild(l);
+
+			if((data.client.host != data.client.forwarder)) {
+				l = document.createElement('div');
+				l.innerText = `Forwarded-From: ${data.client.forwarder}`;
+				deets.appendChild(l);
+			}
 
 			l = document.createElement('div');
 			l.innerText = `${data.client.data}`;
@@ -134,8 +141,10 @@ class NetStat {
 
 			l = document.createElement('div');
 			let rtt = data.client.rtt / 1000.0;
-			l.innerText = `TCP RTT: ${rtt.toFixed(2)} ms`;
+			let rttvar = data.client.rttvar / 1000.0;
+			l.innerText = `TCP RTT: ${rtt.toFixed(2)} (${rttvar.toFixed(2)} σ²) ms`;
 			deets.appendChild(l);
+
 
 		}
 
@@ -175,7 +184,8 @@ class NetStat {
 
 			l = document.createElement('div');
 			let rtt = data.server.rtt / 1000.0;
-			l.innerText = `TCP RTT: ${rtt.toFixed(2)} ms`;
+			let rttvar = data.server.rttvar / 1000.0;
+			l.innerText = `TCP RTT: ${rtt.toFixed(2)} (${rttvar.toFixed(2)} σ²) ms`;
 			deets.appendChild(l);
 			
 			if(data.server.reconnections) {

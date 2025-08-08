@@ -61,6 +61,7 @@ typedef struct client_conn {
 	struct tcp_info tcp_info;		/* for monitoring tcp stats like rtt */
 
 	char *hostname;					/* Hostname of the calling client. */
+	char *hostforwarder;			/* Name of the forwarder or client. */
 	gchar *useragent;				/* User agent reported by clients browser */
 	int width;						/* terminal window char width for NAWS */
 	int height;						/* terminal window char height for NAWS */
