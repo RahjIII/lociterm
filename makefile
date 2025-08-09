@@ -24,7 +24,7 @@
 
 # This one location controls the version string that appears in the client,
 # server, and archive files!
-LOCITERM_VERSION = 2.7.2
+LOCITERM_VERSION = 2.7.3
 #
 
 # #### Variable definitions ####
@@ -109,3 +109,12 @@ tar :
 	tar -C .. -cvz --exclude-vcs --exclude-from=.exclude  -f $(TARFILE) lociterm
 	@echo
 	@echo ---- Tar File is $(TARFILE) ----
+
+.PHONY : push
+push: 
+	git push origin dev --tags
+	@echo ---- Run \`make github\` to publish there ----
+
+.PHONY : github
+github: 
+	git push github dev --tags
