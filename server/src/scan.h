@@ -34,6 +34,7 @@ typedef struct scan_tbd_entry {
 	char *host;
 	int port;
 	int ssl;
+	int laststatus;
 	int status;
 } scan_tbd_entry_t;
 

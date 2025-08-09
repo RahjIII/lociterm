@@ -70,6 +70,7 @@ struct locid_conf {
 	int scan_dry_run;
 	int scan_check_interval;
 	int scan_expired;
+	int scan_down;
 	int scan_batch_size;
 	int scan_batch_delay;
 	char *scan_contact_url;

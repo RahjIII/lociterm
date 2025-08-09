@@ -56,7 +56,7 @@ char *dbstatus_str[] = {
 };
 
 /* database_version doesn't have to go up by 1, but it must never go down. */
-int database_version = 251825;
+int database_version = 252000;
 
 char database_definition[] = \
 	"CREATE TABLE IF NOT EXISTS DBVERSION ( "
@@ -96,6 +96,7 @@ char database_definition[] = \
 		"GAME INTEGER NOT NULL PRIMARY KEY, "
 		"LASTSCAN DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "
 		"STATUS INTEGER NOT NULL DEFAULT 2, "
+		"SINCE DATETIME, "
 		"FOREIGN KEY(GAME) REFERENCES GAMEDB(ID),"
 		"FOREIGN KEY(STATUS) REFERENCES GAMEDBSTATUS(ID) "
 	");"

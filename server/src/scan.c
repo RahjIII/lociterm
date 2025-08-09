@@ -47,6 +47,7 @@ static uint64_t scan_interval = 60*60*1000;		/* 1hr in ms */
 static uint64_t scan_batch_delay = 30*1000;	/* in ms */
 static uint64_t scan_batch_size = 3;			/* three */
 static uint64_t scan_older_than_s = 60*60;		/* 1hr in seconds */
+static uint64_t scan_down_after_s = 60*60*24*7;		/* 1wk in seconds */
 
 /* local function declarations */
 void scanner_init(uv_loop_t *uvloop,struct locid_conf *config);
@@ -61,6 +62,7 @@ struct scan_tbd_entry *new_scan_tbd_entry(void) {
 	struct scan_tbd_entry *new;
 	new = (struct scan_tbd_entry *)malloc(sizeof(struct scan_tbd_entry));
 	new->host = NULL;
+	new->laststatus = 0;
 	new->status = 0;
 	return(new);
 }
@@ -88,6 +90,7 @@ void scanner_init(uv_loop_t *uvloop,struct locid_conf *config) {
 
 	scan_interval = (config->scan_check_interval * 60*1000); /* minutes to ms */
 	scan_older_than_s = config->scan_expired * 60 * 60; /* hours to seconds */
+	scan_down_after_s = config->scan_down * 60 * 60; /* hours to seconds */
 	scan_batch_size = config->scan_batch_size;  /* Same units */
 	scan_batch_delay = config->scan_batch_delay * 1000; /* seconds to ms */
 
@@ -163,18 +166,24 @@ GList *scanner_tbd_list(void) {
 	}
 
 	sqlstr = sqlite3_mprintf(
-		"SELECT G.ID, G.HOST, G.PORT, G.SSL "
+		"SELECT G.ID, G.HOST, G.PORT, G.SSL, S.STATUS "
 			"FROM GAMEDB AS G "
 		"LEFT JOIN SCAN AS S ON S.GAME = G.ID "
 		"WHERE G.STATUS IS %d AND "
 		"( S.LASTSCAN IS NULL OR "
 			"unixepoch(CURRENT_TIMESTAMP) - unixepoch(S.LASTSCAN) >= %d"
-		") "
-		/* "and g.id is 113 " for testing */
+		") AND "
+		"( NOT ( "
+			"(S.STATUS != %d) AND "
+			"(unixepoch(CURRENT_TIMESTAMP) - unixepoch(S.SINCE) >= %d) AND "
+			"(G.LAST_CONNECTION <= S.LASTSCAN) "
+		") ) "
 		"ORDER BY G.LAST_CONNECTION ASC"
 		";",
 		DBSTATUS_APPROVED,
-		scan_older_than_s
+		scan_older_than_s,
+		DBSTATUS_APPROVED,
+		scan_down_after_s
 	);
 
 	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) == SQLITE_OK) ){
@@ -184,6 +193,7 @@ GList *scanner_tbd_list(void) {
 			tbde->host = (strdup((char *)sqlite3_column_text(stmt,1)));
 			tbde->port = sqlite3_column_int(stmt,2);
 			tbde->ssl = sqlite3_column_int(stmt,3);
+			tbde->status = sqlite3_column_int(stmt,4);
 			tbd = g_list_append(tbd,tbde);
 		}
 		sqlite3_finalize(stmt);
@@ -255,16 +265,33 @@ void scanner_finalize(proxy_conn_t *pc) {
 		pc->scanner->status
 	);
 
-	char *sqlstr = sqlite3_mprintf(
-		"insert into scan ( game, lastscan, status ) "
-		"values ( %d, CURRENT_TIMESTAMP, %d) "
-		"on CONFLICT (game) do update set "
-		"lastscan = CURRENT_TIMESTAMP, "
-		"status=excluded.STATUS "
-		";",
-		pc->scanner->id,
-		pc->scanner->status
-	);
+	char *sqlstr = NULL;
+	if(pc->scanner->status != pc->scanner->laststatus) {
+		/* change of status */
+		sqlstr = sqlite3_mprintf(
+			"insert into scan ( game, lastscan, status, since ) "
+			"values ( %d, CURRENT_TIMESTAMP, %d, CURRENT_TIMESTAMP ) "
+			"on CONFLICT (game) do update set "
+			"lastscan = CURRENT_TIMESTAMP, "
+			"status=excluded.STATUS, "
+			"since= CURRENT_TIMESTAMP "
+			";",
+			pc->scanner->id,
+			pc->scanner->status
+		);
+	} else {
+		sqlstr = sqlite3_mprintf(
+			"insert into scan ( game, lastscan, status ) "
+			"values ( %d, CURRENT_TIMESTAMP, %d) "
+			"on CONFLICT (game) do update set "
+			"lastscan = CURRENT_TIMESTAMP, "
+			"status=excluded.STATUS "
+			";",
+			pc->scanner->id,
+			pc->scanner->status
+		);
+	}
+
 	game_db_exec(pc,sqlstr);
 	sqlite3_free(sqlstr);
 

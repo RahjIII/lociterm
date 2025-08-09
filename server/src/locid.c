@@ -346,6 +346,7 @@ struct locid_conf *new_config(char *filename) {
 	c->scan_dry_run = get_conf_boolean(gkf,"scan","dry_run",0);
 	c->scan_check_interval = get_conf_int(gkf,"scan","check_interval",15);
 	c->scan_expired = get_conf_int(gkf,"scan","expired",23);
+	c->scan_down = get_conf_int(gkf,"scan","down",168);
 	c->scan_batch_size = get_conf_int(gkf,"scan","batch_size",5);
 	c->scan_batch_delay = get_conf_int(gkf,"scan","batch_delay",10);
 
