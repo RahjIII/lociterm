@@ -173,11 +173,9 @@ GList *scanner_tbd_list(void) {
 		"( S.LASTSCAN IS NULL OR "
 			"unixepoch(CURRENT_TIMESTAMP) - unixepoch(S.LASTSCAN) >= %d"
 		") AND "
-		"( NOT ( "
-			"(S.STATUS != %d) AND "
-			"(unixepoch(CURRENT_TIMESTAMP) - unixepoch(S.SINCE) >= %d) AND "
-			"(G.LAST_CONNECTION <= S.LASTSCAN) "
-		") ) "
+		"( ( S.STATUS != %d ) AND "
+			"(S.SINCE IS NULL or unixepoch(CURRENT_TIMESTAMP) - unixepoch(S.SINCE) < %d)"
+		")"
 		"ORDER BY G.LAST_CONNECTION ASC"
 		";",
 		DBSTATUS_APPROVED,
