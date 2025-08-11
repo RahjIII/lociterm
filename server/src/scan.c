@@ -192,6 +192,7 @@ GList *scanner_tbd_list(void) {
 			tbde->port = sqlite3_column_int(stmt,2);
 			tbde->ssl = sqlite3_column_int(stmt,3);
 			tbde->status = sqlite3_column_int(stmt,4);
+			tbde->laststatus = tbde->status;
 			tbd = g_list_append(tbd,tbde);
 		}
 		sqlite3_finalize(stmt);
