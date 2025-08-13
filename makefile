@@ -24,7 +24,7 @@
 
 # This one location controls the version string that appears in the client,
 # server, and archive files!
-LOCITERM_VERSION = 2.7.4
+LOCITERM_VERSION = 2.7.5
 #
 
 # #### Variable definitions ####
@@ -112,6 +112,7 @@ tar :
 
 .PHONY : push
 push: 
+	@git tag -a lociterm$(LOCITERM_VERSION) -m "Version $(LOCITERM_VERSION)" || { echo "Remember to update LOCITERM_VERSION in the makefile."; exit 1; }
 	git push origin dev --tags
 	@echo ---- Run \`make github\` to publish there ----
 
