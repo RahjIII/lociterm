@@ -215,17 +215,17 @@ void scanner_dispatch(struct scan_tbd_entry *tbde) {
 
 	if(!tbde) return;
 
-	locid_debug(DEBUG_SCAN,NULL,"%sScanning game %d %s %d %s",
+	pc = new_proxy_conn();
+	locid_info(pc,"New proxy connection [%d] for scanner.", pc->id);
+	pc->scanner = tbde;
+
+	locid_info(pc,"%sScanning game %d %s %d %s",
 		(config->scan_dry_run)?"DRY RUN ":"",
 		tbde->id,
 		tbde->host,
 		tbde->port,
 		(tbde->ssl)?"SSL":"TCP"
 	);
-
-	pc = new_proxy_conn();
-	locid_info(pc,"New proxy connection [%d] for scanner.", pc->id);
-	pc->scanner = tbde;
 
 	/* dry_run isn't documented in the config file, but if it is set, the
 	 * scanner will do everything except actually connect to the game in

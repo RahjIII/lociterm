@@ -172,7 +172,11 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 	switch (reason) {
 	case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
 		locid_debug(DEBUG_LWS,pc,"LWS_CALLBACK_CLIENT_CONNECTION_ERROR.");
-		locid_info(pc,"game lws connection error.");
+
+		locid_info(pc,"game lws connection error: %s",
+			(in)?in:"(No error message)"
+		);
+
 		if(game_db_get_status(pc) == DBSTATUS_NOT_CHECKED) {
 			game_db_update_status(pc,DBSTATUS_NO_ANSWER);
 		}

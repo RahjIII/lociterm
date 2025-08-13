@@ -752,6 +752,19 @@ class MenuHandler {
 		l.addEventListener('change',((e)=>{this.saveLogin()}));
 
 		// add a checkbox.
+		l = this.create_generic_checkbox("pwshow","Show Password",false,
+			((e) => {
+				let pw = document.getElementById("current-password");
+				if(pw.type === "password") {
+					pw.type = "text";
+				} else {
+					pw.type = "password";
+				}
+			})
+		);
+		cdiv.appendChild(l);
+
+		// add a checkbox.
 		l = this.create_generic_checkbox("remember","Remember Me",true,
 			((e) => {this.saveLogin()})
 		);
