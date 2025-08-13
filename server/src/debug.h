@@ -58,6 +58,7 @@ extern unsigned int global_debug_facility;
 
 /* exported function declarations */
 void locid_log_init(char *pathname);
+void locid_log_reinit(char *pathname);
 void locid_log(char *str, ...);
 void locid_log_lws(int level, char *str);
 void locid_Debug(const char *caller, int facility, proxy_conn_t *pc, char *str, ...);

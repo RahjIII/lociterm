@@ -61,11 +61,19 @@ void set_debug_from_strvec(gchar **vec) {
 	}
 }
 
+void locid_log_reinit(char *pathname) {
+	if(locid_logfile != stderr) {
+		fclose(locid_logfile);
+	}
+	locid_log_init(pathname);
+}
+
 void locid_log_init(char *pathname) {
 	FILE *out;
 
 	locid_logfile = stderr;
 	if(pathname && *pathname) {
+
 		if(! (out=fopen(pathname,"a"))) {
 			locid_log("Can't open log file %s: %s",pathname,strerror(errno));
 			exit(EXIT_FAILURE);
@@ -81,7 +89,6 @@ void locid_log(char *str, ...)
 	char *tmstr;
 	char vbuf[LOG_BUF_LEN];
 	int slen;
-	char nl='\n';
 	*vbuf = '\0';
 
 	va_start(ap, str);
@@ -94,11 +101,12 @@ void locid_log(char *str, ...)
 
 	if((slen = strlen(vbuf))>0) {
 		if((*(vbuf+slen-1)) == '\n') {
-			nl='\0';
+			fprintf(locid_logfile, "%s %s", tmstr, vbuf);
+		} else {
+			fprintf(locid_logfile, "%s %s\n", tmstr, vbuf);
 		}
 	}
 
-	fprintf(locid_logfile, "%s %s%c", tmstr, vbuf,nl);
 	fflush(locid_logfile);
 }
 

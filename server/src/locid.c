@@ -82,7 +82,6 @@ void sigchld_handler(int sig) {
 void signal_callback(uv_signal_t *watcher, int sig) {
 	switch(sig) {
 		case SIGINT:
-		case SIGHUP:
 			sigint_handler(sig);
 			break;
 		case SIGCHLD:
@@ -90,6 +89,7 @@ void signal_callback(uv_signal_t *watcher, int sig) {
 			break;
 		case SIGUSR1:
 		case SIGUSR2:
+		case SIGHUP:
 			loci_proxy_log_status();
 			break;
 		default:
