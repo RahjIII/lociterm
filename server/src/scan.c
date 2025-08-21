@@ -169,18 +169,16 @@ GList *scanner_tbd_list(void) {
 		"SELECT G.ID, G.HOST, G.PORT, G.SSL, S.STATUS "
 			"FROM GAMEDB AS G "
 		"LEFT JOIN SCAN AS S ON S.GAME = G.ID "
-		"WHERE G.STATUS IS %d AND "
-		"( S.LASTSCAN IS NULL OR "
-			"unixepoch(CURRENT_TIMESTAMP) - unixepoch(S.LASTSCAN) >= %d"
-		") AND "
-		"( ( S.STATUS != %d ) AND "
-			"(S.SINCE IS NULL or unixepoch(CURRENT_TIMESTAMP) - unixepoch(S.SINCE) < %d)"
-		")"
-		"ORDER BY G.LAST_CONNECTION ASC"
+		"WHERE "
+		"(G.STATUS IS %d) AND "
+		"(unixepoch(CURRENT_TIMESTAMP) - unixepoch(coalesce(S.LASTSCAN,0)) >= %d) AND "
+		"NOT ((coalesce(S.STATUS,%d) IS %d) AND (unixepoch(CURRENT_TIMESTAMP) - unixepoch(coalesce(S.SINCE,CURRENT_TIMESTAMP)) >= %d)) "
+		"ORDER BY S.LASTSCAN"
 		";",
 		DBSTATUS_APPROVED,
 		scan_older_than_s,
-		DBSTATUS_APPROVED,
+		DBSTATUS_NOT_CHECKED,
+		DBSTATUS_NO_ANSWER,
 		scan_down_after_s
 	);
 
