@@ -59,6 +59,8 @@ int game_db_get_default_game(proxy_conn_t *pc);
 json_object *game_db_get_server_list(void);
 json_object *game_db_mssplookup(char *host, int port, int ssl);
 void game_db_list(int approved);
+void game_db_list_down(void);
+void game_db_list_info(int gameid);
 void game_db_update(int id,game_db_status_t status);
 int game_db_should_request_mssp(int gameid);
 int game_db_exec(proxy_conn_t *pc,char *sqlstr);

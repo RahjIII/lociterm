@@ -191,10 +191,13 @@ CLI options to the server can be shown with `locid -h`  .
         -v / --version       show the version
         -a / --list-approved list approved games by id
         -l / --list-denied   list denied games by id
+        -s / --list-scan     list scaned down games by id
+        -i / --info          show game info for id
         -A / --approve <id>  Mark game approved
         -R / --redact <id>   Mark game approved/redacted
         -B / --ban <id>      Mark game banned
         -D / --delete <id>   Remove game from DB
+
 
 If the config file location is not specified on the command file, locid looks
 for ~/.locid.conf, then /etc/locid.conf.
@@ -227,6 +230,12 @@ or when reviewing suggestions of sites that failed auto-approval.
 --delete removes the game from the db entirely.  If suggested again, the
 connection will go through the full security and protocol checks, and the game
 will be given a new ID.
+
+--list-scan shows the list of games that the scanner was not able to refresh.
+DOWN means the game is considered offline permanantly, and won't be rescanned
+until a successful manual connection is made. 
+
+--info <id> shows contact and status info for the game with the supplied id.
 
 
 ## CLIENT DOCS

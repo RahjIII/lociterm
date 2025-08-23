@@ -398,6 +398,9 @@ int main(int argc, char **argv) {
 	int debug = 0;
 	int localmode = 0;
 	int listmode = -1;
+	int listscan = 0;
+	int listinfo = -1;
+	int dbinfo_id = 0;
 	int dbupdate_id = -1;
 	game_db_status_t dbupdate_status = DBSTATUS_NOT_CHECKED;
 	struct lws_context_creation_info info;
@@ -411,7 +414,7 @@ int main(int argc, char **argv) {
 	/* ...and begin. */
 
 	while(1) {
-		char *short_options = "hbc:dvalA:B:R:D:";
+		char *short_options = "hbc:dvalsA:B:R:D:i:";
 		static struct option long_options[] = {
 			{"help", no_argument,0,'h'},
 			{"browser", no_argument,0,'b'},
@@ -421,10 +424,12 @@ int main(int argc, char **argv) {
 			{"version", no_argument,0,'v'},
 			{"list-approved", no_argument,0,'a'},
 			{"list-denied", no_argument,0,'l'},
+			{"list-scan", no_argument,0,'s'},
 			{"approve", required_argument,0,'A'},
 			{"ban", required_argument,0,'B'},
 			{"redact", required_argument,0,'R'},
 			{"delete", required_argument,0,'D'},
+			{"info", required_argument,0,'i'},
 			{NULL,no_argument,NULL,0}
 		};
 		int option_index = 0;
@@ -451,6 +456,9 @@ int main(int argc, char **argv) {
 			case 'l':
 				listmode = 0;
 				break;
+			case 's':
+				listscan = 1;
+				break;
 			case 'A':
 				dbupdate_id = atoi(optarg);
 				dbupdate_status = DBSTATUS_APPROVED;
@@ -467,6 +475,10 @@ int main(int argc, char **argv) {
 				dbupdate_id = atoi(optarg);
 				dbupdate_status = DBSTATUS_NULL;
 				break;
+			case 'i':
+				listinfo = 1;
+				dbinfo_id = atoi(optarg);
+				break;
 			case 'h':
 			default:
 				fprintf(stdout,"Usage: %s [options]\n",argv[0]);
@@ -477,6 +489,8 @@ int main(int argc, char **argv) {
 				fprintf(stdout,"\t-v / --version       show the version\n");
 				fprintf(stdout,"\t-a / --list-approved list approved games by id\n");
 				fprintf(stdout,"\t-l / --list-denied   list denied games by id\n");
+				fprintf(stdout,"\t-s / --list-scan     list scaned down games by id\n");
+				fprintf(stdout,"\t-i / --info          show game info for id\n");
 				fprintf(stdout,"\t-A / --approve <id>  Mark game approved\n");
 				fprintf(stdout,"\t-R / --redact <id>   Mark game approved/redacted\n");
 				fprintf(stdout,"\t-B / --ban <id>      Mark game banned\n");
@@ -531,7 +545,17 @@ int main(int argc, char **argv) {
 	}
 
 	if(listmode != -1) {
-		game_db_list(listmode);
+		game_db_list(dbupdate_id);
+		exit(EXIT_SUCCESS);
+	}
+
+	if(listscan == 1) {
+		game_db_list_down();
+		exit(EXIT_SUCCESS);
+	}
+
+	if(listinfo > 0) {
+		game_db_list_info(dbinfo_id);
 		exit(EXIT_SUCCESS);
 	}
 

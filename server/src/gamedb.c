@@ -892,7 +892,7 @@ void game_db_list(int approved) {
 		"SELECT "
 			"id,"
 			"(select status from gamedbstatus where GAMEDBSTATUS.id = gamedb.status), "
-			"host,port,ssl,name "
+			"host,port,ssl "
 		"FROM GAMEDB "
 			"WHERE "
 			"status %s in (%d,%d)"
@@ -909,27 +909,24 @@ void game_db_list(int approved) {
 		return;
 	}
 
-	fprintf(stdout,"%s\t%s\t%s %s %s (%s)\n",
+	fprintf(stdout,"%s\t%s\t%s %s %s\n",
 		"ID",
 		"Status     ",
 		"Host",
 		"Port",
-		"SSL",
-		"Name"
+		"SSL"
 	);
 	fprintf(stdout,"-------------------------------------------------------\n");
 
 	int row=0;
 	while (sqlite3_step(stmt) != SQLITE_DONE) {
 		int ssl = sqlite3_column_int(stmt,4);
-		char *name = sqlite3_column_text(stmt,5);
-		fprintf(stdout,"%d\t%s\t%s %d %s (%s)\n",
+		fprintf(stdout,"%d\t%s\t%s %d %s\n",
 			sqlite3_column_int(stmt,0),
 			sqlite3_column_text(stmt,1),
 			sqlite3_column_text(stmt,2),
 			sqlite3_column_int(stmt,3),
-			(ssl==1)?"SSL":"tcp",
-			(name!=NULL)?name:"?"
+			(ssl==1)?"SSL":"tcp"
 		);
 		row++;
 	}
@@ -938,6 +935,261 @@ void game_db_list(int approved) {
 
 	sqlite3_free(sqlstr);
 	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+
+	return;
+}
+
+void game_db_list_down(void) {
+
+	sqlite3 *db;
+	sqlite3_stmt *stmt;
+	json_object *jobj=NULL;
+	char *sqlstr;
+
+	game_db_status_t filter;
+
+	int scan_down_after_s = config->scan_down * 60 * 60;
+
+	if(!config->db_inuse) { 
+		fprintf(stderr,"No DB in use.\n");
+		return;
+	}
+
+	if ( (sqlite3_open(config->db_location, &db) != SQLITE_OK) ) {
+		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
+		return;
+	}
+
+	sqlstr = sqlite3_mprintf(
+		"SELECT "
+			"id,"
+			"host,port,ssl, "
+			"(unixepoch(CURRENT_TIMESTAMP) - unixepoch(coalesce(s.since,CURRENT_TIMESTAMP)) >= %d) as down, "
+			"cast ((julianday(CURRENT_TIMESTAMP) - julianday(s.since)) as integer) as fordays "
+		"FROM GAMEDB AS g "
+		"LEFT JOIN SCAN AS s ON g.id = s.game "
+			"WHERE "
+			"(g.status is %d) "
+			"AND "
+			"(s.status is not %d) "
+			"ORDER BY s.since"
+		";",
+		scan_down_after_s,
+		DBSTATUS_APPROVED,
+		DBSTATUS_APPROVED
+	);
+
+	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) != SQLITE_OK) ){
+		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
+		sqlite3_free(sqlstr);
+		sqlite3_close(db);
+		return;
+	}
+
+	fprintf(stdout,"%s\t%s %s\t%s %s %s\n",
+		"ID",
+		"Scan",
+		"Days",
+		"Host",
+		"Port",
+		"SSL"
+	);
+	fprintf(stdout,"-------------------------------------------------------\n");
+
+	int row=0;
+	while (sqlite3_step(stmt) != SQLITE_DONE) {
+		int ssl = sqlite3_column_int(stmt,3);
+		int down = sqlite3_column_int(stmt,4);
+		fprintf(stdout,"%d\t%s %4d\t%s %d %s\n",
+			sqlite3_column_int(stmt,0), /* id */
+			(down==1)?"DOWN":"Fail",
+			sqlite3_column_int(stmt,5), /* days */
+			sqlite3_column_text(stmt,1),/* host */
+			sqlite3_column_int(stmt,2), /* port */
+			(ssl==1)?"SSL":"tcp"		/* ssl */
+		);
+		row++;
+	}
+
+	fprintf(stdout,"\nListed %d games.\n",row);
+
+	sqlite3_free(sqlstr);
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+
+	return;
+}
+
+void game_db_list_info(int gameid) {
+
+	sqlite3 *db;
+	sqlite3_stmt *stmt;
+	json_object *jobj=NULL;
+	char *sqlstr;
+
+	game_db_status_t filter;
+
+	int scan_down_after_s = config->scan_down * 60 * 60;
+
+	if(!config->db_inuse) { 
+		fprintf(stderr,"No DB in use.\n");
+		return;
+	}
+
+	if ( (sqlite3_open(config->db_location, &db) != SQLITE_OK) ) {
+		locid_log("Ooops.  %s",sqlite3_errmsg(db));
+		return;
+	}
+
+	sqlstr = sqlite3_mprintf(
+		"SELECT "
+			"host,port,ssl, "
+			"(select status from gamedbstatus where GAMEDBSTATUS.id = gamedb.status), "
+			"cast ((julianday(CURRENT_TIMESTAMP) - julianday(coalesce(last_connection,0))) as integer) as fordays, "
+			"date(created) "
+		"FROM GAMEDB "
+		"WHERE id is %d "
+		";",
+		gameid
+	);
+
+	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) != SQLITE_OK) ){
+		locid_log("Ooops.  %s",sqlite3_errmsg(db));
+		sqlite3_free(sqlstr);
+		sqlite3_close(db);
+		return;
+	}
+
+	fprintf(stdout,"Game ID: %d\n",gameid);
+
+	int row=0;
+	while (sqlite3_step(stmt) != SQLITE_DONE) {
+		fprintf(stdout,"%15.15s: %s %d %s\n",
+			"Host",
+			sqlite3_column_text(stmt,0),	/* host */
+			sqlite3_column_int(stmt,1),	/* port */
+			(sqlite3_column_int(stmt,2))?"SSL":"tcp"	/* ssl */
+		);
+		fprintf(stdout,"%15.15s: %s\n",
+			"Created",
+			sqlite3_column_text(stmt,5)
+		);
+		fprintf(stdout,"%15.15s: %s\n",
+			"Status",
+			sqlite3_column_text(stmt,3)
+		);
+		fprintf(stdout,"%15.15s: %d days ago\n",
+			"Last Connection",
+			sqlite3_column_int(stmt,4)
+		);
+		row++;
+	}
+	if(row == 0) {
+		fprintf(stdout,"Not Found\n");
+		return;
+	}
+
+	sqlite3_free(sqlstr);
+	sqlite3_finalize(stmt);
+
+	/* print scan data */
+	sqlstr = sqlite3_mprintf(
+		"select "
+			"cast ((julianday(CURRENT_TIMESTAMP) - julianday(coalesce(lastscan,0))) as integer), "
+			"(select status from gamedbstatus where GAMEDBSTATUS.id = s.status), "
+			"cast ((julianday(CURRENT_TIMESTAMP) - julianday(coalesce(since,0))) as integer) "
+		"FROM SCAN as s "
+		"where s.game is %d",
+		gameid
+	);
+
+	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) != SQLITE_OK) ){
+		locid_log("Ooops.  %s",sqlite3_errmsg(db));
+		sqlite3_free(sqlstr);
+		sqlite3_close(db);
+		return;
+	}
+
+	row=0;
+	while (sqlite3_step(stmt) != SQLITE_DONE) {
+		if(sqlite3_column_text(stmt,0) == NULL) {
+			break;
+		}
+		fprintf(stdout,"%15.15s: %d days ago\n",
+			"Last scanned",
+			sqlite3_column_int(stmt,0)
+		);
+		fprintf(stdout,"%15.15s: %s for %d days\n",
+			"Scan Status",
+			sqlite3_column_text(stmt,1),
+			sqlite3_column_int(stmt,2)
+		);
+		row++;
+	}
+
+	sqlite3_free(sqlstr);
+	sqlite3_finalize(stmt);
+
+
+	/* print mssp data */
+	sqlstr = sqlite3_mprintf(
+		"select "
+			"MAX(m.created), "
+			"json_extract(m.mssp,'$.NAME') as name, "
+			"json_extract(m.mssp,'$.CONTACT') as contact, "
+			"json_extract(m.mssp,'$.WEBSITE') as website, "
+			"json_extract(m.mssp,'$.HOSTNAME') as hostname, "
+			"json_extract(m.mssp,'$.PORT') as port, "
+			"json_extract(m.mssp,'$.SSL') as ssl "
+		"FROM MSSP as m "
+		"where m.game is %d",
+		gameid
+	);
+
+	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) != SQLITE_OK) ){
+		locid_log("Ooops.  %s",sqlite3_errmsg(db));
+		sqlite3_free(sqlstr);
+		sqlite3_close(db);
+		return;
+	}
+
+	row=0;
+	while (sqlite3_step(stmt) != SQLITE_DONE) {
+		if(sqlite3_column_text(stmt,0) == NULL) {
+			break;
+		}
+		fprintf(stdout,"%15.15s: %s\n",
+			"MSSP NAME",
+			sqlite3_column_text(stmt,1)
+		);
+		fprintf(stdout,"%15.15s: %s\n",
+			"MSSP CONTACT",
+			sqlite3_column_text(stmt,2)
+		);
+		fprintf(stdout,"%15.15s: %s\n",
+			"MSSP WEBSITE",
+			sqlite3_column_text(stmt,3)
+		);
+		fprintf(stdout,"%15.15s: %s\n",
+			"MSSP HOSTNAME",
+			sqlite3_column_text(stmt,4)
+		);
+		fprintf(stdout,"%15.15s: %s\n",
+			"MSSP PORT",
+			sqlite3_column_text(stmt,5)
+		);
+		fprintf(stdout,"%15.15s: %s\n",
+			"MSSP SSL",
+			sqlite3_column_text(stmt,6)
+		);
+		row++;
+	}
+
+	sqlite3_free(sqlstr);
+	sqlite3_finalize(stmt);
+
+
 	sqlite3_close(db);
 
 	return;
