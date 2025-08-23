@@ -545,7 +545,7 @@ int main(int argc, char **argv) {
 	}
 
 	if(listmode != -1) {
-		game_db_list(dbupdate_id);
+		game_db_list(listmode);
 		exit(EXIT_SUCCESS);
 	}
 
