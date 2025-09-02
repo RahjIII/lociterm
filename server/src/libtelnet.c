@@ -73,36 +73,25 @@ enum telnet_state_t {
 };
 typedef enum telnet_state_t telnet_state_t;
 
+
 /* telnet state tracker */
 struct telnet_t {
-	/* user data */
-	void *ud;
-	/* telopt support table */
-	const telnet_telopt_t *telopts;
-	/* event handler */
-	telnet_event_handler_t eh;
+	void *ud;						/* user data */
+	const telnet_telopt_t *telopts;	/* telopt support table */
+	telnet_event_handler_t eh;		/* event handler */
 #if defined(HAVE_ZLIB)
-	/* zlib (mccp2) compression */
-	z_stream *z;
+	z_stream *z; 					/* zlib (mccp2) compression */
 #endif
-	/* RFC1143 option negotiation states */
-	struct telnet_rfc1143_t *q;
-	/* sub-request buffer */
-	char *buffer;
-	/* current size of the buffer */
-	size_t buffer_size;
-	/* current buffer write position (also length of buffer data) */
-	size_t buffer_pos;
-	/* current state */
-	enum telnet_state_t state;
-	/* option flags */
-	unsigned char flags;
-	/* current subnegotiation telopt */
-	unsigned char sb_telopt;
-	/* length of RFC1143 queue */
-	unsigned int q_size;
-	/* number of entries in RFC1143 queue */
-	unsigned int q_cnt;
+	mccpx_stream_t mccpx[STREAM_MAX];	/* MCCPX flows */
+	struct telnet_rfc1143_t *q;		/* RFC1143 option negotiation states */
+	char *buffer;					/* sub-request buffer */
+	size_t buffer_size;				/* current size of the buffer */
+	size_t buffer_pos;				/* current buffer write position (also length of buffer data) */
+	enum telnet_state_t state;		/* current state */
+	unsigned char flags;			/* option flags */
+	unsigned char sb_telopt;		/* current subnegotiation telopt */
+	unsigned int q_size;			/* length of RFC1143 queue */
+	unsigned int q_cnt;				/* number of entries in RFC1143 queue */
 };
 
 /* RFC1143 option negotiation state */
@@ -132,6 +121,51 @@ static const size_t _buffer_sizes_count = sizeof(_buffer_sizes) /
 #define Q_BUFFER_GROWTH_QUANTUM 4
 
 static INLINE void _set_rfc1143(telnet_t *telnet, unsigned char telopt, char us, char him);
+
+
+/* ---- MCCPX section BEGIN ---- */
+
+/* local function declarations. */
+static int _mccpx_telnet(telnet_t *telnet, char* buffer, size_t size);
+
+/* "none" compression functions. */
+mccpx_init_fn_t mccpx_none_init;
+mccpx_send_fn_t mccpx_none_send;
+mccpx_recv_fn_t mccpx_none_recv;
+mccpx_free_fn_t mccpx_none_free;
+mccpx_compression_t mccpx_none = {
+	.name = "none",
+	.init = mccpx_none_init,
+	.send = mccpx_none_send,
+	.recv = mccpx_none_recv,
+	.free = mccpx_none_free
+};
+
+#if defined(HAVE_ZLIB)
+/* "deflate" compression functions. */
+mccpx_init_fn_t mccpx_deflate_init;
+mccpx_send_fn_t mccpx_deflate_send;
+mccpx_recv_fn_t mccpx_deflate_recv;
+mccpx_free_fn_t mccpx_deflate_free;
+mccpx_compression_t mccpx_deflate = {
+	.name = "deflate",
+	.init = mccpx_deflate_init,
+	.send = mccpx_deflate_send,
+	.recv = mccpx_deflate_recv,
+	.free = mccpx_deflate_free
+};
+#endif
+
+/* MCCPX encodings in order of preference. */
+mccpx_compression_t *mccpx_encodings[] = {
+#if defined(HAVE_ZLIB)
+	&mccpx_deflate,
+#endif
+	&mccpx_none,
+	NULL
+};
+
+/* ---- MCCPX section END ---- */
 
 /* error generation function */
 static telnet_error_t _error(telnet_t *telnet, unsigned line,
@@ -204,6 +238,13 @@ telnet_error_t _init_zlib(telnet_t *telnet, int deflate, int err_fatal) {
 static void _send(telnet_t *telnet, const char *buffer,
 		size_t size) {
 	telnet_event_t ev;
+
+	/* If there's an mccpx encoding set up, use it to send the data. */
+	mccpx_stream_t *stream = &(telnet->mccpx[STREAM_SEND]);
+	if (stream->enc && stream->enc->send) {
+		(*(stream->enc->send))(telnet,stream,buffer,size);
+		return;
+	}
 
 #if defined(HAVE_ZLIB)
 	/* if we have a deflate (compression) zlib box, use it */
@@ -876,6 +917,13 @@ static int _subnegotiate(telnet_t *telnet) {
 				telnet->buffer_pos);
 	case TELNET_TELOPT_MSSP:
 		return _mssp_telnet(telnet, telnet->buffer, telnet->buffer_pos);
+	case TELNET_TELOPT_MCCPX:
+		if ((telnet->flags & TELNET_FLAG_PROXY)) {
+			/* proxy doesn't participate. */
+			return 0;
+		} else {
+			return _mccpx_telnet(telnet, telnet->buffer, telnet->buffer_pos);
+		}
 	default:
 		return 0;
 	}
@@ -894,6 +942,9 @@ telnet_t *telnet_init(const telnet_telopt_t *telopts,
 	telnet->telopts = telopts;
 	telnet->eh = eh;
 	telnet->flags = flags;
+
+	telnet->mccpx[STREAM_SEND].enc = NULL;
+	telnet->mccpx[STREAM_RECV].enc = NULL;
 
 	return telnet;
 }
@@ -919,6 +970,15 @@ void telnet_free(telnet_t *telnet) {
 		telnet->z = 0;
 	}
 #endif /* defined(HAVE_ZLIB) */
+
+	/* If there are mccpx encodings set up, free them */
+	for(int i=0;i<STREAM_MAX;i++) {
+		mccpx_stream_t *stream = &(telnet->mccpx[i]);
+		if (stream->enc && stream->enc->free) {
+			(*(stream->enc->free))(telnet,stream);
+			return;
+		}
+	}
 
 	/* free RFC1143 queue */
 	if (telnet->q) {
@@ -1181,6 +1241,14 @@ static void _process(telnet_t *telnet, const char *buffer, size_t size) {
 /* push a bytes into the state tracker */
 void telnet_recv(telnet_t *telnet, const char *buffer,
 		size_t size) {
+
+	/* If there's an mccpx encoding set up, use it to uncompress the data. */
+	mccpx_stream_t *stream = &(telnet->mccpx[STREAM_RECV]);
+	if (stream->enc && stream->enc->recv) {
+		(*(stream->enc->recv))(telnet,stream,buffer,size);
+		return;
+	}
+
 #if defined(HAVE_ZLIB)
 	/* if we have an inflate (decompression) zlib stream, use it */
 	if (telnet->z != 0 && !(telnet->flags & TELNET_PFLAG_DEFLATE)) {
@@ -1406,6 +1474,15 @@ void telnet_begin_sb(telnet_t *telnet, unsigned char telopt) {
 	_sendu(telnet, sb, 3);
 }
 
+/* send subnegotiation header */
+void telnet_begin_sb_cmd(telnet_t *telnet, unsigned char telopt, unsigned char cmd) {
+	unsigned char sb[4];
+	sb[0] = TELNET_IAC;
+	sb[1] = TELNET_SB;
+	sb[2] = telopt;
+	sb[3] = cmd;
+	_sendu(telnet, sb, 4);
+}
 
 /* send complete subnegotiation */
 void telnet_subnegotiation(telnet_t *telnet, unsigned char telopt,
@@ -1704,4 +1781,361 @@ int *telnet_option_list(telnet_t *telnet) {
 	return(optlist);
 }
 
+/* -- MCCPX "none" encoding BEGIN.  */
+
+/* MCCPX "none" init. */
+telnet_error_t mccpx_none_init(telnet_t *telnet, mccpx_stream_t *stream) {
+	z_stream *z;
+	int rs;
+	int err_fatal = 1;
+
+	/* if MMCP123 compression is already enabled, fail loudly */
+	if (telnet->z != 0)
+		return _error(telnet, __LINE__, __func__, TELNET_EBADVAL,
+				err_fatal, "cannot initialize MCCPX while MCCP123 is active.");
+
+	if(stream->ctx != NULL) 
+		return _error(telnet, __LINE__, __func__, TELNET_EBADVAL,
+				err_fatal, "cannot initialize MCCP4 twice.");
+
+	/* going to alloc a string here, to test that the free function gets rid of it. */
+	if(stream->direction == STREAM_SEND) {
+		stream->ctx = strdup("none compression init");
+	} else {
+		stream->ctx = strdup("none decompression init");
+	}
+
+	return TELNET_EOK;
+}
+
+/* MCCPX "none" send. */
+/* all none encoding does is send the data.*/
+telnet_error_t mccpx_none_send( telnet_t *telnet, mccpx_stream_t *stream, const char *buffer, size_t size) {
+
+	telnet_event_t ev;
+	/* send event */
+	ev.type = TELNET_EV_SEND;
+	ev.data.buffer = buffer;
+	ev.data.size = size;
+	telnet->eh(telnet, &ev, telnet->ud);
+	return TELNET_EOK;
+}
+
+/* MCCPX "none" recv. */
+/* all none encoding does is route the raw data to _process .*/
+telnet_error_t mccpx_none_recv( telnet_t *telnet, mccpx_stream_t *stream, const char *buffer, size_t size) {
+	_process(telnet, buffer, size);
+	return TELNET_EOK;
+}
+
+/* MCCPX "none" free. */
+void mccpx_none_free(telnet_t *telnet, mccpx_stream_t *stream) {
+
+	if(stream->ctx == NULL) return;
+	/* going to de-alloc a string here, to test that the free function gets rid of it. */
+	if(stream->direction == STREAM_SEND) {
+		free(stream->ctx);
+	} else {
+		free(stream->ctx);
+	}
+	stream->ctx = NULL;
+}
+
+/* -- MCCPX "none" encoding END.  */
+
+#if defined(HAVE_ZLIB)
+/* -- MCCPX "deflate" encoding BEGIN.  */
+/* MCCPX "deflate" init. */
+telnet_error_t mccpx_deflate_init(telnet_t *telnet, mccpx_stream_t *stream) {
+	z_stream *z;
+	int rs;
+	int err_fatal = 1;
+
+	/* if MMCP123 compression is already enabled, fail loudly */
+	if (telnet->z != 0)
+		return _error(telnet, __LINE__, __func__, TELNET_EBADVAL,
+				err_fatal, "cannot initialize MCCPX while MCCP123 is active.");
+
+	if(stream->ctx != NULL) 
+		return _error(telnet, __LINE__, __func__, TELNET_EBADVAL,
+				err_fatal, "cannot initialize MCCP4 twice.");
+
+	/* allocate zstream box */
+	if ((z = (z_stream *)calloc(1, sizeof(z_stream))) == 0)
+		return _error(telnet, __LINE__, __func__, TELNET_ENOMEM, err_fatal,
+				"malloc() failed: %s", strerror(errno));
+
+	if(stream->direction == STREAM_SEND) {
+		if ((rs = deflateInit(z, Z_DEFAULT_COMPRESSION)) != Z_OK) {
+			free(z);
+			return _error(telnet, __LINE__, __func__, TELNET_ECOMPRESS,
+					err_fatal, "deflateInit() failed: %s", zError(rs));
+		}
+	} else {
+		if ((rs = inflateInit(z)) != Z_OK) {
+			free(z);
+			return _error(telnet, __LINE__, __func__, TELNET_ECOMPRESS,
+					err_fatal, "inflateInit() failed: %s", zError(rs));
+		}
+	}
+	stream->ctx = z;
+
+	return TELNET_EOK;
+}
+
+/* MCCPX "deflate" send. */
+/* all deflate encoding does is send the data.*/
+telnet_error_t mccpx_deflate_send( telnet_t *telnet, mccpx_stream_t *stream, const char *buffer, size_t size) {
+
+	char deflate_buffer[1024];
+	int rs;
+	z_stream *z = stream->ctx;
+	telnet_event_t ev;
+
+	/* initialize z state */
+	z->next_in = (unsigned char *)buffer;
+	z->avail_in = (unsigned int)size;
+	z->next_out = (unsigned char *)deflate_buffer;
+	z->avail_out = sizeof(deflate_buffer);
+
+	/* deflate until buffer exhausted and all output is produced */
+	while (z->avail_in > 0 || z->avail_out == 0) {
+		/* compress */
+		if ((rs = deflate(z, Z_SYNC_FLUSH)) != Z_OK) {
+			_error(telnet, __LINE__, __func__, TELNET_ECOMPRESS, 1,
+					"deflate() failed: %s", zError(rs));
+			deflateEnd(z);
+			free(z);
+			stream->ctx = NULL;
+			break;
+		}
+
+		/* send event */
+		ev.type = TELNET_EV_SEND;
+		ev.data.buffer = deflate_buffer;
+		ev.data.size = sizeof(deflate_buffer) - z->avail_out;
+		telnet->eh(telnet, &ev, telnet->ud);
+
+		/* prepare output buffer for next run */
+		z->next_out = (unsigned char *)deflate_buffer;
+		z->avail_out = sizeof(deflate_buffer);
+	}
+
+	return TELNET_EOK;
+}
+
+/* MCCPX "deflate" recv. */
+/* all deflate encoding does is route the raw data to _process .*/
+telnet_error_t mccpx_deflate_recv( telnet_t *telnet, mccpx_stream_t *stream, const char *buffer, size_t size) {
+
+	z_stream *z = stream->ctx;
+	telnet_event_t ev;
+
+	char inflate_buffer[1024];
+	int rs;
+
+	/* initialize zlib state */
+	z->next_in = (unsigned char*)buffer;
+	z->avail_in = (unsigned int)size;
+	z->next_out = (unsigned char *)inflate_buffer;
+	z->avail_out = sizeof(inflate_buffer);
+
+	/* inflate until buffer exhausted and all output is produced */
+	while (z->avail_in > 0 || z->avail_out == 0) {
+		/* reset output buffer */
+
+		/* decompress */
+		rs = inflate(z, Z_SYNC_FLUSH);
+
+		/* process the decompressed bytes on success */
+		if (rs == Z_OK || rs == Z_STREAM_END)
+			_process(telnet, inflate_buffer, sizeof(inflate_buffer) -
+					z->avail_out);
+		else
+			_error(telnet, __LINE__, __func__, TELNET_ECOMPRESS, 1,
+					"inflate() failed: %s", zError(rs));
+
+		/* prepare output buffer for next run */
+		z->next_out = (unsigned char *)inflate_buffer;
+		z->avail_out = sizeof(inflate_buffer);
+
+		/* on error (or on end of stream) disable further inflation */
+		if (rs != Z_OK) {
+			telnet_event_t ev;
+
+			/* disable compression */
+			inflateEnd(z);
+			free(z);
+			stream->ctx = 0;
+
+			/* send event */
+			ev.type = TELNET_EV_COMPRESS;
+			ev.compress.state = 0;
+			telnet->eh(telnet, &ev, telnet->ud);
+
+			break;
+		}
+	}
+
+	return TELNET_EOK;
+}
+
+/* MCCPX "deflate" free. */
+void mccpx_deflate_free(telnet_t *telnet, mccpx_stream_t *stream) {
+
+	if(stream->ctx == NULL) return;
+
+	z_stream *z = stream->ctx;
+	if(stream->direction == STREAM_SEND) {
+		deflateEnd(z);
+		free(z);
+	} else {
+		inflateEnd(z);
+		free(z);
+	}
+	stream->ctx = NULL;
+}
+/* -- MCCPX "deflate" encoding END.  */
+#endif /* defined(HAVE_ZLIB) */
+
+/* Get ascii list of supported mccpx compression encodings.  Caller must free
+ * the returned string! */
+char *mccpx_accept_encodings(void) {
+	char buf[1024];
+	buf[0] = '\0';
+
+	for(int c=0;mccpx_encodings[c];c++) {
+		if((strlen(buf) + strlen(mccpx_encodings[c]->name) + 1) <sizeof(buf) ) {
+			if(c!=0) strcat(buf,",");
+			strcat(buf,mccpx_encodings[c]->name);
+		}
+	}
+	return(strdup(buf));
+}
+
+/* send the first salvo of the mccpx protocol.  Right now, the only defined
+ * opening message is for the decompressing side to send the acceptable list of
+ * encodings. */
+void telnet_send_mccpx_accept(telnet_t *telnet, const char *encoding_list, size_t len) {
+
+	telnet_begin_sb_cmd(telnet,TELNET_TELOPT_MCCPX,TELNET_MCCPX_ACCEPT_ENCODING);
+	if(encoding_list == NULL) {
+		char *builtins = mccpx_accept_encodings();
+		telnet_send(telnet, builtins, strlen(builtins));
+		free(builtins);
+	} else {
+		telnet_send(telnet, encoding_list, len);
+	}
+	telnet_finish_sb(telnet);
+}
+
+/* tell recieving side to begin using the supplied encoding */
+void telnet_send_mccpx_begin(telnet_t *telnet, const char *encoding, size_t len) {
+	telnet_begin_sb_cmd(telnet,TELNET_TELOPT_MCCPX,TELNET_MCCPX_BEGIN_ENCODING);
+	telnet_send(telnet, encoding, len);
+	telnet_finish_sb(telnet);
+}
+
+
+
+/* process an MCCPX subnegotiation buffer recieved from the other side*/
+static int _mccpx_telnet(telnet_t *telnet, char* buffer, size_t size) {
+	telnet_event_t ev;
+
+	if(size <= 0 ) {
+		_error(telnet, __LINE__, __func__, TELNET_EPROTOCOL, 0,
+				"incomplete TERMINAL-TYPE request");
+		return 0;
+	}
+
+	/* buffer[0] is the mccpx suboption command */
+	switch(buffer[0]) {
+
+		/* just recieved a list of supporting encoding algos. */
+		case TELNET_MCCPX_ACCEPT_ENCODING: {
+			/* humm.  option list is a string value.  I wonder if I have to
+			 * buffer it or if libtelnet is handling that already? :( */
+
+			/* is there one in the recieved list at buffer[1] that we support? */
+			mccpx_compression_t *encoding = NULL;
+
+			char *accepts=strndup(&buffer[1],size-1);
+			char *next,*consider=accepts;
+			while(consider && *consider) {
+				if( (next=strchr(consider,',')) ) {
+					*next++ = '\0';
+				}
+				/* compare it to the list of what we can do. */
+				for(int c=0;mccpx_encodings[c];c++) {
+					if(!strcmp(consider,mccpx_encodings[c]->name)) {
+						encoding = mccpx_encodings[c];
+						break;
+					}
+				}
+				if(encoding) break;
+				consider=next;
+			}
+			free(accepts);
+
+			if( encoding != NULL ) {
+				/* an acceptable one was chosen, lets do this. */
+				/* send the begin message before enabling compression */
+				telnet_send_mccpx_begin(telnet,encoding->name,strlen(encoding->name));
+				/* set up the STREAM_SEND compression */
+				mccpx_stream_t *stream = &(telnet->mccpx[STREAM_SEND]);
+				stream->enc = encoding;
+				stream->direction = STREAM_SEND;
+				/* and call init to enable it. */
+				(encoding->init)(telnet,stream);
+				return(1);  /* BEGIN ENCODING */
+			} else {
+				/* Ooops, nothing is acceptable. */
+				/* handling possibly not right, as 'spec' says use dont?  Which
+				 * cant be right, its gotta be WONT. */
+				telnet_negotiate(telnet, TELNET_WONT, TELNET_TELOPT_MCCPX);
+			}
+			break;
+		}
+		
+		/* just been told that the sender has started encrypting with supplied algo */
+		case TELNET_MCCPX_BEGIN_ENCODING: {
+			/* sender's encoding starts now, using the encoding stated at
+			 * buffer[1].  */
+			/* validate the encoding */
+			char *request = strndup(&buffer[1],size-1);
+			mccpx_compression_t *encoding = NULL;
+
+			/* compare it to the list of what we can do. */
+			for(int c=0;mccpx_encodings[c];c++) {
+				if(!strcmp(request,mccpx_encodings[c]->name)) {
+					encoding = mccpx_encodings[c];
+					break;
+				}
+			}
+			if(encoding) {
+				/* Set up the STREAM_RECV compression */
+				mccpx_stream_t *stream = &(telnet->mccpx[STREAM_RECV]);
+				stream->enc = encoding;
+				stream->direction = STREAM_RECV;
+				/* and call init to enable it. */
+				(encoding->init)(telnet,stream);
+				return(1);  /* BEGIN ENCODING */
+			} else {
+				/* not sure what to do here, its an error path not on the flowchart. */
+				telnet_negotiate(telnet, TELNET_DONT, TELNET_TELOPT_MCCPX);
+			}
+			break;
+		}
+		
+		default: {
+			/* send a suboption wont to any unknown mccpx suboption. */
+			telnet_begin_sb_cmd(telnet,TELNET_TELOPT_MCCPX,TELNET_MCCPX_WONT);
+			_sendu(telnet, &buffer[0], 1);
+			telnet_finish_sb(telnet);
+			return(0);
+		}
+	}
+
+	return(0);
+}
 

@@ -77,7 +77,8 @@ const telnet_telopt_t supported_telopts[] = {
 	{ TELNET_TELOPT_CHARSET,	TELNET_WILL,	TELNET_DO },
 	{ TELNET_TELOPT_TTYPE,		TELNET_WILL,	TELNET_DONT },
 	{ TELNET_TELOPT_EOR,		TELNET_WILL,	TELNET_DO },
-	{ TELNET_TELOPT_MCCP2,		TELNET_WONT,	TELNET_DO },
+	{ TELNET_TELOPT_MCCPX,		TELNET_WILL,	TELNET_DO },
+	//{ TELNET_TELOPT_MCCP2,		TELNET_WONT,	TELNET_DO },
 	{ TELNET_TELOPT_NEW_ENVIRON,TELNET_WILL,	TELNET_DO },
 	{ TELNET_TELOPT_NAWS,		TELNET_WILL,	TELNET_DONT },
 	{ TELNET_TELOPT_GMCP,		TELNET_WONT,	TELNET_DO },
@@ -92,7 +93,8 @@ const telnet_telopt_t nomssp_telopts[] = {
 	{ TELNET_TELOPT_CHARSET,	TELNET_WILL,	TELNET_DO },
 	{ TELNET_TELOPT_TTYPE,		TELNET_WILL,	TELNET_DONT },
 	{ TELNET_TELOPT_EOR,		TELNET_WILL,	TELNET_DO },
-	{ TELNET_TELOPT_MCCP2,		TELNET_WONT,	TELNET_DO },
+	{ TELNET_TELOPT_MCCPX,		TELNET_WILL,	TELNET_DO },
+	//{ TELNET_TELOPT_MCCP2,		TELNET_WONT,	TELNET_DO },
 	{ TELNET_TELOPT_NEW_ENVIRON,TELNET_WILL,	TELNET_DO },
 	{ TELNET_TELOPT_NAWS,		TELNET_WILL,	TELNET_DONT },
 	{ TELNET_TELOPT_GMCP,		TELNET_WONT,	TELNET_DO },
@@ -396,6 +398,21 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		case TELNET_TELOPT_EOR:
 			loci_client_send_gaeor(pc,NULL);
 			break;
+		case TELNET_TELOPT_MCCPX: {
+			security_checked(pc,CHECK_MUD);
+			/* send acceptable compression algos */
+			// char accept_encodings[]="none,x-testing";
+			// telnet_send_mccpx_accept(telnet,accept_encodings,strlen(accept_encodings));
+			telnet_send_mccpx_accept(telnet,NULL,0);
+	
+			/* seeing server side availability, offer to get the client side
+			 * compressing too, i.e. bidirectional compression.  (This is
+			 * because at time of writing, lociterm client telnet is completely
+			 * passive, it only offers to do protocols that the server has
+			 * offered up first.) */
+			telnet_negotiate(telnet, TELNET_WILL, TELNET_TELOPT_MCCPX);
+			break;
+		}
 		default: 
 			break;
 		}
@@ -506,7 +523,9 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		break;
 	}
 	case TELNET_EV_COMPRESS: {
-		locid_debug(DEBUG_TELNET,pc,"Compression Enabled.");
+		locid_debug(DEBUG_TELNET,pc,"MCCP[123] Compression %s.",
+			event->compress.state?"Enabled":"Disabled"
+		);
 		break;
 	}
 	default:
@@ -540,6 +559,7 @@ telnet_t *loci_telnet_init(game_conn_t *gc) {
 	 * If you want to be the first active participant to speak telnet,
 	 * uncomment this.  Maybe a preference sometime?  After trying, it seems
 	 * like pidgin telnet muds don't really like the client going first.
+	
 	for(int i=0;telopts[i].telopt>-1;i++) {
 		telnet_negotiate(gc->game_telnet,telopts[i].us,telopts[i].telopt);
 	}
@@ -639,6 +659,7 @@ const char *telopt_name(uint8_t option) {
 	case TELNET_TELOPT_ATCP:	return ("ATCP");
 	case TELNET_TELOPT_ZMP:		return ("ZMP");
 	case TELNET_TELOPT_MUSHCLIENT:		return ("AARDWOLF MUSHCLIENT");
+	case TELNET_TELOPT_MCCPX:		return ("MCCPX");
 	default:
 		break;
 	}

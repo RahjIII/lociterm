@@ -148,6 +148,7 @@ typedef struct telnet_telopt_t telnet_telopt_t;
 
 #define TELNET_TELOPT_MCCP2 86
 #define TELNET_TELOPT_MCCP3 87
+#define TELNET_TELOPT_MCCPX 88
 /*@}*/
 
 /*! \name Protocol codes for TERMINAL-TYPE commands. */
@@ -174,6 +175,14 @@ typedef struct telnet_telopt_t telnet_telopt_t;
 /*! MSSP codes. */
 #define TELNET_MSSP_VAR 1
 #define TELNET_MSSP_VAL 2
+/*@}*/
+
+/*! \name Protocol codes for TERMINAL-TYPE commands. */
+/*@{*/
+/*! TERMINAL-TYPE codes. */
+#define TELNET_MCCPX_ACCEPT_ENCODING 1
+#define TELNET_MCCPX_BEGIN_ENCODING 2
+#define TELNET_MCCPX_WONT 252
 /*@}*/
 
 /*! \name Telnet state tracker flags. */
@@ -222,6 +231,63 @@ enum telnet_event_type_t {
 	TELNET_EV_ERROR            /*!< non-recoverable error has occured */
 };
 typedef enum telnet_event_type_t telnet_event_type_t; /*!< Telnet event type. */
+
+enum stream_direction_t {
+	STREAM_SEND = 0,
+	STREAM_RECV = 1,
+	STREAM_MAX = 2
+};
+typedef enum stream_direction_t stream_direction_t;
+
+
+/* ---- MCCPX section BEGIN ---- */
+typedef struct mccpx_compression_t mccpx_compression_t;
+typedef struct mccpx_stream_t mccpx_stream_t;
+
+/* MCCPX encoding INIT */
+typedef telnet_error_t (mccpx_init_fn_t)(
+	telnet_t *telnet,
+	mccpx_stream_t *stream
+);
+
+/* MCCPX encoding SEND */
+typedef telnet_error_t (mccpx_send_fn_t)(
+	telnet_t *telnet,
+	mccpx_stream_t *stream,
+	const char *buffer,
+	size_t size
+);
+
+/* MCCPX encoding RECV */
+typedef telnet_error_t (mccpx_recv_fn_t)(
+	telnet_t *telnet,
+	mccpx_stream_t *stream,
+	const char *buffer,
+	size_t size
+);
+
+/* MCCPX encoding FREE */
+typedef void (mccpx_free_fn_t)(
+	telnet_t *telnet,
+	mccpx_stream_t *stream
+);
+
+struct mccpx_compression_t {
+	char *name;				/* IANA name for compression encoding. */
+	mccpx_init_fn_t *init;		/* init function. */
+	mccpx_send_fn_t *send;		/* deflate function. */
+	mccpx_recv_fn_t *recv;		/* inflate function. */
+	mccpx_free_fn_t *free;		/* free function. */
+};
+
+struct mccpx_stream_t {
+	mccpx_compression_t *enc;		/* pointer to compression definition */
+	stream_direction_t direction;	/* in case init or free needs to know. */
+	void *ctx;						/* pointer to compression context state */
+};
+typedef struct mccpx_stream_t mccpx_stream_t;
+
+/* ---- MCCPX section END ---- */
 
 /*! 
  * environ/MSSP command information 
@@ -687,6 +753,9 @@ extern void telnet_zmp_arg(telnet_t *telnet, const char *arg);
 /* JSJ LociTerm addtion to libtelnet!!! */
 extern int telnet_check_option(telnet_t *telnet, unsigned char telopt, int *us, int *them);
 int *telnet_option_list(telnet_t *telnet);
+
+extern void telnet_send_mccpx_accept(telnet_t *telnet, const char *encoding_list, size_t len);
+extern void telnet_send_mccpx_begin(telnet_t *telnet, const char *encoding, size_t len);
 
 /* C++ support */
 #if defined(__cplusplus)
