@@ -38,6 +38,10 @@
 # include <zlib.h>
 #endif
 
+#if defined(HAVE_ZSTD)
+# include <zstd.h>
+#endif
+
 #include "libtelnet.h"
 
 /* inlinable functions */
@@ -156,8 +160,26 @@ mccpx_compression_t mccpx_deflate = {
 };
 #endif
 
+#if defined(HAVE_ZSTD)
+/* "zstd" compression functions. */
+mccpx_init_fn_t mccpx_zstd_init;
+mccpx_send_fn_t mccpx_zstd_send;
+mccpx_recv_fn_t mccpx_zstd_recv;
+mccpx_free_fn_t mccpx_zstd_free;
+mccpx_compression_t mccpx_zstd = {
+	.name = "zstd",
+	.init = mccpx_zstd_init,
+	.send = mccpx_zstd_send,
+	.recv = mccpx_zstd_recv,
+	.free = mccpx_zstd_free
+};
+#endif
+
 /* MCCPX encodings in order of preference. */
 mccpx_compression_t *mccpx_encodings[] = {
+#if defined(HAVE_ZSTD)
+	&mccpx_zstd,
+#endif
 #if defined(HAVE_ZLIB)
 	&mccpx_deflate,
 #endif
@@ -1904,9 +1926,8 @@ telnet_error_t mccpx_deflate_send( telnet_t *telnet, mccpx_stream_t *stream, con
 		if ((rs = deflate(z, Z_SYNC_FLUSH)) != Z_OK) {
 			_error(telnet, __LINE__, __func__, TELNET_ECOMPRESS, 1,
 					"deflate() failed: %s", zError(rs));
-			deflateEnd(z);
-			free(z);
-			stream->ctx = NULL;
+
+			mccpx_end(telnet,stream->direction);
 			break;
 		}
 
@@ -1961,17 +1982,13 @@ telnet_error_t mccpx_deflate_recv( telnet_t *telnet, mccpx_stream_t *stream, con
 
 		/* on error (or on end of stream) disable further inflation */
 		if (rs != Z_OK) {
-			telnet_event_t ev;
-
+			if(rs == Z_STREAM_END) {
+				mccpx_inform_ev(telnet,STREAM_RECV,"Z_STREAM_END",0);
+			} else {
+				mccpx_inform_ev(telnet,STREAM_RECV,"STREAM ERROR",0);
+			}
 			/* disable compression */
-			inflateEnd(z);
-			free(z);
-			stream->ctx = 0;
-
-			/* send event */
-			ev.type = TELNET_EV_COMPRESS;
-			ev.compress.state = 0;
-			telnet->eh(telnet, &ev, telnet->ud);
+			mccpx_end(telnet,stream->direction);
 
 			break;
 		}
@@ -1997,6 +2014,188 @@ void mccpx_deflate_free(telnet_t *telnet, mccpx_stream_t *stream) {
 }
 /* -- MCCPX "deflate" encoding END.  */
 #endif /* defined(HAVE_ZLIB) */
+
+
+/* -- MCCPX "zstd" encoding BEGIN.  */
+#if defined(HAVE_ZSTD)
+/* MCCPX "zstd" init. */
+telnet_error_t mccpx_zstd_init(telnet_t *telnet, mccpx_stream_t *stream) {
+
+	int err_fatal = 1;
+
+	/* if MMCP123 compression is already enabled, fail loudly */
+	if (telnet->z != 0)
+		return _error(telnet, __LINE__, __func__, TELNET_EBADVAL,
+			err_fatal, "cannot initialize MCCPX while MCCP123 is active."
+		);
+
+	if(stream->ctx != NULL) 
+		return _error(telnet, __LINE__, __func__, TELNET_EBADVAL,
+			err_fatal, "cannot initialize MCCP4 twice."
+		);
+	
+	switch (stream->direction) {
+		case STREAM_SEND: {
+
+			ZSTD_CCtx* const ctx = ZSTD_createCCtx();
+			if(ctx == NULL) {
+				return _error(telnet, __LINE__, __func__, TELNET_ECOMPRESS,
+					err_fatal, "zstdInit() failed"
+				);
+			}
+			// Set zstd options here.
+			// ZSTD_CCtx_setParameter(cctx, ZSTD_c_compressionLevel, cLevel);
+			// ZSTD_CCtx_setParameter(cctx, ZSTD_c_checksumFlag, 1);
+			stream->ctx = ctx;
+			return TELNET_EOK;
+		}
+		case STREAM_RECV: {
+			ZSTD_DCtx* const ctx = ZSTD_createDCtx();
+			if(ctx == NULL) {
+				return _error(telnet, __LINE__, __func__, TELNET_ECOMPRESS,
+					err_fatal, "zstdInit() failed"
+				);
+			}
+			stream->ctx = ctx;
+			return TELNET_EOK;
+		}
+		default: {
+			return TELNET_EBADVAL;
+		}
+	}
+}
+
+/* MCCPX "zstd" send. */
+/* all zstd encoding does is send the data.*/
+telnet_error_t mccpx_zstd_send( telnet_t *telnet, mccpx_stream_t *stream, const char *buffer, size_t size) {
+
+	telnet_event_t ev;
+
+	ZSTD_CCtx* const cctx = stream->ctx;
+	size_t const buffOutSize = ZSTD_CStreamOutSize();
+	void*  const buffOut = malloc(buffOutSize);
+
+	//ZSTD_EndDirective const mode = ZSTD_e_end;
+	//ZSTD_EndDirective const mode = ZSTD_e_continue;
+	ZSTD_EndDirective const mode = ZSTD_e_flush;
+	ZSTD_inBuffer input = { buffer, size, 0 };
+	
+	int finished = 0;
+	
+	do {
+		ZSTD_outBuffer output = { buffOut, buffOutSize, 0 };
+		size_t const remaining = ZSTD_compressStream2(cctx, &output , &input, mode);
+		/* should be an error check here on remaining? */
+		if(ZSTD_isError(remaining)) {
+			_error(telnet, __LINE__, __func__, TELNET_ECOMPRESS, 1,
+				"%s",ZSTD_getErrorName(remaining)
+			);
+			free(buffOut);
+			/* on error */
+			mccpx_end(telnet,stream->direction);
+			return TELNET_ECOMPRESS;
+		}
+		
+		if(output.pos > 0) {
+			/* write out the data  */
+			ev.type = TELNET_EV_SEND;
+			ev.data.buffer = buffOut;
+			ev.data.size = output.pos;
+			telnet->eh(telnet, &ev, telnet->ud);
+		}
+		finished = (input.pos == input.size);
+	} while (!finished);
+
+	if(input.pos != input.size) {
+		_error(telnet, __LINE__, __func__, TELNET_ECOMPRESS, 1,
+			"zstd failed impossible"
+		);
+		free(buffOut);
+		/* on error */
+		mccpx_end(telnet,stream->direction);
+		return TELNET_ECOMPRESS;
+	}
+
+	free(buffOut);
+
+	return TELNET_EOK;
+}
+
+/* MCCPX "zstd" recv. */
+/* all zstd encoding does is route the raw data to _process .*/
+telnet_error_t mccpx_zstd_recv( telnet_t *telnet, mccpx_stream_t *stream, const char *buffer, size_t size) {
+
+	telnet_event_t ev;
+
+	if(size == 0) {
+		return TELNET_EOK;
+	}
+
+	ZSTD_DCtx* const dctx = stream->ctx;
+
+	size_t const buffOutSize = ZSTD_DStreamOutSize();
+	void*  const buffOut = malloc(buffOutSize);
+
+	size_t const toRead = size;
+	size_t lastRet = 0;
+
+	ZSTD_inBuffer input = { buffer, size, 0 };
+
+	while (input.pos < input.size) {
+
+		ZSTD_outBuffer output = { buffOut, buffOutSize, 0 };
+
+		size_t const ret = ZSTD_decompressStream(dctx, &output , &input);
+		
+		/* error check here? */
+		if(ZSTD_isError(ret)) {
+			_error(telnet, __LINE__, __func__, TELNET_ECOMPRESS, 1,
+				"%s",ZSTD_getErrorName(ret)
+			);
+			free(buffOut);
+			/* on error */
+			mccpx_end(telnet,stream->direction);
+			return TELNET_ECOMPRESS;
+		}
+
+		/* write out the data  */
+		if(output.pos != 0) {
+			_process(telnet, buffOut,output.pos);
+		}
+		lastRet = ret;
+	}
+
+	free(buffOut);
+
+	if(lastRet == 0) {
+		mccpx_end(telnet,stream->direction);
+		return TELNET_ECOMPRESS;
+	}
+
+	return TELNET_EOK;
+}
+
+/* MCCPX "zstd" free. */
+void mccpx_zstd_free(telnet_t *telnet, mccpx_stream_t *stream) {
+
+	if(stream->ctx == NULL) return;
+
+	switch (stream->direction) {
+		case STREAM_SEND: {
+			ZSTD_freeCCtx(stream->ctx);
+			break;
+		}
+		case STREAM_RECV: {
+			ZSTD_freeDCtx(stream->ctx);
+			break;
+		}
+		default:
+			break;
+	}
+	stream->ctx = NULL;
+}
+#endif /* defined(HAVE_ZLIB) */
+/* -- MCCPX "zstd" encoding END.  */
 
 /* Get ascii list of supported mccpx compression encodings.  Caller must free
  * the returned string! */
@@ -2037,6 +2236,46 @@ void telnet_send_mccpx_begin(telnet_t *telnet, const char *encoding, size_t len)
 }
 
 
+/* inform userland about an MCCPX state change. */
+void mccpx_inform_ev(telnet_t *telnet, stream_direction_t dir,const char *msg, int state) {
+	telnet_event_t ev;
+
+	ev.type = TELNET_EV_MCCPX;
+	ev.mccpx.direction = dir;
+	ev.mccpx.offered = (telnet->mccpx[dir].offered)?telnet->mccpx[dir].offered:"(none selected)";
+	ev.mccpx.inuse = (telnet->mccpx[dir].enc)?telnet->mccpx[dir].enc->name:"(none)";
+	ev.mccpx.msg = msg;
+	ev.mccpx.state = state;
+	telnet->eh(telnet, &ev, telnet->ud);
+}
+
+void mccpx_end(telnet_t *telnet,stream_direction_t dir) {
+
+	switch (dir) {
+		case STREAM_SEND: {
+			/* handling possibly not right, as 'spec' says use dont?  Which
+			 * cant be right, its gotta be WONT. */
+			telnet_negotiate(telnet, TELNET_WONT, TELNET_TELOPT_MCCPX);
+			if(telnet->mccpx[dir].enc) {
+				(telnet->mccpx[dir].enc->free)(telnet,&(telnet->mccpx[dir]));
+			}
+			break;
+		}
+		case STREAM_RECV: {
+			/* ok shut it down first */
+			if(telnet->mccpx[dir].enc) {
+				(telnet->mccpx[dir].enc->free)(telnet,&(telnet->mccpx[dir]));
+			}
+			/* is this right? */
+			telnet_negotiate(telnet, TELNET_DONT, TELNET_TELOPT_MCCPX);
+			break;
+		}
+		default:
+			break;
+	}
+	telnet->mccpx[dir].enc = NULL;
+
+}
 
 /* process an MCCPX subnegotiation buffer recieved from the other side*/
 static int _mccpx_telnet(telnet_t *telnet, char* buffer, size_t size) {
@@ -2075,21 +2314,28 @@ static int _mccpx_telnet(telnet_t *telnet, char* buffer, size_t size) {
 				if(encoding) break;
 				consider=next;
 			}
-			free(accepts);
+
+			mccpx_stream_t *stream = &(telnet->mccpx[STREAM_SEND]);
+			if(stream->offered) free(stream->offered);
+			stream->offered = accepts;
 
 			if( encoding != NULL ) {
 				/* an acceptable one was chosen, lets do this. */
 				/* send the begin message before enabling compression */
 				telnet_send_mccpx_begin(telnet,encoding->name,strlen(encoding->name));
 				/* set up the STREAM_SEND compression */
-				mccpx_stream_t *stream = &(telnet->mccpx[STREAM_SEND]);
 				stream->enc = encoding;
 				stream->direction = STREAM_SEND;
 				/* and call init to enable it. */
 				(encoding->init)(telnet,stream);
+
+				/* send event to inform userland what was chosen */
+				mccpx_inform_ev(telnet,STREAM_SEND,"Encoding selected",1);
+
 				return(1);  /* BEGIN ENCODING */
 			} else {
 				/* Ooops, nothing is acceptable. */
+				mccpx_inform_ev(telnet,STREAM_SEND,"No compatible encodings offered.",0);
 				/* handling possibly not right, as 'spec' says use dont?  Which
 				 * cant be right, its gotta be WONT. */
 				telnet_negotiate(telnet, TELNET_WONT, TELNET_TELOPT_MCCPX);
@@ -2112,6 +2358,7 @@ static int _mccpx_telnet(telnet_t *telnet, char* buffer, size_t size) {
 					break;
 				}
 			}
+			free(request);
 			if(encoding) {
 				/* Set up the STREAM_RECV compression */
 				mccpx_stream_t *stream = &(telnet->mccpx[STREAM_RECV]);
@@ -2119,9 +2366,14 @@ static int _mccpx_telnet(telnet_t *telnet, char* buffer, size_t size) {
 				stream->direction = STREAM_RECV;
 				/* and call init to enable it. */
 				(encoding->init)(telnet,stream);
+				
+				/* send event to inform userland what was chosen */
+				mccpx_inform_ev(telnet,STREAM_RECV,"Encoding Selected",1);
+
 				return(1);  /* BEGIN ENCODING */
 			} else {
 				/* not sure what to do here, its an error path not on the flowchart. */
+				mccpx_inform_ev(telnet,STREAM_RECV,"Peer demanded an unsupported encoding.",0);
 				telnet_negotiate(telnet, TELNET_DONT, TELNET_TELOPT_MCCPX);
 			}
 			break;

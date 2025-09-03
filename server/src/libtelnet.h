@@ -228,6 +228,7 @@ enum telnet_event_type_t {
 	TELNET_EV_ENVIRON,         /*!< ENVIRON command has been received */
 	TELNET_EV_MSSP,            /*!< MSSP command has been received */
 	TELNET_EV_WARNING,         /*!< recoverable error has occured */
+	TELNET_EV_MCCPX,           /*!< MCCPX suboption command occured */
 	TELNET_EV_ERROR            /*!< non-recoverable error has occured */
 };
 typedef enum telnet_event_type_t telnet_event_type_t; /*!< Telnet event type. */
@@ -252,25 +253,17 @@ typedef telnet_error_t (mccpx_init_fn_t)(
 
 /* MCCPX encoding SEND */
 typedef telnet_error_t (mccpx_send_fn_t)(
-	telnet_t *telnet,
-	mccpx_stream_t *stream,
-	const char *buffer,
-	size_t size
+	telnet_t *telnet, mccpx_stream_t *stream, const char *buffer, size_t size
 );
 
 /* MCCPX encoding RECV */
 typedef telnet_error_t (mccpx_recv_fn_t)(
-	telnet_t *telnet,
-	mccpx_stream_t *stream,
-	const char *buffer,
-	size_t size
+	telnet_t *telnet, mccpx_stream_t *stream, const char *buffer, size_t size
 );
 
 /* MCCPX encoding FREE */
 typedef void (mccpx_free_fn_t)(
-	telnet_t *telnet,
-	mccpx_stream_t *stream
-);
+	telnet_t *telnet, mccpx_stream_t *stream);
 
 struct mccpx_compression_t {
 	char *name;				/* IANA name for compression encoding. */
@@ -283,9 +276,13 @@ struct mccpx_compression_t {
 struct mccpx_stream_t {
 	mccpx_compression_t *enc;		/* pointer to compression definition */
 	stream_direction_t direction;	/* in case init or free needs to know. */
+	const char *offered;			/* list of acceptable encodings */
 	void *ctx;						/* pointer to compression context state */
 };
 typedef struct mccpx_stream_t mccpx_stream_t;
+
+void mccpx_end(telnet_t *telnet,stream_direction_t dir);
+void mccpx_inform_ev(telnet_t *telnet, stream_direction_t dir,const char *name, int state);
 
 /* ---- MCCPX section END ---- */
 
@@ -404,6 +401,19 @@ union telnet_event_t {
 		const struct telnet_environ_t *values; /*!< array of variable values */
 		size_t size;                           /*!< number of elements in values */
 	} mssp; /*!< MSSP */
+
+	/*!
+	 * MCCPX event
+	 */
+	struct mccpx_t {
+		enum telnet_event_type_t _type; /*!< alias for type */
+		stream_direction_t direction;   /*!< which direction are we talking about? */
+		const char *offered;            /*!< list of encodings offered */
+		const char *inuse;              /*!< list of encodings offered */
+		const char *msg;                /*!< verbose message */
+		int state;                      /*!< 1 if enabled, 0 if disabled */
+	} mccpx; /*!< MCCPX */
+
 };
 
 /*! 

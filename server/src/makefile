@@ -64,11 +64,12 @@ endif
 
 # #### Flags and linklibs definitions ####
 
-CFLAGS = -I/usr/local/include -Wall -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable -DHAVE_ZLIB
+CFLAGS = -I/usr/local/include -Wall -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable -DHAVE_ZLIB -DHAVE_ZSTD
 CFLAGS += `pkg-config --cflags glib-2.0`
 CFLAGS += `pkg-config --cflags libwebsockets`
 CFLAGS += `pkg-config --cflags json-c`
 CFLAGS += `pkg-config --cflags sqlite3`
+CFLAGS += `pkg-config --cflags libzstd`
 
 
 
@@ -79,6 +80,7 @@ LINKLIBS += `pkg-config --libs glib-2.0`
 LINKLIBS += `pkg-config --libs json-c`
 LINKLIBS += `pkg-config --libs sqlite3`
 LINKLIBS += `pkg-config --libs libuv`
+LINKLIBS += `pkg-config --libs libzstd`
 
 # #### ############################################# ###
 # ####         Makefile magic begins here.           ###

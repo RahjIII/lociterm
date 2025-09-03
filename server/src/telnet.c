@@ -401,8 +401,8 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		case TELNET_TELOPT_MCCPX: {
 			security_checked(pc,CHECK_MUD);
 			/* send acceptable compression algos */
-			// char accept_encodings[]="none,x-testing";
-			// telnet_send_mccpx_accept(telnet,accept_encodings,strlen(accept_encodings));
+			//char accept_encodings[]="nope,x-testing,blah";
+			//telnet_send_mccpx_accept(telnet,accept_encodings,strlen(accept_encodings));
 			telnet_send_mccpx_accept(telnet,NULL,0);
 	
 			/* seeing server side availability, offer to get the client side
@@ -410,7 +410,7 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 			 * because at time of writing, lociterm client telnet is completely
 			 * passive, it only offers to do protocols that the server has
 			 * offered up first.) */
-			telnet_negotiate(telnet, TELNET_WILL, TELNET_TELOPT_MCCPX);
+			//telnet_negotiate(telnet, TELNET_WILL, TELNET_TELOPT_MCCPX);
 			break;
 		}
 		default: 
@@ -433,6 +433,11 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		case TELNET_TELOPT_EOR:
 			loci_client_send_gaeor(pc,NULL);
 			break;
+		case TELNET_TELOPT_MCCPX: {
+			mccpx_inform_ev(telnet,STREAM_RECV,"Got a WONT",0);
+			mccpx_end(telnet,STREAM_RECV);
+			break;
+		}
 		default: 
 			break;
 		}
@@ -469,6 +474,11 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		case TELNET_TELOPT_SGA:
 			loci_client_send_echosga(pc);
 			break;
+		case TELNET_TELOPT_MCCPX: {
+			mccpx_inform_ev(telnet,STREAM_RECV,"Got a DONT",0);
+			mccpx_end(telnet,STREAM_SEND);
+			break;
+		}
 		default:
 			break;
 		}
@@ -526,6 +536,22 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		locid_debug(DEBUG_TELNET,pc,"MCCP[123] Compression %s.",
 			event->compress.state?"Enabled":"Disabled"
 		);
+		break;
+	}
+	case TELNET_EV_MCCPX: {
+		if(event->mccpx.state == 0) {
+			locid_debug(DEBUG_TELNET,pc,"MCCPX %s '%s' disabled (%s).",
+				(event->mccpx.direction == STREAM_SEND)?"Send":"Recv",
+				(event->mccpx.inuse),
+				(event->mccpx.msg)
+			);
+		} else {
+			locid_debug(DEBUG_TELNET,pc,"MCCPX %s '%s' enabled (%s).",
+				(event->mccpx.direction == STREAM_SEND)?"Send":"Recv",
+				(event->mccpx.inuse),
+				(event->mccpx.msg)
+			);
+		}
 		break;
 	}
 	default:
