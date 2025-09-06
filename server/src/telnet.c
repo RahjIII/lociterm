@@ -401,9 +401,11 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		case TELNET_TELOPT_MCCPX: {
 			security_checked(pc,CHECK_MUD);
 			/* send acceptable compression algos */
-			//char accept_encodings[]="nope,x-testing,blah";
-			//telnet_send_mccpx_accept(telnet,accept_encodings,strlen(accept_encodings));
-			telnet_send_mccpx_accept(telnet,NULL,0);
+			char accept_encodings[]="x-testing";
+			telnet_send_mccpx_accept(telnet,accept_encodings,strlen(accept_encodings));
+			locid_debug(DEBUG_TELNET,pc,"MCCPX will accept encodings: '%s'",accept_encodings);
+			//telnet_send_mccpx_accept(telnet,NULL,0);
+			//locid_debug(DEBUG_TELNET,pc,"MCCPX will accept libtelnet default encodings.",accept_encodings);
 	
 			/* seeing server side availability, offer to get the client side
 			 * compressing too, i.e. bidirectional compression.  (This is
@@ -434,7 +436,7 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 			loci_client_send_gaeor(pc,NULL);
 			break;
 		case TELNET_TELOPT_MCCPX: {
-			mccpx_inform_ev(telnet,STREAM_RECV,"Got a WONT",0);
+			mccpx_inform_ev(telnet,STREAM_RECV,TELNET_EOK,"Got a WONT");
 			mccpx_end(telnet,STREAM_RECV);
 			break;
 		}
@@ -475,7 +477,7 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 			loci_client_send_echosga(pc);
 			break;
 		case TELNET_TELOPT_MCCPX: {
-			mccpx_inform_ev(telnet,STREAM_RECV,"Got a DONT",0);
+			mccpx_inform_ev(telnet,STREAM_RECV,TELNET_EOK,"Got a DONT");
 			mccpx_end(telnet,STREAM_SEND);
 			break;
 		}
@@ -539,19 +541,22 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		break;
 	}
 	case TELNET_EV_MCCPX: {
-		if(event->mccpx.state == 0) {
-			locid_debug(DEBUG_TELNET,pc,"MCCPX %s '%s' disabled (%s).",
-				(event->mccpx.direction == STREAM_SEND)?"Send":"Recv",
-				(event->mccpx.inuse),
-				(event->mccpx.msg)
+		if(event->mccpx.status == TELNET_EPROTOCOL) {
+			locid_debug(DEBUG_TELNET,pc,"MCCPX %s peer only supports '%s'",
+				(event->mccpx.direction == STREAM_SEND)?"SEND":"RECV",
+				(event->mccpx.offered)
 			);
-		} else {
-			locid_debug(DEBUG_TELNET,pc,"MCCPX %s '%s' enabled (%s).",
-				(event->mccpx.direction == STREAM_SEND)?"Send":"Recv",
-				(event->mccpx.inuse),
-				(event->mccpx.msg)
-			);
+			/* I could try to start mccp2 here if I wanted. */
+			if(event->mccpx.direction == STREAM_SEND) {
+				telnet_negotiate(telnet, TELNET_WILL, TELNET_TELOPT_MCCP2);
+			}
 		}
+		locid_debug(DEBUG_TELNET,pc,"MCCPX %s '%s' code=%d: %s",
+			(event->mccpx.direction == STREAM_SEND)?"SEND":"RECV",
+			(event->mccpx.inuse),
+			(event->mccpx.status),
+			(event->mccpx.msg)
+		);
 		break;
 	}
 	default:
