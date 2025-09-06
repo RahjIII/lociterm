@@ -78,7 +78,7 @@ const telnet_telopt_t supported_telopts[] = {
 	{ TELNET_TELOPT_TTYPE,		TELNET_WILL,	TELNET_DONT },
 	{ TELNET_TELOPT_EOR,		TELNET_WILL,	TELNET_DO },
 	{ TELNET_TELOPT_MCCPX,		TELNET_WILL,	TELNET_DO },
-	//{ TELNET_TELOPT_MCCP2,		TELNET_WONT,	TELNET_DO },
+	{ TELNET_TELOPT_MCCP2,		TELNET_WONT,	TELNET_DO },
 	{ TELNET_TELOPT_NEW_ENVIRON,TELNET_WILL,	TELNET_DO },
 	{ TELNET_TELOPT_NAWS,		TELNET_WILL,	TELNET_DONT },
 	{ TELNET_TELOPT_GMCP,		TELNET_WONT,	TELNET_DO },
@@ -94,7 +94,7 @@ const telnet_telopt_t nomssp_telopts[] = {
 	{ TELNET_TELOPT_TTYPE,		TELNET_WILL,	TELNET_DONT },
 	{ TELNET_TELOPT_EOR,		TELNET_WILL,	TELNET_DO },
 	{ TELNET_TELOPT_MCCPX,		TELNET_WILL,	TELNET_DO },
-	//{ TELNET_TELOPT_MCCP2,		TELNET_WONT,	TELNET_DO },
+	{ TELNET_TELOPT_MCCP2,		TELNET_WONT,	TELNET_DO },
 	{ TELNET_TELOPT_NEW_ENVIRON,TELNET_WILL,	TELNET_DO },
 	{ TELNET_TELOPT_NAWS,		TELNET_WILL,	TELNET_DONT },
 	{ TELNET_TELOPT_GMCP,		TELNET_WONT,	TELNET_DO },
@@ -401,18 +401,18 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		case TELNET_TELOPT_MCCPX: {
 			security_checked(pc,CHECK_MUD);
 			/* send acceptable compression algos */
-			char accept_encodings[]="x-testing";
-			telnet_send_mccpx_accept(telnet,accept_encodings,strlen(accept_encodings));
-			locid_debug(DEBUG_TELNET,pc,"MCCPX will accept encodings: '%s'",accept_encodings);
-			//telnet_send_mccpx_accept(telnet,NULL,0);
-			//locid_debug(DEBUG_TELNET,pc,"MCCPX will accept libtelnet default encodings.",accept_encodings);
+			// char accept_encodings[]="x-testing";
+			// telnet_send_mccpx_accept(telnet,accept_encodings,strlen(accept_encodings));
+			// locid_debug(DEBUG_TELNET,pc,"MCCPX will accept encodings: '%s'",accept_encodings);
+			telnet_send_mccpx_accept(telnet,NULL,0);
+			locid_debug(DEBUG_TELNET,pc,"MCCPX will accept libtelnet default encodings.");
 	
 			/* seeing server side availability, offer to get the client side
 			 * compressing too, i.e. bidirectional compression.  (This is
 			 * because at time of writing, lociterm client telnet is completely
 			 * passive, it only offers to do protocols that the server has
 			 * offered up first.) */
-			//telnet_negotiate(telnet, TELNET_WILL, TELNET_TELOPT_MCCPX);
+			telnet_negotiate(telnet, TELNET_WILL, TELNET_TELOPT_MCCPX);
 			break;
 		}
 		default: 

@@ -248,6 +248,29 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 		char buf[1024];
 		iostat_printhuman(buf,sizeof(buf),pc->game->ios);
 		locid_info(pc,"game closed: %s",buf);
+
+		/* log compression ratios */
+		if(pc->game->game_telnet) {
+			mccpx_stream_t *st = telnet_mccpx_getstream(pc->game->game_telnet,STREAM_SEND);
+			if(st->out > 0) {
+				locid_debug(DEBUG_TELNET,pc,"Compression ratio: %ld in, %ld out, %3.2f:1",
+					st->in,
+					st->out,
+					(double)st->in/(double)st->out
+				);
+			}
+		}
+		if(pc->game->game_telnet) {
+			mccpx_stream_t *st = telnet_mccpx_getstream(pc->game->game_telnet,STREAM_RECV);
+			if(st->in > 0) {
+				locid_debug(DEBUG_TELNET,pc,"Decompression ratio: %ld in, %ld out, %3.2f:1",
+					st->in,
+					st->out,
+					(double)st->out/st->in
+				);
+			}
+		}
+
 		/*
 		 * Clean up any pending messages to us that are never going
 		 * to get delivered now, we are in the middle of closing

@@ -266,7 +266,7 @@ typedef void (mccpx_free_fn_t)(
 	telnet_t *telnet, mccpx_stream_t *stream);
 
 struct mccpx_compression_t {
-	char *name;				/* IANA name for compression encoding. */
+	char *name;					/* IANA name for compression encoding. */
 	mccpx_init_fn_t *init;		/* init function. */
 	mccpx_send_fn_t *send;		/* deflate function. */
 	mccpx_recv_fn_t *recv;		/* inflate function. */
@@ -277,14 +277,20 @@ struct mccpx_stream_t {
 	mccpx_compression_t *enc;		/* pointer to compression definition */
 	stream_direction_t direction;	/* in case init or free needs to know. */
 	const char *offered;			/* list of acceptable encodings */
-	long int in;
-	long int out;
+	long int in;					/* bytes input */
+	long int out;					/* bytes output */
 	void *ctx;						/* pointer to compression context state */
 };
 typedef struct mccpx_stream_t mccpx_stream_t;
 
+/* public declarations */
 void mccpx_end(telnet_t *telnet,stream_direction_t dir);
 void mccpx_inform_ev(telnet_t *telnet, stream_direction_t dir, telnet_error_t status, const char *msg);
+extern void telnet_send_mccpx_accept(telnet_t *telnet, const char *encoding_list, size_t len);
+extern void telnet_send_mccpx_begin(telnet_t *telnet, const char *encoding, size_t len);
+/* telnet is a private struct, which is kind of a pita.  This lets userland
+ * access a compression stream directly.*/
+mccpx_stream_t *telnet_mccpx_getstream(telnet_t *telnet, stream_direction_t dir);
 
 /* ---- MCCPX section END ---- */
 
@@ -766,9 +772,6 @@ extern void telnet_zmp_arg(telnet_t *telnet, const char *arg);
 /* JSJ LociTerm addtion to libtelnet!!! */
 extern int telnet_check_option(telnet_t *telnet, unsigned char telopt, int *us, int *them);
 int *telnet_option_list(telnet_t *telnet);
-
-extern void telnet_send_mccpx_accept(telnet_t *telnet, const char *encoding_list, size_t len);
-extern void telnet_send_mccpx_begin(telnet_t *telnet, const char *encoding, size_t len);
 
 /* C++ support */
 #if defined(__cplusplus)
