@@ -177,6 +177,27 @@ int iostat_printhuman(char *buf, size_t len, struct iostat_data *ios) {
 
 }
 
+int iostat_printratio(char *buf, size_t len, long int a, long int b) {
+	
+	char *s = buf;
+	char *eos = buf+len;
+
+	s += iostat_unitval(s,eos-s,a);
+	s += g_snprintf(s,eos-s,"B / ");
+	s += iostat_unitval(s,eos-s,b);
+	s += g_snprintf(s,eos-s,"B, is ");
+	if(b!=0) { 
+		s += g_snprintf(s,eos-s,"%3.2f:1",
+			(double)a/(double)b
+		);
+	} else {
+		s += g_snprintf(s,eos-s,"1:0");
+	}
+
+	return(s-buf);
+
+}
+
 int iostat_printhrate(char *buf, size_t len, struct iostat_data *ios) {
 	
 	char *s = buf;

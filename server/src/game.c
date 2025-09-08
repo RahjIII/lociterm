@@ -253,20 +253,21 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 		if(pc->game->game_telnet) {
 			mccpx_stream_t *st = telnet_mccpx_getstream(pc->game->game_telnet,STREAM_SEND);
 			if(st->out > 0) {
-				locid_debug(DEBUG_TELNET,pc,"Compression ratio: %ld in, %ld out, %3.2f:1",
-					st->in,
-					st->out,
-					(double)st->in/(double)st->out
+				iostat_printratio(buf,sizeof(buf),st->in,st->out);
+				locid_info(pc,"Compression ratio %s: %s",
+					(st->requested)?st->requested:"",
+					buf
 				);
 			}
 		}
+
 		if(pc->game->game_telnet) {
 			mccpx_stream_t *st = telnet_mccpx_getstream(pc->game->game_telnet,STREAM_RECV);
 			if(st->in > 0) {
-				locid_debug(DEBUG_TELNET,pc,"Decompression ratio: %ld in, %ld out, %3.2f:1",
-					st->in,
-					st->out,
-					(double)st->out/st->in
+				iostat_printratio(buf,sizeof(buf),st->out,st->in);
+				locid_info(pc,"Decompression ratio %s: %s",
+					(st->requested)?st->requested:"",
+					buf
 				);
 			}
 		}

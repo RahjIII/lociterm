@@ -33,5 +33,6 @@ int iostat_printraw(char *buf, size_t len, struct iostat_data *ios);
 int iostat_printhuman(char *buf, size_t len, struct iostat_data *ios);
 int iostat_printhrate(char *buf, size_t len, struct iostat_data *ios);
 void iostat_checkpoint(struct iostat_data *ios,double weight);
+int iostat_printratio(char *buf, size_t len, long int a, long int b);
 
 #endif /* LO_IOSTATS_H */

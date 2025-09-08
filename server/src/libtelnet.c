@@ -812,6 +812,8 @@ static int _subnegotiate(telnet_t *telnet) {
 		mccpx_compression_t *encoding = &mccpx_deflate;
 		stream->enc = encoding;
 		stream->direction = STREAM_RECV;
+		if(stream->requested) free(stream->requested);
+		stream->requested = strdup(encoding->name);
 		stream->in = stream->out = 0;
 		/* and call init to enable it. */
 		if ((encoding->init)(telnet,stream) != TELNET_EOK ) {
@@ -889,6 +891,9 @@ void telnet_free(telnet_t *telnet) {
 			return;
 		}
 		if(stream->offered) free(stream->offered);
+		stream->offered = NULL;
+		if(stream->requested) free(stream->requested);
+		stream->requested = NULL;
 	}
 
 	/* free RFC1143 queue */
@@ -1371,6 +1376,8 @@ void telnet_subnegotiation(telnet_t *telnet, unsigned char telopt,
 		mccpx_compression_t *encoding = &mccpx_deflate;
 		stream->enc = encoding;
 		stream->direction = STREAM_SEND;
+		if(stream->requested) free(stream->requested);
+		stream->requested = strdup(encoding->name);
 		stream->in = stream->out = 0;
 		/* and call init to enable it. */
 		if ((encoding->init)(telnet,stream) != TELNET_EOK ) {
@@ -1397,6 +1404,8 @@ void telnet_begin_compress2(telnet_t *telnet) {
 	mccpx_compression_t *encoding = &mccpx_deflate;
 	stream->enc = encoding;
 	stream->direction = STREAM_SEND;
+	if(stream->requested) free(stream->requested);
+	stream->requested = strdup(encoding->name);
 	stream->in = stream->out = 0;
 	/* and call init to enable it. */
 	if ((encoding->init)(telnet,stream) != TELNET_EOK ) {
@@ -1700,10 +1709,11 @@ void mccpx_inform_ev(telnet_t *telnet, stream_direction_t dir, telnet_error_t st
 	telnet_event_t ev;
 
 	ev.type = TELNET_EV_MCCPX;
+	ev.mccpx.inuse = (telnet->mccpx[dir].enc)?telnet->mccpx[dir].enc->name:NULL;
 	ev.mccpx.direction = dir;
 	ev.mccpx.status = status;
-	ev.mccpx.offered = (telnet->mccpx[dir].offered)?telnet->mccpx[dir].offered:"(none selected)";
-	ev.mccpx.inuse = (telnet->mccpx[dir].enc)?telnet->mccpx[dir].enc->name:"(none)";
+	ev.mccpx.offered = (telnet->mccpx[dir].offered)?telnet->mccpx[dir].offered:"(nothing selected)";
+	ev.mccpx.requested = (telnet->mccpx[dir].requested)?telnet->mccpx[dir].requested:"(nothing requested)";
 	ev.mccpx.msg = msg;
 	telnet->eh(telnet, &ev, telnet->ud);
 }
@@ -1811,9 +1821,13 @@ static int _mccpx_telnet(telnet_t *telnet, char* buffer, size_t size) {
 				/* an acceptable one was chosen, lets do this. */
 				/* send the begin message before enabling compression */
 				telnet_send_mccpx_begin(telnet,encoding->name,strlen(encoding->name));
+				if(stream->requested) free(stream->requested);
+				stream->requested = strdup(encoding->name);
 				/* set up the STREAM_SEND compression */
 				stream->enc = encoding;
 				stream->direction = STREAM_SEND;
+				if(stream->requested) free(stream->requested);
+				stream->requested = strdup(encoding->name);
 				stream->in = stream->out = 0;
 				/* and call init to enable it. */
 				(encoding->init)(telnet,stream);
@@ -1851,6 +1865,8 @@ static int _mccpx_telnet(telnet_t *telnet, char* buffer, size_t size) {
 				mccpx_stream_t *stream = &(telnet->mccpx[STREAM_RECV]);
 				stream->enc = encoding;
 				stream->direction = STREAM_RECV;
+				if(stream->requested) free(stream->requested);
+				stream->requested = strdup(encoding->name);
 				stream->in = stream->out = 0;
 				/* and call init to enable it. */
 				(encoding->init)(telnet,stream); 

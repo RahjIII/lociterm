@@ -277,6 +277,7 @@ struct mccpx_stream_t {
 	mccpx_compression_t *enc;		/* pointer to compression definition */
 	stream_direction_t direction;	/* in case init or free needs to know. */
 	const char *offered;			/* list of acceptable encodings */
+	const char *requested;			/* the requested encoding */
 	long int in;					/* bytes input */
 	long int out;					/* bytes output */
 	void *ctx;						/* pointer to compression context state */
@@ -418,7 +419,8 @@ union telnet_event_t {
 		stream_direction_t direction;   /*!< which direction are we talking about? */
 		unsigned char telopt;			/*!< which mccpx option are we talking about? */
 		const char *offered;            /*!< list of encodings offered */
-		const char *inuse;              /*!< list of encodings offered */
+		const char *requested;          /*!< last encoding requested */
+		const char *inuse;              /*!< name of encoding in use */
 		const char *msg;                /*!< verbose message */
 		telnet_error_t status;			/*!< TELNET_EOK, or TELNET_EPROTOCOL if no compatible compression types are found. */
 	} mccpx; /*!< MCCPX */
