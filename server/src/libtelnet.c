@@ -4,6 +4,9 @@
  * Sean Middleditch
  * sean@sourcemud.org
  *
+ * MCCPX addtions by Jeff Jahr
+ * <rahjiii@jeffrika.com>
+ *
  * The author or authors of this code dedicate any and all copyright interest
  * in this code to the public domain. We make this dedication for the benefit
  * of the public at large and to the detriment of our heirs and successors. We
@@ -36,10 +39,6 @@
 
 #if defined(HAVE_ZLIB)
 # include <zlib.h>
-#endif
-
-#if defined(HAVE_ZSTD)
-# include <zstd.h>
 #endif
 
 #include "libtelnet.h"
@@ -86,6 +85,7 @@ struct telnet_t {
 #if defined(HAVE_ZLIB)
 	z_stream *z; 					/* zlib (mccp2) compression */
 #endif
+	int compression;	/* telopt of the compression method in use */
 	mccpx_stream_t mccpx[STREAM_MAX];	/* MCCPX flows */
 	struct telnet_rfc1143_t *q;		/* RFC1143 option negotiation states */
 	char *buffer;					/* sub-request buffer */
@@ -176,9 +176,10 @@ telnet_error_t _init_zlib(telnet_t *telnet, int deflate, int err_fatal) {
 	int rs;
 
 	/* if compression is already enabled, fail loudly */
-	if (telnet->z != 0)
+	if ( (telnet->z != 0) )
 		return _error(telnet, __LINE__, __func__, TELNET_EBADVAL,
 				err_fatal, "cannot initialize compression twice");
+
 
 	/* allocate zstream box */
 	if ((z= (z_stream *)calloc(1, sizeof(z_stream))) == 0)
@@ -285,12 +286,33 @@ static INLINE int _check_telopt(telnet_t *telnet, unsigned char telopt,
 	/* loop until found or end marker (us and him both 0) */
 	for (i = 0; telnet->telopts[i].telopt != -1; ++i) {
 		if (telnet->telopts[i].telopt == telopt) {
-			if (us && telnet->telopts[i].us == TELNET_WILL)
+			if (us && telnet->telopts[i].us == TELNET_WILL) {
 				return 1;
-			else if (!us && telnet->telopts[i].him == TELNET_DO)
+			} else if (!us && telnet->telopts[i].him == TELNET_DO) {
+				switch (telopt) {
+					case TELNET_TELOPT_COMPRESS:
+					case TELNET_TELOPT_MCCP2:
+					case TELNET_TELOPT_MCCP3:
+					case TELNET_TELOPT_MCCPX:
+						/* whichever one of these is offered by the peer first
+						 * (by a WILL) passes the check. Latecomer do not. */
+						if( (telnet->compression != 0)) {
+							if(telnet->compression != telopt) {
+								return(0);
+							} else {
+								return(1);
+							}
+						} else {
+							telnet->compression = telopt;
+						}
+						break;
+					default:
+						break;
+				}
 				return 1;
-			else
+			} else {
 				return 0;
+			}
 		}
 	}
 
@@ -917,7 +939,9 @@ telnet_t *telnet_init(const telnet_telopt_t *telopts,
 	telnet->telopts = telopts;
 	telnet->eh = eh;
 	telnet->flags = flags;
+	telnet->compression = 0;
 
+	// telnet->mccpx[STREAM_SEND].enc = NULL;
 	telnet->mccpx[STREAM_SEND].enc = NULL;
 	telnet->mccpx[STREAM_RECV].enc = NULL;
 
@@ -943,6 +967,7 @@ void telnet_free(telnet_t *telnet) {
 			inflateEnd(telnet->z);
 		free(telnet->z);
 		telnet->z = 0;
+		telnet->compression = 0;
 	}
 #endif /* defined(HAVE_ZLIB) */
 
@@ -1265,6 +1290,7 @@ void telnet_recv(telnet_t *telnet, const char *buffer,
 				inflateEnd(telnet->z);
 				free(telnet->z);
 				telnet->z = 0;
+				telnet->compression = 0;
 
 				/* send event */
 				ev.type = TELNET_EV_COMPRESS;
@@ -1866,6 +1892,15 @@ static int _mccpx_telnet(telnet_t *telnet, char* buffer, size_t size) {
 		_error(telnet, __LINE__, __func__, TELNET_EPROTOCOL, 0,
 				"incomplete MCCPX request");
 		return 0;
+	}
+
+	if( (telnet->compression != 0) && 
+		(telnet->compression != TELNET_TELOPT_MCCPX) 
+	) {
+		return _error(telnet, __LINE__, __func__, TELNET_EBADVAL,
+				TELNET_EV_WARNING, "cannot initialize MCCPX while MCCP123 is active.");
+	} else {
+		telnet->compression = TELNET_TELOPT_MCCPX;
 	}
 
 	/* buffer[0] is the mccpx suboption command */

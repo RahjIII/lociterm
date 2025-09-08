@@ -34,11 +34,6 @@ telnet_error_t mccpx_none_init(telnet_t *telnet, mccpx_stream_t *stream) {
 	int rs;
 	int err_fatal = 1;
 
-	/* if MMCP123 compression is already enabled, fail loudly */
-	if (telnet->z != 0)
-		return _error(telnet, __LINE__, __func__, TELNET_EBADVAL,
-				err_fatal, "cannot initialize MCCPX while MCCP123 is active.");
-
 	if(stream->ctx != NULL) 
 		return _error(telnet, __LINE__, __func__, TELNET_EBADVAL,
 				err_fatal, "cannot initialize MCCP4 twice.");
