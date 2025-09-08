@@ -401,17 +401,20 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		case TELNET_TELOPT_MCCPX: {
 			security_checked(pc,CHECK_MUD);
 			/* send acceptable compression algos */
-			// char accept_encodings[]="x-testing";
-			// telnet_send_mccpx_accept(telnet,accept_encodings,strlen(accept_encodings));
-			// locid_debug(DEBUG_TELNET,pc,"MCCPX will accept encodings: '%s'",accept_encodings);
-			telnet_send_mccpx_accept(telnet,NULL,0);
+			/* if you ever want to make this a preference, Here, how you'd do it. */
+			/* 
+				char accept_encodings[]="x-testing,deflate,zstd,none";
+				telnet_send_mccpx_accept(telnet,accept_encodings,strlen(accept_encodings));
+				locid_debug(DEBUG_TELNET,pc,"MCCPX will accept encodings: '%s'",accept_encodings);
+			*/
 			locid_debug(DEBUG_TELNET,pc,"MCCPX will accept libtelnet default encodings.");
+			telnet_send_mccpx_accept(telnet,NULL,0);
 	
-			/* seeing server side availability, offer to get the client side
-			 * compressing too, i.e. bidirectional compression.  (This is
-			 * because at time of writing, lociterm client telnet is completely
-			 * passive, it only offers to do protocols that the server has
-			 * offered up first.) */
+			/* Having detected server side availability, offer to get the
+			 * client side compressing too, i.e. bidirectional compression.
+			 * (This is because at time of writing, lociterm client telnet is
+			 * completely passive, it only offers to do protocols that the
+			 * server has offered up first.) */
 			telnet_negotiate(telnet, TELNET_WILL, TELNET_TELOPT_MCCPX);
 			break;
 		}
@@ -436,7 +439,7 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 			loci_client_send_gaeor(pc,NULL);
 			break;
 		case TELNET_TELOPT_MCCPX: {
-			mccpx_inform_ev(telnet,STREAM_RECV,TELNET_EOK,"Got a WONT");
+			mccpx_inform_ev(telnet,STREAM_RECV,TELNET_EOK,"Compressor sent a WONT");
 			mccpx_end(telnet,STREAM_RECV);
 			break;
 		}
@@ -477,7 +480,7 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 			loci_client_send_echosga(pc);
 			break;
 		case TELNET_TELOPT_MCCPX: {
-			mccpx_inform_ev(telnet,STREAM_RECV,TELNET_EOK,"Got a DONT");
+			mccpx_inform_ev(telnet,STREAM_RECV,TELNET_EOK,"Decompressor sent a DONT");
 			mccpx_end(telnet,STREAM_SEND);
 			break;
 		}
@@ -541,15 +544,17 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 		break;
 	}
 	case TELNET_EV_MCCPX: {
+		/* error message handling */
 		if(event->mccpx.status == TELNET_EPROTOCOL) {
 			locid_debug(DEBUG_TELNET,pc,"MCCPX %s peer only supports '%s'",
 				(event->mccpx.direction == STREAM_SEND)?"SEND":"RECV",
 				(event->mccpx.offered)
 			);
 			/* I could try to start mccp2 here if I wanted. */
-			if(event->mccpx.direction == STREAM_SEND) {
+			/* if(event->mccpx.direction == STREAM_SEND) {
 				telnet_negotiate(telnet, TELNET_WILL, TELNET_TELOPT_MCCP2);
 			}
+			*/
 		}
 		locid_debug(DEBUG_TELNET,pc,"MCCPX %s '%s' code=%d: %s",
 			(event->mccpx.direction == STREAM_SEND)?"SEND":"RECV",
