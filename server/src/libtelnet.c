@@ -20,6 +20,10 @@
 #include <errno.h>
 #include <string.h>
 #include <stdarg.h>
+#include <ctype.h>
+#include <time.h>
+
+//#define MCCPX_RUNTIME 1
 
 /* Win32 compatibility */
 #if defined(_WIN32)
@@ -135,6 +139,7 @@ static int _mccpx_telnet(telnet_t *telnet, char* buffer, size_t size);
 void mccpx_compressed_out(telnet_t *telnet, char* buffer, size_t size);
 void mccpx_decompressed_out(telnet_t *telnet, char* buffer, size_t size);
 void mccpx_end(telnet_t *telnet,stream_direction_t dir);
+void telnet_timespec_incr(struct timespec *result, struct timespec *start, struct timespec *end);
 
 /* ---- MCCPX section END ---- */
 
@@ -172,7 +177,15 @@ static void _send(telnet_t *telnet, const char *buffer,
 	mccpx_stream_t *stream = &(telnet->mccpx[STREAM_SEND]);
 	if (stream->enc && stream->enc->send) {
 		stream->in += size;
+#if defined MCCPX_RUNTIME
+		struct timespec start, end;
+		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 		(*(stream->enc->send))(telnet,stream,buffer,size);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+		telnet_timespec_incr(&(stream->runtime),&start,&end);
+#else
+		(*(stream->enc->send))(telnet,stream,buffer,size);
+#endif
 		return;
 	}
 
@@ -815,6 +828,8 @@ static int _subnegotiate(telnet_t *telnet) {
 		if(stream->requested) free(stream->requested);
 		stream->requested = strdup(encoding->name);
 		stream->in = stream->out = 0;
+		stream->runtime.tv_sec = stream->runtime.tv_nsec = 0;
+
 		/* and call init to enable it. */
 		if ((encoding->init)(telnet,stream) != TELNET_EOK ) {
 			return 0;
@@ -1162,7 +1177,15 @@ void telnet_recv(telnet_t *telnet, const char *buffer,
 	mccpx_stream_t *stream = &(telnet->mccpx[STREAM_RECV]);
 	if (stream->enc && stream->enc->recv) {
 		stream->in += size;
+#if defined MCCPX_RUNTIME
+		struct timespec start,end;
+		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 		(*(stream->enc->recv))(telnet,stream,buffer,size);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+		telnet_timespec_incr(&(stream->runtime),&start,&end);
+#else
+		(*(stream->enc->recv))(telnet,stream,buffer,size);
+#endif
 		return;
 	}
 
@@ -1379,6 +1402,7 @@ void telnet_subnegotiation(telnet_t *telnet, unsigned char telopt,
 		if(stream->requested) free(stream->requested);
 		stream->requested = strdup(encoding->name);
 		stream->in = stream->out = 0;
+		stream->runtime.tv_sec = stream->runtime.tv_nsec = 0;
 		/* and call init to enable it. */
 		if ((encoding->init)(telnet,stream) != TELNET_EOK ) {
 			return;
@@ -1665,6 +1689,26 @@ int *telnet_option_list(telnet_t *telnet) {
 	return(optlist);
 }
 
+void telnet_timespec_incr(struct timespec *result, struct timespec *start, struct timespec *end) {
+
+	struct timespec d = {0};
+
+	d.tv_nsec = end->tv_nsec - start->tv_nsec;
+	if(d.tv_nsec < 0) {
+		d.tv_nsec += 1e9;
+		d.tv_sec--;
+	}
+	d.tv_sec = end->tv_sec - start->tv_sec;
+
+	result->tv_nsec += d.tv_nsec;
+	if(result->tv_nsec >= 1e9) {
+		result->tv_nsec -= 1e9;
+		result->tv_sec++;
+	}
+	result->tv_sec += d.tv_sec;
+
+}
+
 /* Get ascii list of supported mccpx compression encodings.  Caller must free
  * the returned string! */
 char *mccpx_accept_encodings(void) {
@@ -1720,13 +1764,14 @@ void mccpx_inform_ev(telnet_t *telnet, stream_direction_t dir, telnet_error_t st
 
 /* call this from within an MCCPX recv function as many times as required */
 void mccpx_decompressed_out(telnet_t *telnet, char* buffer, size_t size) {
+	
 	telnet->mccpx[STREAM_RECV].out += size;
 	_process(telnet, buffer, size);
 }
 
 /* call this from within an MCCPX recv function as many times as required */
 void mccpx_compressed_out(telnet_t *telnet, char* buffer, size_t size) {
-
+	
 	telnet_event_t ev;
 
 	telnet->mccpx[STREAM_SEND].out += size;
@@ -1742,8 +1787,6 @@ void mccpx_end(telnet_t *telnet,stream_direction_t dir) {
 	mccpx_inform_ev(telnet,dir,TELNET_EOK,"mccpx_end");
 	switch (dir) {
 		case STREAM_SEND: {
-			/* handling possibly not right, as 'spec' says use dont?  Which
-			 * cant be right, its gotta be WONT. */
 			telnet_negotiate(telnet, TELNET_WONT, TELNET_TELOPT_MCCPX);
 			if(telnet->mccpx[dir].enc) {
 				(telnet->mccpx[dir].enc->free)(telnet,&(telnet->mccpx[dir]));
@@ -1799,6 +1842,8 @@ static int _mccpx_telnet(telnet_t *telnet, char* buffer, size_t size) {
 			char *accepts=strndup(&buffer[1],size-1);
 			char *next,*consider=accepts;
 			while(consider && *consider) {
+				// strip out OWS optional whitespace at start
+				while(consider && *consider && isblank(*consider)) consider++;
 				if( (next=strchr(consider,',')) ) {
 					*next++ = '\0';
 				}
@@ -1829,8 +1874,11 @@ static int _mccpx_telnet(telnet_t *telnet, char* buffer, size_t size) {
 				if(stream->requested) free(stream->requested);
 				stream->requested = strdup(encoding->name);
 				stream->in = stream->out = 0;
+				stream->runtime.tv_sec = stream->runtime.tv_nsec = 0;
 				/* and call init to enable it. */
-				(encoding->init)(telnet,stream);
+				if ((encoding->init)(telnet,stream) != TELNET_EOK ) {
+					return 0;
+				}
 
 				/* send event to inform userland what was chosen */
 				mccpx_inform_ev(telnet,STREAM_SEND,TELNET_EOK,"Encoding selected");
@@ -1869,8 +1917,9 @@ static int _mccpx_telnet(telnet_t *telnet, char* buffer, size_t size) {
 				stream->requested = strdup(encoding->name);
 				stream->in = stream->out = 0;
 				/* and call init to enable it. */
-				(encoding->init)(telnet,stream); 
-				/* JSJ FIXME check the return code? */
+				if ((encoding->init)(telnet,stream) != TELNET_EOK ) {
+					return 0;
+				}
 				
 				/* send event to inform userland what was chosen */
 				mccpx_inform_ev(telnet,STREAM_RECV,TELNET_EOK,"Encoding Selected");

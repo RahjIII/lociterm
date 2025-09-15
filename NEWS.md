@@ -1,5 +1,9 @@
 ## What's New
 
+### Version 2.9.0
+
+- Rework of libtelnet to support MCCP2 and MCCPX-draft compression protocols.
+
 ### Version 2.6.0
 
 - Reworked keyboard accessibility for the button grid and side menus.

@@ -32,6 +32,7 @@ mccpx_compression_t mccpx_zstd = {
 telnet_error_t mccpx_zstd_init(telnet_t *telnet, mccpx_stream_t *stream) {
 
 	int err_fatal = 1;
+	int compressionLevel = 8;
 
 	/* if compression is already enabled, fail loudly */
 	if(stream->ctx != NULL) 
@@ -49,8 +50,8 @@ telnet_error_t mccpx_zstd_init(telnet_t *telnet, mccpx_stream_t *stream) {
 				);
 			}
 			// Set zstd options here.
-			// ZSTD_CCtx_setParameter(cctx, ZSTD_c_compressionLevel, cLevel);
-			// ZSTD_CCtx_setParameter(cctx, ZSTD_c_checksumFlag, 1);
+			ZSTD_CCtx_setParameter(ctx, ZSTD_c_compressionLevel, compressionLevel );
+			// ZSTD_CCtx_setParameter(ctx, ZSTD_c_checksumFlag, 1);
 			stream->ctx = ctx;
 			return TELNET_EOK;
 		}

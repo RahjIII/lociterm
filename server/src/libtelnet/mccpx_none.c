@@ -30,13 +30,10 @@ mccpx_compression_t mccpx_none = {
 
 /* MCCPX "none" init. */
 telnet_error_t mccpx_none_init(telnet_t *telnet, mccpx_stream_t *stream) {
-	z_stream *z;
-	int rs;
-	int err_fatal = 1;
 
-	if(stream->ctx != NULL) 
-		return _error(telnet, __LINE__, __func__, TELNET_EBADVAL,
-				err_fatal, "cannot initialize MCCP4 twice.");
+	if(stream->ctx != NULL) {
+		return( _error(telnet, __LINE__, __func__, TELNET_EBADVAL, 1, "cannot initialize MCCP4 twice."));
+	}
 
 	/* going to alloc a string here, to test that the free function gets rid of it. */
 	if(stream->direction == STREAM_SEND) {
@@ -51,6 +48,7 @@ telnet_error_t mccpx_none_init(telnet_t *telnet, mccpx_stream_t *stream) {
 /* MCCPX "none" send. */
 /* all none encoding does is send the data.*/
 telnet_error_t mccpx_none_send( telnet_t *telnet, mccpx_stream_t *stream, const char *buffer, size_t size) {
+
 	mccpx_compressed_out(telnet,buffer,size);
 	return TELNET_EOK;
 }
@@ -58,6 +56,7 @@ telnet_error_t mccpx_none_send( telnet_t *telnet, mccpx_stream_t *stream, const 
 /* MCCPX "none" recv. */
 /* all none encoding does is route the raw data to _process .*/
 telnet_error_t mccpx_none_recv( telnet_t *telnet, mccpx_stream_t *stream, const char *buffer, size_t size) {
+
 	mccpx_decompressed_out(telnet,buffer,size);
 	return TELNET_EOK;
 }

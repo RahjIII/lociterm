@@ -258,6 +258,10 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 					(st->requested)?st->requested:"",
 					buf
 				);
+				locid_info(pc,"Compression runtime %s: %f μs",
+					(st->requested)?st->requested:"",
+					(double)st->runtime.tv_sec + ((double)st->runtime.tv_nsec / 1e9) * 1e6
+				);
 			}
 		}
 
@@ -268,6 +272,10 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 				locid_info(pc,"Decompression ratio %s: %s",
 					(st->requested)?st->requested:"",
 					buf
+				);
+				locid_info(pc,"Decompression runtime %s: %f μs",
+					(st->requested)?st->requested:"",
+					(double)st->runtime.tv_sec + ((double)st->runtime.tv_nsec / 1e9) * 1e6
 				);
 			}
 		}

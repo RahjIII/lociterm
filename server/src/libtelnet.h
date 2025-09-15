@@ -280,6 +280,7 @@ struct mccpx_stream_t {
 	const char *requested;			/* the requested encoding */
 	long int in;					/* bytes input */
 	long int out;					/* bytes output */
+	struct timespec runtime;		/* for profiling. */
 	void *ctx;						/* pointer to compression context state */
 };
 typedef struct mccpx_stream_t mccpx_stream_t;

@@ -5,7 +5,7 @@ Requires libglib2.0-dev, ctags, openssl, cmake, libwebsockets4.3.3, npm, libjson
 
 on debian 12-
 
-`apt-get install gcc libglib2.0-dev exuberant-ctags openssl cmake npm libjson-c-dev libsqlite3-dev pkg-config`
+`apt-get install gcc libglib2.0-dev exuberant-ctags openssl cmake npm libjson-c-dev libsqlite3-dev pkg-config libzstd-dev`
 
 1.a Libwebsockets
 -----------------
