@@ -10,7 +10,7 @@
 		"xtermoptions": {
 			"drawBoldTextInBrightColors": 1,
 			"minimumContrastRatio": 1.4,
-			"fontFamily": "LOFont,courier",
+			"fontFamily": "LOFont,courier,'Noto Sans Symbols 2'",
 			"fontWeightBold": "bold",
 			"fontWeight": "normal",
 			"cursorBlink": true,
@@ -49,7 +49,7 @@
 			"background": "#d8d6c6"
 		},
 		"xtermoptions": {
-			"fontFamily": "LOFont,courier",
+			"fontFamily": "LOFont,courier,'Noto Sans Symbols 2'",
 			"cursorBlink": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
@@ -89,7 +89,7 @@
 			"background": "#101010"
 		},
 		"xtermoptions": {
-			"fontFamily": "Dyslexic,LOFont,courier",
+			"fontFamily": "Dyslexic,LOFont,courier,'Noto Sans Symbols 2'",
 			"cursorBlink": true,
 			"scrollback": 1000,
 			"scrollOnUserInput": true,
@@ -125,7 +125,7 @@
 	{
 		"name": "XTerm",
 		"xtermoptions": {
-			"fontFamily": "courier, LOFont, monospace",
+			"fontFamily": "courier, LOFont, monospace,'Noto Sans Symbols 2'",
 			"bellStyle": "sound",
 			"cursorBlink": true,
 			"scrollOnUserInput": true,
@@ -142,7 +142,7 @@
 			"background": "#000000"
 		},
 		"xtermoptions": {
-			"fontFamily": "Courier New, LOFont, monospace",
+			"fontFamily": "Courier New, LOFont, monospace,'Noto Sans Symbols 2'",
 			"bellStyle": "sound",
 			"cursorBlink": true,
 			"scrollOnUserInput": true,
@@ -197,7 +197,7 @@
 		},
 		"xtermoptions": {
 			"bellStyle": "sound",
-			"fontFamily": "VT323, LOFont",
+			"fontFamily": "VT323, LOFont,'Noto Sans Symbols 2'",
 			"cursorBlink": true,
 			"scrollOnUserInput": true,
 			"theme": {
@@ -242,7 +242,7 @@
 		},
 		"xtermoptions": {
 			"bellStyle": "sound",
-			"fontFamily": "VT323, LOFont",
+			"fontFamily": "VT323, LOFont, 'Noto Sans Symbols 2'",
 			"cursorBlink": true,
 			"scrollOnUserInput": true,
 			"theme": {
@@ -289,7 +289,7 @@
 		"xtermoptions": {
 			"minimumContrastRatio": 2,
 			"bellStyle": "sound",
-			"fontFamily": "Commodore, LOFont, Noto Emoji",
+			"fontFamily": "Commodore, LOFont, Noto Emoji,'Noto Sans Symbols 2'",
 			"cursorBlink": true,
 			"scrollOnUserInput": true,
 			"theme": {

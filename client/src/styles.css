@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Emoji&family=Noto+Sans&family=Noto+Sans+Symbols&display=block');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Emoji&family=Noto+Sans&family=Noto+Sans+Symbols&family=Noto+Sans+Symbols+2&display=block');
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=block');
 
 @font-face {
@@ -34,7 +34,7 @@
 }
 
 body  { 
-  font-family: LOFont, monospace;
+  font-family: LOFont, monospace, "Noto Sans Symbols 2";
   font-size: initial; /* so there is a fallback in case vw doesn't work right. */
   margin: 0px;
   background: var(--background-color);
