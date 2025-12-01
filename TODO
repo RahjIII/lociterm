@@ -1,4 +1,9 @@
 ------- TODO --------------
+* BUG - if Loci.Menu.Set sends a menubox without a buttons definition, the main
+ menu icon is not put on screen, which should never be allowed to happen.
+
+* Feature request for dragable menubox location.
+
 * Document behavior of locibot scanner
 
 * General save settings per site?

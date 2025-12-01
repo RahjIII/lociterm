@@ -513,8 +513,12 @@ class ClientMedia {
 	// criteria.  (so that play() has a way to stop all matching media EXCEPT
 	// for itself.)
 	stopMatchingMedia(message,exceptfor=undefined) {
-		// Stop playing everything that matches.
-		let hardstop = (Object.keys(message).length == 0);
+		// Stop playing everything that matches
+		let matchkeys = {...message};
+		delete matchkeys.fadeaway;
+		delete matchkeys.fadeout;
+		let hardstop = (Object.keys(matchkeys).length == 0);
+
 		this.mediaObjs.forEach( (media,src) => {
 			if( (media == exceptfor) && (message["continue"] == "true")) {
 				return;
@@ -525,6 +529,7 @@ class ClientMedia {
 			) {
 				if( !hardstop ) {
 					if( (message.fadeaway == "true") ||
+						(message.fadeaway == true) ||
 						(media.mcmp.fadeout > 0)
 					) {
 						media.fadeout(media.mcmp.fadeout);
