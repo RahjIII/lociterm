@@ -217,6 +217,19 @@ void loci_environment_init(proxy_conn_t *pc) {
 		loci_new_env_var(TELNET_ENVIRON_VAR,"ANSI","1")
 	);
 
+	/* OSC8 Hyperlink support reporting.  See: */
+	/* https://wiki.mudlet.org/w/Area_51#OSC_8:_Hyperlink_Protocol.2C_PR_.237828.2C_.238262 */
+	pc->environment = g_list_append(pc->environment,
+		loci_new_env_var(TELNET_ENVIRON_USERVAR,"OSC_HYPERLINKS","1")
+	);
+	pc->environment = g_list_append(pc->environment,
+		loci_new_env_var(TELNET_ENVIRON_USERVAR,"OSC_HYPERLINKS_SEND","1")
+	);
+	pc->environment = g_list_append(pc->environment,
+		loci_new_env_var(TELNET_ENVIRON_USERVAR,"OSC_HYPERLINKS_PROMPT","1")
+	);
+
+
 	if(pc->client) {
 		if(pc->client->useragent) {
 			/* TODO make this controllable from the config file too. */

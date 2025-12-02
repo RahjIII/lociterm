@@ -1,6 +1,6 @@
 ------- TODO --------------
-* BUG - if Loci.Menu.Set sends a menubox without a buttons definition, the main
- menu icon is not put on screen, which should never be allowed to happen.
+* game db is now so big that it takes appreciable time to load up the
+game-select menu in client.  It needs to be paged.
 
 * Feature request for dragable menubox location.
 
@@ -80,6 +80,11 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ BUG - if Loci.Menu.Set sends a menubox without a buttons definition, the main
+ menu icon is not put on screen, which should never be allowed to happen.
+
++ added OSC8 hyperlink reporting to newenv.
+
 + add tcp rtt to network stats
 
 + get loops working in mcmp

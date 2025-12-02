@@ -307,6 +307,7 @@ class MenuHandler {
 
 		for(let i=0; i<buttons.length; i++) {
 			let item = buttons[i];
+			if(item == undefined) continue;
 			//let container = document.createElement('div');
 			let container = document.createElement('button');
 			container.classList.add('menubutton');

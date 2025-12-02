@@ -118,7 +118,7 @@ static const char CRLF[] = { '\r', '\n' };
 static const char CRNUL[] = { '\r', '\0' };
 
 /* buffer sizes */
-static const size_t _buffer_sizes[] = { 0, 512, 2048, 8192, 16384, };
+static const size_t _buffer_sizes[] = { 0, 512, 2048, 8192, 16384, 32768, 65536, 131072 };
 static const size_t _buffer_sizes_count = sizeof(_buffer_sizes) /
 		sizeof(_buffer_sizes[0]);
 
