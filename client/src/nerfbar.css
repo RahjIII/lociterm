@@ -33,6 +33,7 @@
 	align-items: center;
 	border-width: 1mm;
 	z-index: +1;
+	overflow: hidden;
 }
 
 .nerfbar div {
