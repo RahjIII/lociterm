@@ -389,7 +389,9 @@ class MenuHandler {
 					return;
 				}
 				// Any other keys to intercept?
-				if(e.key === "Escape") {
+				if( e.key === "Escape" ||
+					((e.key == "m") && (e.ctrlKey === true))
+				) {
 					this.lociterm.focus();
 				}
 				// nope, nothing we're interested in.
@@ -459,9 +461,9 @@ class MenuHandler {
 					s.classList.add('send');
 					if ( item.open != undefined ) {
 						// you can have both send and open in the same definition.
-						s.onclick = () => { this.send(item.send); this.open(item.open); };
+						s.onclick = (e) => { this.send(item.send); this.open(item.open); };
 					} else {
-						s.onclick = () => this.send(item.send);
+						s.onclick = (e) => { this.send(item.send); };
 					}
 					s.innerText = item.send;
 				} else if ( item.open != undefined ) {
@@ -558,7 +560,9 @@ class MenuHandler {
 						return;
 					}
 					// Any other keys to intercept?
-					if(e.key === "Escape") {
+					if( e.key === "Escape" ||
+						((e.key == "m") && (e.ctrlKey === true))
+					) {
 						this.lociterm.focus();
 					}
 					// nope, nothing we're interested in.

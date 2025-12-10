@@ -1,4 +1,10 @@
 ------- TODO --------------
+* look at interactive-widget=resizes-content viewport directive.
+
+* Add semver documentation for local forks
+
+* Bump the © lines to 2026.
+
 * game db is now so big that it takes appreciable time to load up the
 game-select menu in client.  It needs to be paged.
 

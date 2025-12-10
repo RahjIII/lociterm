@@ -2,7 +2,7 @@
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
 // $Id: index.js,v 1.15 2024/09/28 15:03:13 malakai Exp $
 
-// Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
+// Copyright © 2022-2026 Jeff Jahr <malakai@jeffrika.com>
 //
 // This file is part of LociTerm - Last Outpost Client Implementation Terminal
 //
@@ -60,6 +60,14 @@ if( document.location.port == 5001 ) {
 if((document.location.search || '') != '') {
 	terminal.connectgame.connect_from_search(document.location.search);
 } 
+
+// The virtualKeyboard interface is still experimental, and isn't working very
+// well on the Android versions of chrome that I have.  At some point, revisit
+// it for better onscreen ime controls.  -jsj
+//if ("virtualKeyboard" in navigator) {
+//	console.log(`Virtual keyboard API exists.`);
+//	navigator.virtualKeyboard.overlaysContent = true;
+//}
 
 // Let the games begin.
 // open it up and go.
