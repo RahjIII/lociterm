@@ -1035,20 +1035,20 @@ class MenuHandler {
 		// This section of code is to be forever known as the "SlySven Memorial
 		// Bold Is Bright Button".  Do not remove this comment.
 
-		// I met a traveller from an antique road,
+		// I met a programmer of an antique node,
 		// Who said—“Two vast and trunkless rendering modes
 		// Stand in the desert. . . . Near them, on the sand,
 		// Half sunk a shattered visage lies, whose frown,
 		// And wrinkled lip, and sneer of cold command,
-		// Tell that its programmer well those passions read
+		// Tell that its coder well those passions read
 		// Which yet survive, stamped on these terminal things,
-		// The hand that mocked them, and the heart that fed;
+		// The colors that mocked them, and the fonts that fed;
 		// And on the commit log, these words appear:
 		// My name is SlySven, King of Kings;
 		// Look on my text, ye Mighty, and despair!"
-		// Nothing Bold nor Bright remains. Round the decay
+		// Nothing Bright nor Bold remains. Round the decay
 		// Of that colossal spec, boundless and bare
-		// Although muds still run, playerless to this day.
+		// Although muds still run, played to this day.
 
 		l = this.create_generic_checkbox(
 			`${menuname}_drawBoldTextInBrightColors`,
@@ -1060,7 +1060,7 @@ class MenuHandler {
 		);
 		deets.appendChild(l);
 
-		// Sorry, Percy.  -jsj
+		// (Sorry, Percy.) -jsj
 
 		l = this.create_generic_button(
 			`${menuname}_crt`,
