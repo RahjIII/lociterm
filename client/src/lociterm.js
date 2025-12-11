@@ -504,13 +504,32 @@ class LociTerm {
 		this.socket.onerror = (e) => this.onSocketError(e);
 	}
 
+	// These diconnect "how" methods are used directly by the menuside system
+	// with e.g. "disconnect":"local".  See the handler code in menuhandler.js.
+	// Nerfbar code also has a keystroke binding for the remoteRestart method.
 	disconnect(how) {
 		if(how == "local") {
 			this.autoreconnect = false;
 			this.socket.close();
+		} else if(how == "remote") {
+			this.sendMsg(Command.DISCONNECT,"");
+		} else if(how == "remoteRestart") {
+			// Players of Petria MUD wanted a way to quickly terminate the
+			// existing telnet session and restart it fresh.  The remoteRestart
+			// disconnect method removes the uuid reconnect key and instructs
+			// the locid server to connect to the game again.  No need to
+			// explicitly disconnect the game, or tear the websocket all the
+			// way down.  When a connect request is recieved by locid, the
+			// locid server automatically shuts down the current telnet
+			// connection, and opens the newly requested one.
+			delete this.reconnect_key.reconnect;
+			this.reconnect_delay = 0;
+			this.doConnectGame();
 		} else {
+			// unrecognized option, same as 'remote'
 			this.sendMsg(Command.DISCONNECT,"");
 		}
+
 	}
 
 	reconnect() {

@@ -80,12 +80,16 @@
 					"send": "logout\n"
 				},
 				{
-					"label": "Client",
+					"label": "Disconnect Client",
 					"disconnect": "local"
 				},
 				{
-					"label": "Game",
+					"label": "Disconnect Game",
 					"disconnect": "remote"
+				},
+				{
+					"label": "Restart Game",
+					"disconnect": "remoteRestart"
 				}
 			]
 		},

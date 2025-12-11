@@ -64,7 +64,7 @@ class NerfBar {
 		input.setAttribute("name","nerfinput");
 		input.setAttribute("autocapitalize","none");
 		input.setAttribute("autocomplete","off");
-		input.setAttribute("autococorrect","off");
+		input.setAttribute("autocorrect","off");
 		input.placeholder = "Enter a command...";
 		//
 		input.setAttribute("aria-label","Line Mode Input");
@@ -105,6 +105,12 @@ class NerfBar {
 				this.lociterm.paste(line+"\n");
 				e.srcElement.value = "";
 				e.preventDefault();
+			}
+			// Alt+R: Fast Reconnect from NerfBar
+			if ((e.key === "r" || e.key === "R") && e.altKey === true) {
+				this.lociterm.disconnect("remoteRestart");
+				e.preventDefault();
+				return;
 			}
 			// ArrowUp = 38
 			if((e.code == "ArrowUp") || (e.keyCode == 38)) {

@@ -12,3 +12,5 @@ game, mark it "Dedicated".  The description is up to you!
 - [The Last Outpost](https://www.last-outpost.com/lociterm/) - Open - The Last Outpost DikuMUD
 
 - [LociTerm.com](https://lociterm.com/play/) - Open - Development home of LociTerm
+
+- [Petria Mud](https://game.petriamud.com) - Dedicated - Petria Mud

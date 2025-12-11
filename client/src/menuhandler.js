@@ -529,7 +529,6 @@ class MenuHandler {
 				}
 
 				if ( item.disconnect != undefined ) {
-					s.classList.add('send');
 					s.onclick = () => this.disconnect(item.disconnect);
 				}
 

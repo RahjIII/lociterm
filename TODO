@@ -1,6 +1,4 @@
 ------- TODO --------------
-* look at interactive-widget=resizes-content viewport directive.
-
 * Add semver documentation for local forks
 
 * Bump the © lines to 2026.
@@ -86,6 +84,8 @@ game-select menu in client.  It needs to be paged.
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ look at interactive-widget=resizes-content viewport directive.
+
 + BUG - if Loci.Menu.Set sends a menubox without a buttons definition, the main
  menu icon is not put on screen, which should never be allowed to happen.
 
