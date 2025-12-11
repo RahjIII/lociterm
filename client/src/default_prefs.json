@@ -72,7 +72,7 @@
 		"scrollback": 1000,
 		"scrollOnUserInput": true,
 		"lineHeight": 1,
-		"allowTransparency: true",
+		"allowTransparency": true,
 		"theme": {
 			"foreground": "#e4e4e4",
 			"background": "#000000",
