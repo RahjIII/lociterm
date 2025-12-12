@@ -21,7 +21,7 @@ module.exports = {
 		new HtmlWebpackPlugin({
 			hash: true,
 			title: 'LociTerm',
-			header: 'LociTermt',
+			header: 'LociTerm',
 			metaDesc: 'Last Outpost Client Implementation Terminal',
 			template: './src/index.html',
 			filename: 'index.html',

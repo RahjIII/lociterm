@@ -1,10 +1,7 @@
-# $Id: makefile,v 1.26 2024/12/10 06:33:55 malakai Exp $
-#
 # makefile - LociTerm 
 # Created: Sun May  1 10:42:59 PM EDT 2022 malakai
-# $Id: makefile,v 1.26 2024/12/10 06:33:55 malakai Exp $
 
-# Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
+# Copyright © 2022-2026 Jeff Jahr <malakai@jeffrika.com>
 #
 # This file is part of LociTerm - Last Outpost Client Implementation Terminal
 #
@@ -22,9 +19,23 @@
 # along with LociTerm.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-# This one location controls the version string that appears in the client,
-# server, and archive files!
-LOCITERM_VERSION = 2.9.2
+# This section controls the version string that appears in the client, server,
+# and archive files, and in the client/server hello protocol.  It is a
+# major.minor.patch semver.  If you are adding localized changes and want to
+# bump a version number, don't modify LOCITERM_CORE, instead see the META_
+# section below.
+LOCITERM_CORE = 2.9.3
+
+# Define these meta-data variables after this comment block if you are keeping
+# localized modifications to the code that are not included in the upstream
+# lociterm release, but are still roughly compatible with the upstream code.
+# This lets you keep track of the version of your localized changes while
+# maintaining the ability to merge in lociterm code changes from upstream.
+# Browser cached lociterm client code will detect changes in the META_VERSION,
+# and reload to get updates.
+#
+# META_NAME = MyGame
+# META_VERSION = 1.0.0
 #
 
 # #### Variable definitions ####
@@ -34,10 +45,21 @@ SERVERDIR = ./server
 CLIENTDIR = ./client
 NPM = ./client/node_modules
 CERTNAME = loci
-DATEKEY = `date +%y%m%d%H%M`
+
+# #### End of tunable makefile parameters ###
+
+# set up LOCITERM_VERSION based on provided semver parameters.
+ifneq ($(origin META_NAME), undefined) 
+	LOCITERM_VERSION = $(LOCITERM_CORE)-$(META_NAME).$(META_VERSION)
+else 
+	LOCITERM_VERSION = $(LOCITERM_CORE)
+endif
+
 TARFILE = ../lociterm_$(LOCITERM_VERSION).tgz
+DATEKEY = `date +%y%m%d%H%M`
 
 # #### Recipies Start Here ####
+
 
 $(info ---------- START OF BUILD -----------)
 all : $(BUILD) $(NPM) server client distlauncher
