@@ -80,16 +80,36 @@
 					"send": "logout\n"
 				},
 				{
-					"label": "Disconnect Client",
-					"disconnect": "local"
+					"label": "Disconnect",
+					"open": "sys_disconnect_down"
 				},
 				{
-					"label": "Disconnect Game",
+					"label": "Restart",
+					"open": "sys_disconnect_restart"
+				}
+			]
+		},
+		{ "id": "sys_disconnect_down",
+			"item" : [
+				{
+					"label": "Game",
 					"disconnect": "remote"
 				},
 				{
-					"label": "Restart Game",
+					"label": "Client",
+					"disconnect": "local"
+				}
+			]
+		},
+		{ "id": "sys_disconnect_restart",
+			"item" : [
+				{
+					"label": "Game",
 					"disconnect": "remoteRestart"
+				},
+				{
+					"label": "Client",
+					"disconnect": "localRestart"
 				}
 			]
 		},

@@ -511,8 +511,10 @@ class LociTerm {
 		if(how == "local") {
 			this.autoreconnect = false;
 			this.socket.close();
+			return;
 		} else if(how == "remote") {
 			this.sendMsg(Command.DISCONNECT,"");
+			return;
 		} else if(how == "remoteRestart") {
 			// Players of Petria MUD wanted a way to quickly terminate the
 			// existing telnet session and restart it fresh.  The remoteRestart
@@ -525,9 +527,14 @@ class LociTerm {
 			delete this.reconnect_key.reconnect;
 			this.reconnect_delay = 0;
 			this.doConnectGame();
+			return;
+		} else if(how == "localRestart") {
+			this.reload("Restarting Client...");
+			return;
 		} else {
-			// unrecognized option, same as 'remote'
+			// unrecognized option treated same as 'remote'
 			this.sendMsg(Command.DISCONNECT,"");
+			return;
 		}
 
 	}
@@ -781,9 +788,8 @@ class LociTerm {
 				console.log(`Hello from server ${hello}`);
 
 				if( (this.serverhello != "") && (this.serverhello != hello) ) {
-					this.menuhandler.update_oob_message(`🚀Getting Updates...`);
 					console.log(`Sever version has changed, forcing reload.`);
-					setTimeout( ()=>{location.reload(true)}, 3000 );
+					this.reload("Getting Updates...");
 				} else {
 					// We're good to go on this end!
 					this.serverhello = hello;
@@ -917,6 +923,32 @@ class LociTerm {
 		if(data !== null) {
 			this.terminal.write(data);
 		} 
+	}
+
+	// reaload() - Forces a refresh of the javascript application.  Called
+	// automatically when a server protocol version mismatch is detected, to
+	// force a reload of fresh code.  reload() method ultimately triggers a
+	// location.reload(), but it puts a nice message up along with a short
+	// randomized delay before doing so.  The constant delay is nice to have
+	// for the user to be able to read the message.  The random delay is
+	// required to spread out the load of multiple clients trying to request
+	// fresh copies of files immediately after they see that locid has
+	// restarted under a new version.
+	reload(msg="Reloading.") {
+
+		let constant = 2000;
+		let spread = (Math.random()*1000);
+		let delay = constant + spread;
+
+		this.menuhandler.update_oob_message(`🚀${msg}`);
+		setTimeout( 
+			() => { 
+				// if lociterm ever has service workers, this would be a
+				// good place to shut them down cleanly.
+				location.reload()
+			},
+			delay
+		);
 	}
 
 }
