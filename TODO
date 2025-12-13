@@ -1,8 +1,4 @@
 ------- TODO --------------
-* Add semver documentation for local forks
-
-* Bump the © lines to 2026.
-
 * game db is now so big that it takes appreciable time to load up the
 game-select menu in client.  It needs to be paged.
 
@@ -30,6 +26,11 @@ game-select menu in client.  It needs to be paged.
   autocompletion. *doh!* :) But its good enough for now.
 
 * Server to server data sharing protocol?
+
+* look at interactive-widget=resizes-content viewport directive and
+	virtualKeyboard API for controlling IME keyboard on mobile.  (As of
+	Dec2025, both still appear to be experimental and not widely supported
+	across all os's and browsers, but situation may improve with time.)
 
 * Online Adminsitration Interface.
 
@@ -84,7 +85,7 @@ game-select menu in client.  It needs to be paged.
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
-+ look at interactive-widget=resizes-content viewport directive.
++ Add semver documentation for local forks - its in the makefile anyway
 
 + BUG - if Loci.Menu.Set sends a menubox without a buttons definition, the main
  menu icon is not put on screen, which should never be allowed to happen.
