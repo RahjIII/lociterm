@@ -659,6 +659,7 @@ json_object *game_db_get_server_list(void) {
 					"UPDATED DESC, "
 					"(LAST_MSSP IS NULL) asc, "
 					"LAST_CONNECTION DESC "
+				"LIMIT 52"
 			");",
 			config->mssp_recently_updated,
 			DBSTATUS_APPROVED

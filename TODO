@@ -1,6 +1,5 @@
 ------- TODO --------------
-* game db is now so big that it takes appreciable time to load up the
-game-select menu in client.  It needs to be paged.
+* add keyboard navigation to Game Server selection menu
 
 * Feature request for dragable menubox location.
 
@@ -85,6 +84,10 @@ game-select menu in client.  It needs to be paged.
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ game db is now so big that it takes appreciable time to load up the
+  game-select menu in client.  It needs to be paged, or limited. - I limited it
+  to 52 games, reduced the transfer size from ~13KB to ~4KB.
+
 + Add semver documentation for local forks - its in the makefile anyway
 
 + BUG - if Loci.Menu.Set sends a menubox without a buttons definition, the main
@@ -453,3 +456,4 @@ time option to disable PMD temporarily?
 - Check on eor support. meh not really needed for LO.
 
 - Plumb the login window to use env vars instead? (Added GMCP!)
+
