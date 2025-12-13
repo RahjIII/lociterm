@@ -24,7 +24,7 @@
 # major.minor.patch semver.  If you are adding localized changes and want to
 # bump a version number, don't modify LOCITERM_CORE, instead see the META_
 # section below.
-LOCITERM_CORE = 2.9.3
+LOCITERM_CORE = 2.10.0
 
 # Define these meta-data variables after this comment block if you are keeping
 # localized modifications to the code that are not included in the upstream
@@ -134,7 +134,7 @@ tar :
 
 .PHONY : push
 push: 
-	@git tag -a lociterm$(LOCITERM_VERSION) -m "Version $(LOCITERM_VERSION)" || { echo "Remember to update LOCITERM_VERSION in the makefile."; exit 1; }
+	@git tag -a lociterm$(LOCITERM_CORE) -m "Version $(LOCITERM_CORE)" || { echo "Remember to update LOCITERM_CORE in the makefile."; exit 1; }
 	git push origin dev --tags
 	@echo ---- Run \`make github\` to publish there ----
 
