@@ -343,6 +343,10 @@ button.menubutton {
 	align-items: center;
 }
 
+.menupop label,button {
+	user-select: none;
+}
+
 .menupop .textflow {
 	display: block;
 	padding: 1mm;
@@ -480,10 +484,12 @@ div.gameabout {
     border-bottom: var(--book-cover-color);
     border-bottom-width: 0.5mm;
     /*border-bottom-style: solid;*/
+	user-select: none;
 }
 
 .menupop .titlebar .close {
 	position: relative;
+	user-select: none;
 	/* right: 2mm; */
 	/* top: 0; */
 }
