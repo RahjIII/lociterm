@@ -143,6 +143,9 @@
 	rotate: 0deg;
 	transition: rotate 0.5s ease-out;
 	transition: scale 0.5s ease-out;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 button.menubutton {
@@ -152,6 +155,30 @@ button.menubutton {
 	padding-block: 0px;
 	padding: 0px;
 }
+
+.menubutton figure {
+    max-height: var(--finger-size);
+    max-width: var(--finger-size);
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: flex-end;
+	margin: 0mm;
+}
+
+.menubutton figure img {
+	width: 100%;
+	height: 100%;
+	margin: 0mm;
+}
+
+.menubutton figure caption {
+    font-size: calc(var(--finger-size) / 4);
+	width: 100%;
+	height: 100%;
+	margin: 0mm;
+}
+
 
 .menubutton:hover {
 	rotate: 0deg;

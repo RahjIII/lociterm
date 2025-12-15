@@ -324,9 +324,26 @@ class MenuHandler {
 			if( item.background !== undefined) {
 				container.style.background = item.background;
 			}
-			if( item.text !== undefined) {
+
+			if( item.text !== undefined && item.img === undefined) {
 				container.innerText = item.text;
 			}
+
+			if( item.img != undefined) {
+				let fig = document.createElement('figure');
+				let img = document.createElement('img');
+				fig.appendChild(img);
+				img.src = item.img;
+				img.onerror = ((e)=>{ e.currentTarget.onerror=null; e.currentTarget.src = TerminalIcon; });
+				if (item.text !== undefined) {
+					let cap = document.createElement('caption');
+					cap.innerText = item.text;
+					fig.appendChild(cap);
+				}
+				container.appendChild(fig);
+			}
+			
+			
 
 			if(item.name != undefined) {
 				container.setAttribute("aria-label",item.name);
@@ -408,14 +425,6 @@ class MenuHandler {
 				container.appendChild(svg);
 			}
 
-			if( item.img != undefined) {
-				let img = document.createElement('img');
-				img.classList.add('menuicon');
-				container.appendChild(img);
-				img.src = item.img;
-				img.onerror = ((e)=>{ e.currentTarget.onerror=null; e.currentTarget.src = TerminalIcon; });
-			}
-
 			box.appendChild(container);
 		}
 		box.firstElementChild.setAttribute("tabindex",0);
@@ -468,6 +477,10 @@ class MenuHandler {
 					s.innerText = item.send;
 				} else if ( item.open != undefined ) {
 					s.classList.add('open');
+					// Really, use a label with open.  But... 
+					let lessugly = item.open.replace(/^menu_/i,"")
+					lessugly = lessugly.replace(/^sys_/i,"")
+					s.innerText = `${lessugly}`;
 					s.setAttribute("aria-haspopup","true");
 					s.onclick = () => this.open(item.open);
 				} else if ( item.prompt != undefined ) {
