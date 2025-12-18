@@ -3,7 +3,7 @@
 // Created: Sun May  1 10:42:59 PM EDT 2022 malakai
 // $Id: menuhandler.js,v 1.40 2024/12/08 04:28:38 malakai Exp $
 
-// Copyright © 2022 Jeff Jahr <malakai@jeffrika.com>
+// Copyright © 2022-2026 Jeff Jahr <malakai@jeffrika.com>
 //
 // This file is part of LociTerm - Last Outpost Client Implementation Terminal
 //
@@ -304,6 +304,8 @@ class MenuHandler {
 		box.style.direction = 'rtl';
 
 		let buttons = menubox.buttons;
+		// menubox public attributes are: 
+		// menubar, send, direct, color, background, text, img, name, svgid
 
 		for(let i=0; i<buttons.length; i++) {
 			let item = buttons[i];
@@ -311,11 +313,22 @@ class MenuHandler {
 			//let container = document.createElement('div');
 			let container = document.createElement('button');
 			container.classList.add('menubutton');
-			// assign the correct onclick function to the container..
+			
+			// assign the correct onclick function to the container.  You only
+			// get to set one action, and the if/else sets the priority in case
+			// duplicates are listed. 
 			if ( item.menubar != undefined ) {
 				container.onclick = () => this.start(item.menubar);
 			} else if ( item.send != undefined ) {
 				container.onclick = (e) => { this.send(item.send); }
+			} else if (item.direct != undefined) {
+				// same as send action but routes directly to the terminal,
+				// bypassing any nerfbar and nerfbar history. Typically used to
+				// send control-character sequences that the nerfbar would
+				// otherwise filter out.
+				s.onclick = () => {
+					this.lociterm.paste(item.direct);
+				}
 			}
 
 			if( item.color !== undefined) {
@@ -329,6 +342,7 @@ class MenuHandler {
 				container.innerText = item.text;
 			}
 
+			// if img and text are both specified, text becomes the img caption.
 			if( item.img != undefined) {
 				let fig = document.createElement('figure');
 				let img = document.createElement('img');
@@ -342,8 +356,6 @@ class MenuHandler {
 				}
 				container.appendChild(fig);
 			}
-			
-			
 
 			if(item.name != undefined) {
 				container.setAttribute("aria-label",item.name);
@@ -414,7 +426,10 @@ class MenuHandler {
 				// nope, nothing we're interested in.
 			});
 
-			// add the svg.  Could add a plain old img adder too, but.. later
+			// add the svg.  SVG images are supported, but deprecated.  Use the
+			// img directive instead.  (SVG's are in the code because that's
+			// how old LoInABox code did its menus, and it was replicated to
+			// preserve the exact look and feel of LociTerm's predecessor.)
 			if( item.svgid != undefined) {
 				let svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
 				svg.classList.add('menuicon');
@@ -450,13 +465,9 @@ class MenuHandler {
 			c.setAttribute("aria-label",c.id);
 			c.setAttribute("role","menu");
 
-			// Keywords:
-			//	label
-			//	open
-			//	send
-			//	prompt
-			//	id
-			//	hotkey
+			// Supported Attributes:
+			//	label, open, send, prompt, direct, id, hotkey, wordstack,
+			//	color, background, disconnect, reconnect
 
 			for(let j=0; j<side.item.length; j++) {
 				let item = side.item[j];
