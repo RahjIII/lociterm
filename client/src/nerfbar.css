@@ -53,6 +53,16 @@
 	border-radius: calc(var(--finger-size)/3.0);
 }
 
+textarea.nerfbarblur {
+	color: var(--book-cover-color);
+}
+
+
+.nerfbar textarea::selection {
+	color: var(--book-cover-color);
+	background-color: var(--book-paper-color);
+}
+
 .nerfbutton {
 	min-height: var(--finger-size);
 	max-height: var(--finger-size);
@@ -67,6 +77,7 @@
 	flex-grow: 0;
 	display: flex;
 	justify-content: center;
+	user-select: none;
 }
 
 .nerfbutton:hover {

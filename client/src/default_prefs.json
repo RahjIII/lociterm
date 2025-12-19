@@ -21,7 +21,8 @@
 	"nerf": {
 		"enabled": false,
 		"chaining": false,
-		"localecho": true
+		"localecho": true,
+		"keepCommandSelected": true
 	},
 	"crtoptions": {
 		"enabled": false,

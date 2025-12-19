@@ -1312,6 +1312,17 @@ class MenuHandler {
 		// the input is is children[0] of the generic checkbox.
 		win.appendChild(l);
 
+		// Keep Command Selected CheckBox
+		l = this.create_generic_checkbox(
+			`${menuname}_keepCommandSelected`,
+			"Keep Command Selected",
+			this.lociterm.pref.get("nerf.keepCommandSelected"),
+			((e) => {
+				this.lociterm.pref.set("nerf.keepCommandSelected", e.srcElement.checked);
+			})
+		);
+		win.appendChild(l);
+
 		let optionList = [];
 		this.lociterm.encodings.forEach(
 			(x)=>optionList.push({name: x, label: x.toUpperCase()})

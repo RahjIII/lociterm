@@ -39,6 +39,8 @@ const terminal = new LociTerm(
 	lociThemes
 );
 
+let body = document.getElementsByTagName('body')[0];
+
 // The websocket's use of SSL will follow the page's use.
 let wsproto = "wss:";
 if(document.location.protocol == "http:") {

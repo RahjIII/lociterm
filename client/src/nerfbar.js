@@ -75,11 +75,13 @@ class NerfBar {
 
 		this.focuselement = input;
 
-		// No, not on change anymore.
-		// input.onchange = ((e)=>{ return; })
-
 		input.onfocus = ((e)=> {
+			e.srcElement.classList.remove('nerfbarblur');
 			this.lociterm.menuhandler.done();
+		});
+
+		input.onblur = ((e)=> {
+			e.srcElement.classList.add('nerfbarblur');
 		});
 
 		// This is the primary command dispatch routing for the nerfbar.  You
@@ -97,13 +99,22 @@ class NerfBar {
 				// specifially to clear out the xterm.js
 				// AccessibilityMananger's live-area div, so that it can take
 				// new fresh input for a screen reader.  If there was a method
-				// provided for it, we'd do that, but there is not.  So this.
+				// provided by xterm.js for it, we'd do that, but there is not.
+				// So this.
 				let active = document.activeElement;
 				this.lociterm.terminal.focus();
 				active.focus();
 				//
 				this.lociterm.paste(line+"\n");
-				e.srcElement.value = "";
+				if (this.lociterm.pref.get("nerf.keepCommandSelected")) {
+					// Don't use e.srcElement.select() here.  It tries to mess
+					// with the focus() activeElement, which cauases problems
+					// with the virtualKeyboard.
+					e.srcElement.selectionStart = 0;
+					e.srcElement.selectionEnd = e.srcElement.value.length;
+				} else {
+					e.srcElement.value = "";
+				}
 				e.preventDefault();
 			}
 			// Alt+R: Fast Reconnect from NerfBar
@@ -281,6 +292,7 @@ class NerfBar {
 		}
 		let ret = this.historybuf[this.historyoffset];
 		if(ret == undefined) {
+			this.focus();
 			return("");
 		} 
 		return(ret);
@@ -290,11 +302,31 @@ class NerfBar {
 	// the wordstack.  Ensures that button/menu selections make it into the
 	// nerfbar history.
 	paste(data) {
+		let nl = false;
 		if( data.endsWith('\n') === true ) {
-			// strip the \n before putting it in the nerfbar
+			// strip the \n and set the nl flag
 			data = data.slice(0,-1);
-			this.focuselement.value += data;
-			// and simulate an enter key event in nerfbar.
+			nl = true;
+		}
+
+		let t= this.focuselement;
+		if(t.selectionStart != t.selectionEnd) {
+			// something in that line in selected. Replace that with the data.
+			// You might think that setSelectionRange() would be great here,
+			// but it wants to mess with focus() of activeElement, which has
+			// bad interactions with virtualKeyboard.
+			t.value = 
+				t.value.slice(0,t.selectionStart) +
+				data +
+				t.value.slice(t.selectionEnd);
+		} else {
+			// nothing selected, but cursor on line somewhere.  append to
+			// input. 
+			t.value += data;
+		}
+		
+		// if the nl flag was set, send the nerfbar contents.
+		if(nl) {
 			const kev = new KeyboardEvent('keydown', {
 				key: 'Enter',
 				code: 'Enter',
@@ -302,9 +334,6 @@ class NerfBar {
 				keyCode: 13
 			});
 			this.focuselement.dispatchEvent(kev);
-		} else {
-			// Just add it to the nerfbar.
-			this.focuselement.value += data;
 		}
 	}
 
@@ -317,8 +346,8 @@ class NerfBar {
 			this.focuselement.placeholder = "Enter hidden text...";
 		} else {
 			this.revealbtn.style.display = "none";
-			this.focuselement.style.color = "revert";
-			this.focuselement.style.textShadow = "unset";
+			this.focuselement.style.removeProperty('color');
+			this.focuselement.style.removeProperty('textShadow');
 			this.focuselement.placeholder = "Enter a command...";
 		}
 	}
