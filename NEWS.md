@@ -1,5 +1,32 @@
 ## What's New
 
+### Version 2.11.0
+
+- Added optional "Keep Command Selected" behavior to the nerfbar line editor.
+  Instead clearing the input after it is sent, the input is selected and left
+  in the buffer so that: 'Enter' will re-send the same command; hitting the
+  'down history' arrow will erase the command; and any other keystroke should
+  overwrite the selection.  (Keeping the last command in the line editor is a
+  non-standard behavior in a traditional line mode Telnet client, but it is a
+  common behavior in many line-mode-only MUD clients that MUD players have
+  grown accustomed to, and have requested.)
+
+- Added additional Ctrl-M shortcut and keyboard focus management.  Ctrl-M will
+  jump between the terminal / line editor and the menubox.  Any non menu
+  navigation keystrokes made while the menubox or a submenu is active will
+  automatically focus and go to the terminal.
+
+
+### Version 2.10.0
+
+- Logout menu has changed to support a fast game reload (game disconnect
+  followed by game reconnect) option.  Also zvailable as Alt-R keyboard
+  shortcut withing the nerfbar line editor interface.
+
+- Added an explicit client reload option to the logout menu to request fresh
+  client code from the locid server.  Normally the client code detects a change
+  in locid server version, but reload option can be useful for development.
+
 ### Version 2.9.0
 
 - Rework of libtelnet to support MCCP2 and MCCPX-draft compression protocols.

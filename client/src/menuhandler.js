@@ -50,6 +50,7 @@ class MenuHandler {
 		this.menuThemes = this.consolodateMenuThemes();
 		this.menuThemename = this.menuThemes[0];
 		this.netstat = new NetStat(this.lociterm,this);
+		this.lastFocusedBoxButton = undefined;
 
 		// make the menuhandler in the menuhandler div that is already on the
 		// page, or if that doesn't exist, create it under this lociterm.  Note
@@ -147,7 +148,7 @@ class MenuHandler {
 			e.classList.add("menuside-close");
 		} 
 		this.openwindow[name] =0;
-		e.blur();
+		//e.blur();
 	};
 
 	// open the first menu in the chain
@@ -165,6 +166,9 @@ class MenuHandler {
 		for (m in this.openwindow) {
 			this.close(m);
 		}
+		if(this.lastFocusedBoxButton != undefined) {
+			this.lastFocusedBoxButton.focus();
+		}
 	};
 
 	// send keys through the nerfbar, or the terminal as required.
@@ -180,6 +184,7 @@ class MenuHandler {
 
 	prompt(keys) {
 		this.send(keys);
+		this.lastFocusedBoxButton = undefined;
 		this.lociterm.focus();
 	}
 
@@ -242,9 +247,17 @@ class MenuHandler {
 
 	}
 
+	// focuses the requested id, or whatever menubox button was known to be
+	// selected most recently, or the gear menu container button inside the
+	// menu box.
 	focusMainMenu(id) {
 		if( id == undefined ) {
-			id = "menubox";
+			if(this.lastFocusedBoxButton != undefined) {
+				this.lastFocusedBoxButton.focus();
+				return;
+			} else {
+				id = "menubox";
+			}
 		}
 		let menu = document.getElementById(id);
 		menu.firstElementChild.focus();
@@ -318,7 +331,10 @@ class MenuHandler {
 			// get to set one action, and the if/else sets the priority in case
 			// duplicates are listed. 
 			if ( item.menubar != undefined ) {
-				container.onclick = () => this.start(item.menubar);
+				container.onclick = (e) => { 
+					this.lastFocusedBoxButton = container;
+					this.start(item.menubar);
+				}
 			} else if ( item.send != undefined ) {
 				container.onclick = (e) => { this.send(item.send); }
 			} else if (item.direct != undefined) {
@@ -421,9 +437,26 @@ class MenuHandler {
 				if( e.key === "Escape" ||
 					((e.key == "m") && (e.ctrlKey === true))
 				) {
+					this.lastFocusedBoxButton = undefined;
 					this.lociterm.focus();
 				}
-				// nope, nothing we're interested in.
+
+				// Ignore these keys. Enter and space should activate the
+				// container, not jump to the terminal.
+				switch(e.key) {
+					case 'Enter':
+					case ' ': // space
+						// let the default action (activate) happen 
+						return;
+					default:
+						if(e.ctrlKey == true) return;
+				}
+
+				// For anything else, change the focus to the terminal so
+				// that the keypress lands there.
+				this.lastFocusedBoxButton = undefined;
+				this.lociterm.focus(); 
+
 			});
 
 			// add the svg.  SVG images are supported, but deprecated.  Use the
@@ -443,7 +476,7 @@ class MenuHandler {
 			box.appendChild(container);
 		}
 		box.firstElementChild.setAttribute("tabindex",0);
-		box.firstElementChild.setAttribute("aria-keyshortcuts","control+m");
+		box.firstElementChild.setAttribute("aria-keyshortcuts","control+m ArrowUp ArrowDown");
 		return(box);
 	}
 
@@ -586,9 +619,26 @@ class MenuHandler {
 					if( e.key === "Escape" ||
 						((e.key == "m") && (e.ctrlKey === true))
 					) {
+						this.lastFocusedBoxButton = undefined;
 						this.lociterm.focus();
 					}
-					// nope, nothing we're interested in.
+
+					// Ignore these keys. Enter and space should activate the
+					// container, not jump to the terminal.
+					switch(e.key) {
+						case 'Enter':
+						case ' ': // space 
+							// let the default action (activate) happen.
+							return;
+						default:
+							if(e.ctrlKey == true) return;
+					}
+
+					// For anything else, change the focus to the terminal so
+					// that the keypress lands there.
+					this.lastFocusedBoxButton = undefined;
+					this.lociterm.focus(); 
+
 				});
 
 
@@ -1881,6 +1931,7 @@ class MenuHandler {
 		overlay.onkeydown = ((e)=>{
 			if(e.key === "Escape") {
 				this.done();
+				this.lastFocusedBoxButton = undefined;
 				this.lociterm.focus();
 			}
 		});
