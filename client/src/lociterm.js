@@ -325,6 +325,7 @@ class LociTerm {
 
 	focus(data) {
 		// focusing the terminal/nerfbar first closes any open menus.
+		this.menuhandler.lastFocusedBoxButton = undefined;
 		this.menuhandler.done();
 
 		/* if the nerfbar is active, focus it instead of the terminal. */

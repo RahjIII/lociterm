@@ -77,6 +77,7 @@ class NerfBar {
 
 		input.onfocus = ((e)=> {
 			e.srcElement.classList.remove('nerfbarblur');
+			this.lociterm.menuhandler.lastFocusedBoxButton = undefined;
 			this.lociterm.menuhandler.done();
 		});
 
