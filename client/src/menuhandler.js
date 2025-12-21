@@ -50,6 +50,9 @@ class MenuHandler {
 		this.menuThemes = this.consolodateMenuThemes();
 		this.menuThemename = this.menuThemes[0];
 		this.netstat = new NetStat(this.lociterm,this);
+		// lastFocusedBoxButton, when reset to undefined, means "focus the
+		// system menu button when keyboard focus jumps to the menubox", and is
+		// used externally by this.lociterm.focus.
 		this.lastFocusedBoxButton = undefined;
 
 		// make the menuhandler in the menuhandler div that is already on the
@@ -184,7 +187,6 @@ class MenuHandler {
 
 	prompt(keys) {
 		this.send(keys);
-		this.lastFocusedBoxButton = undefined;
 		this.lociterm.focus();
 	}
 
@@ -336,13 +338,17 @@ class MenuHandler {
 					this.start(item.menubar);
 				}
 			} else if ( item.send != undefined ) {
-				container.onclick = (e) => { this.send(item.send); }
+				container.onclick = (e) => { 
+					this.lastFocusedBoxButton = container;
+					this.send(item.send); 
+				}
 			} else if (item.direct != undefined) {
 				// same as send action but routes directly to the terminal,
 				// bypassing any nerfbar and nerfbar history. Typically used to
 				// send control-character sequences that the nerfbar would
 				// otherwise filter out.
 				s.onclick = () => {
+					this.lastFocusedBoxButton = container;
 					this.lociterm.paste(item.direct);
 				}
 			}
@@ -385,13 +391,12 @@ class MenuHandler {
 			// accessibility.
 			container.onkeydown = ((e)=> {
 				let sib = null;
+				let navKey = true;
 				if(e.key === "ArrowLeft") {
 					sib = e.currentTarget.nextSibling;
-				}
-				if(e.key === "ArrowRight") {
+				} else if (e.key === "ArrowRight") {
 					sib = e.currentTarget.previousSibling;
-				}
-				if(e.key === "ArrowUp") {
+				} else if (e.key === "ArrowUp") {
 					sib = e.currentTarget.previousSibling;
 					for( let i=1; (sib) && (i<menubox.width); i++) {
 						sib = sib.previousSibling;
@@ -404,8 +409,7 @@ class MenuHandler {
 							sib = sib.nextSibling;
 						}
 					}
-				}
-				if(e.key === "ArrowDown") {
+				} else if (e.key === "ArrowDown") {
 					sib = e.currentTarget.nextSibling;
 					for( let i=1; (sib) && (i< menubox.width); i++) {
 						sib = sib.nextSibling;
@@ -418,43 +422,51 @@ class MenuHandler {
 							sib = sib.previousSibling;
 						}
 					}
-				}
-				if(e.key === "Home") {
+				} else if (e.key === "Home") {
 					sib = e.currentTarget.parentElement.firstElementChild;
-				}
-				if(e.key === "End") {
+				} else if (e.key === "End") {
 					sib = e.currentTarget;
 					while(sib.nextSibling) {
 						sib = sib.nextSibling;
 					}
+				} else {
+					navKey = false;
 				}
-				if(sib) {
-					// one of those keypresses set a new focus target.
-					sib.focus();
+
+				// intercepted a grid navigation key
+				if(navKey == true) {
+					if(sib) {
+						// and one of those keypresses set a new focus target.
+						sib.focus();
+					}
 					return;
 				}
+
 				// Any other keys to intercept?
+
+				// Send focus back to terminal data entry
 				if( e.key === "Escape" ||
 					((e.key == "m") && (e.ctrlKey === true))
 				) {
-					this.lastFocusedBoxButton = undefined;
 					this.lociterm.focus();
 				}
 
 				// Ignore these keys. Enter and space should activate the
 				// container, not jump to the terminal.
 				switch(e.key) {
+					case 'Alt':
+					case 'Control':
 					case 'Enter':
+					case 'Meta':
+					case 'Shift':
 					case ' ': // space
-						// let the default action (activate) happen 
+						// let the default action (activate) happen.
 						return;
-					default:
-						if(e.ctrlKey == true) return;
+					default: // keep going
 				}
 
 				// For anything else, change the focus to the terminal so
 				// that the keypress lands there.
-				this.lastFocusedBoxButton = undefined;
 				this.lociterm.focus(); 
 
 			});
@@ -619,28 +631,28 @@ class MenuHandler {
 					if( e.key === "Escape" ||
 						((e.key == "m") && (e.ctrlKey === true))
 					) {
-						this.lastFocusedBoxButton = undefined;
 						this.lociterm.focus();
 					}
 
 					// Ignore these keys. Enter and space should activate the
 					// container, not jump to the terminal.
 					switch(e.key) {
+						case 'Alt':
+						case 'Control':
 						case 'Enter':
-						case ' ': // space 
+						case 'Meta':
+						case 'Shift':
+						case ' ': // space
 							// let the default action (activate) happen.
 							return;
-						default:
-							if(e.ctrlKey == true) return;
+						default: // keep going
 					}
 
 					// For anything else, change the focus to the terminal so
 					// that the keypress lands there.
-					this.lastFocusedBoxButton = undefined;
 					this.lociterm.focus(); 
 
 				});
-
 
 				c.appendChild(s);
 			}
@@ -1931,7 +1943,6 @@ class MenuHandler {
 		overlay.onkeydown = ((e)=>{
 			if(e.key === "Escape") {
 				this.done();
-				this.lastFocusedBoxButton = undefined;
 				this.lociterm.focus();
 			}
 		});

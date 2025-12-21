@@ -196,7 +196,7 @@ class LociPreferences {
 					document.documentElement.style.setProperty('--bgridAnchor-bottom', 'unset');
 				} else {
 					document.documentElement.style.setProperty('--bgridAnchor-top', 'unset');
-					document.documentElement.style.setProperty('--bgridAnchor-bottom', "2em");
+					document.documentElement.style.setProperty('--bgridAnchor-bottom', "var(--finger-size)");
 				}
 				if( anchor[1] == 'l' ) {
 					document.documentElement.style.setProperty('--bgridAnchor-left', "0");

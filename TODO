@@ -1,7 +1,15 @@
 ------- TODO --------------
-* add keyboard navigation to Game Server selection menu
-
 * Feature request for dragable menubox location.
+
+* Add a 'keyboard shortcuts' to the about menu.
+
+* Group the nerfbar preferences in the UI.
+
+* Add an override to make F6 = Ctrl-M shortcut?  (should be a pref not default,
+  because aria accesibility practices say not to steal the browser's f6
+  functionality except as a selectable option.)
+
+* add keyboard navigation to Game Server selection menu
 
 * Document behavior of locibot scanner
 
