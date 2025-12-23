@@ -117,7 +117,21 @@ class LociTerm {
 			allowProposedApi: true 
 		});
 		this.fitAddon = new FitAddon();
+
+		// Enable enhanced unicode support.  Note that as of Dec 2025, the
+		// Unicode11Addon reports unicode 11, but actually implements unicode
+		// 12.  Without the addon, xterm.js defaults to unicode 6.
 		this.unicode11Addon = new Unicode11Addon();
+		this.terminal.loadAddon(this.unicode11Addon);
+
+		// Select the highest available unicode version, whatever it may be.
+		// (The Unicode11Addon may report something higher than 11 someday, as
+		// there are PR's against it actually implementing 12. Setting the
+		// version this way will select the highest version, should xterm.js or
+		// the unicode addon change.)
+		this.terminal.unicode.activeVersion = 
+			Math.max(...this.terminal.unicode.versions);
+
 		this.textEncoder = new TextEncoder();
 		this.textDecoder = new TextDecoder();
 		this.sendq = [];
@@ -134,9 +148,10 @@ class LociTerm {
 		this.encodings = ["utf-8", "cp437", "big5", "gbk", "ascii"];
 		this.encoding = "utf-8";
 		this.cpdecoder = new CpDecoder();
-		// code. 
-		this.terminal.loadAddon(this.unicode11Addon);
-		this.terminal.unicode.activeVersion = '11';
+
+
+
+		console.log(`Unicode version is ${this.terminal.unicode.activeVersion}`);
 		this.terminal.loadAddon(this.fitAddon);
 		this.terminal.options.convertEol = true;
 

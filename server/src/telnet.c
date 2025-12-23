@@ -206,6 +206,14 @@ void loci_environment_init(proxy_conn_t *pc) {
 	pc->environment = g_list_append(pc->environment,
 		loci_new_env_var(TELNET_ENVIRON_VAR,"COLORTERM","truecolor")
 	);
+
+	/* The client code knows what version it supports and could report that up
+	 * to the locid server directly, but there's no dedicated protocol message
+	 * for reporting it yet.  For now... just hardcode it server side. */
+	pc->environment = g_list_append(pc->environment,
+		loci_new_env_var(TELNET_ENVIRON_VAR,"UNICODE_VERSION","11.0.0")
+	);
+
 	/* some mudlet-ism's that some game servers look for. */
 	pc->environment = g_list_append(pc->environment,
 		loci_new_env_var(TELNET_ENVIRON_VAR,"TRUECOLOR","1")

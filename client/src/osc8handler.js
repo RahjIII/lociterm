@@ -24,9 +24,62 @@ class OSC8Handler {
 
 		this.lociterm = lociterm;
 		this.linkpopup = undefined;
+		
+		// Call the osc8 interceptor whenever an OSC8 hyperlink directive is
+		// seen.
+		this.lociterm.terminal.parser.registerOscHandler(
+			8,(data)=>this.interceptor(data)
+		);
 
 		return(this);
 	};
+
+	// interceptor() is called by xterm.js whenever it has recieved a complete
+	// OSC8 sequence (this is when defined, NOT when the user clicks the link.
+	// See linkHandler() for that)
+	interceptor(osc8data) {
+		// return(false) means event not handled, and so xterm.js OSC8 handler
+		// still gets a chance to run. Only return(true) if there is nothing
+		// for the xterm.js osc8 handler to do!
+		
+		// Immediate return, interceptor is not implmenented for anything other
+		// than example code yet.
+		return(false);
+		
+		// Example code for parsing a styled OSC8 link.  See
+		// https://wiki.mudlet.org/w/Area_51#Style_Presets
+
+		let params = osc8data.split(';')[0];
+		let uri = osc8data.split(';')[1];
+		if(uri == '') {
+			// This was an end of hyperlink marker.
+			console.log(`OSC8 Close Marker.`);
+			return(false);
+		} 
+		let url = undefined;
+		try {
+			url = new URL(uri);
+		} catch {
+			console.log(`OSC8 bad URI.`);
+			return(false);
+		}
+		
+		let scheme = url.protocol;  // eg. 'send:'
+		// For MUD send: prompt: etc. type messages, the text will be parsed
+		// into the url.pathname.
+
+		let message = decodeURIComponent(url.pathname); // eg. "say hello"
+
+		let config = {};
+		try { config = JSON.parse(url.searchParams.get('config')); } catch {};
+
+		// now you can access config values in the usual object way.
+		let color = config?.style?.color;
+		let background = config?.style?.background;
+
+		console.log(`OSC8 Parsed: ${scheme} '${message}' in fg=${color} bg=${background}`);
+		return(false);
+	}
 
 	// Returns a linkHandler object suitable for terminal options.
 	linkHandler() {
