@@ -179,6 +179,7 @@ class LociTerm {
 		this.terminal.onBinary((e) => this.onBinaryData(e) );
 		this.terminal.onSelectionChange((e) => this.onSelectionChange(e) );
 
+
 		// bah xtermjs removed the built in bell in 5.0.0
 		this.terminal.audio = new Audio(BellSound);
 		this.terminal.onBell(() => {
@@ -230,10 +231,26 @@ class LociTerm {
 		this.serializeRestore(mydiv.id);
 
 		this.terminal.open(mydiv);
+
+		// Attach a focus handler to any xterm-helper-textareas to close open
+		// menus, and enforce focusing into the xterm terminal.  Has to be
+		// called after the terminal is opened, so that the text area is
+		// instantiated.
+		document.querySelectorAll('.xterm-helper-textarea').forEach( (element) => {
+				element.addEventListener('focus', (e) => { 
+					this.menuhandler.lastFocusedBoxButton = undefined;
+					this.menuhandler.done();
+					e.srcElement.focus();
+				} );
+			}
+		);
+
 		this.fitAddon.fit();
 		this.doWindowResize();
 		this.resetTerm();
 		this.focus();
+
+
 
 		// if this is the first time ever that they've come in, show the welcome/disclaimer 
 		if(localStorage.getItem("disclaimer") == null) {
