@@ -92,6 +92,10 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ BUG - hidden password entry should get removed after linemode blanking is disabled.
+
++ BUG - blur styling isn't reset after linemode blanking is disabled.
+
 + game db is now so big that it takes appreciable time to load up the
   game-select menu in client.  It needs to be paged, or limited. - I limited it
   to 52 games, reduced the transfer size from ~13KB to ~4KB.

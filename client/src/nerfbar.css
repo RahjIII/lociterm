@@ -54,14 +54,20 @@
 }
 
 textarea.nerfbarblur {
-	color: var(--book-cover-color);
+	text-shadow: 0 0 8px black;
+	color: transparent;
 }
-
 
 .nerfbar textarea::selection {
 	color: var(--book-cover-color);
 	background-color: var(--book-paper-color);
 }
+
+textarea.nerfbarblur::selection {
+	text-shadow: 0 0 8px black;
+	color: transparent;
+}
+
 
 .nerfbutton {
 	min-height: var(--finger-size);

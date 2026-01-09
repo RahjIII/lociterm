@@ -76,13 +76,13 @@ class NerfBar {
 		this.focuselement = input;
 
 		input.onfocus = ((e)=> {
-			e.srcElement.classList.remove('nerfbarblur');
+			// e.srcElement.classList.remove('nerfbarblur');
 			this.lociterm.menuhandler.lastFocusedBoxButton = undefined;
 			this.lociterm.menuhandler.done();
 		});
 
 		input.onblur = ((e)=> {
-			e.srcElement.classList.add('nerfbarblur');
+			// e.srcElement.classList.add('nerfbarblur');
 		});
 
 		// This is the primary command dispatch routing for the nerfbar.  You
@@ -339,17 +339,19 @@ class NerfBar {
 	}
 
 	setHiddenMode( mode ) {
+		if( this.hiddenMode != mode ) {
+			this.focuselement.value = "";
+		}
+			
 		this.hiddenMode = mode;
 		if(mode === true) {
 			this.revealbtn.style.display = "flex";
-			this.focuselement.style.color = "transparent";
-			this.focuselement.style.textShadow = "0 0 8px black";
 			this.focuselement.placeholder = "Enter hidden text...";
+			this.focuselement.classList.add('nerfbarblur');
 		} else {
 			this.revealbtn.style.display = "none";
-			this.focuselement.style.removeProperty('color');
-			this.focuselement.style.removeProperty('textShadow');
 			this.focuselement.placeholder = "Enter a command...";
+			this.focuselement.classList.remove('nerfbarblur');
 		}
 	}
 
