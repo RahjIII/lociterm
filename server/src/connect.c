@@ -154,8 +154,10 @@ int loci_connect_requested_game(proxy_conn_t *pc) {
 					ret = loci_connect_to_game_host(pc,hostname,port,ssl);
 					return(ret);
 				case DBSTATUS_NOT_CHECKED:
+				case DBSTATUS_NO_ANSWER:
 					/* not_checked means its still ok to try and connect, to
 					 * see if protocol checks pass.*/
+					/* same with NO_ANSWER */
 					loci_client_send_connectmsg(pc,"checking","Thanks for the suggestion!");
 					/* DO enforce security checks. */
 					security_require(pc,config->db_min_protocol,3);
@@ -163,7 +165,6 @@ int loci_connect_requested_game(proxy_conn_t *pc) {
 					return(ret);
 				case DBSTATUS_BANNED:
 				case DBSTATUS_BAD_PROTOCOL:
-				case DBSTATUS_NO_ANSWER:
 				default:
 					/* These other responses mean we aren't going to try to
 					 * connect again. Admin can review and delete/redact/accept

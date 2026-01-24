@@ -170,12 +170,13 @@ GList *scanner_tbd_list(void) {
 			"FROM GAMEDB AS G "
 		"LEFT JOIN SCAN AS S ON S.GAME = G.ID "
 		"WHERE "
-		"(G.STATUS IS %d) AND "
+		"(G.STATUS IN (%d,%d)) AND "
 		"(unixepoch(CURRENT_TIMESTAMP) - unixepoch(coalesce(S.LASTSCAN,0)) >= %d) AND "
 		"NOT ((coalesce(S.STATUS,%d) IS %d) AND (unixepoch(CURRENT_TIMESTAMP) - unixepoch(coalesce(S.SINCE,CURRENT_TIMESTAMP)) >= %d)) "
 		"ORDER BY S.LASTSCAN"
 		";",
 		DBSTATUS_APPROVED,
+		DBSTATUS_NO_ANSWER,
 		scan_older_than_s,
 		DBSTATUS_NOT_CHECKED,
 		DBSTATUS_NO_ANSWER,

@@ -224,7 +224,9 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 		} else {
 			locid_info(pc,"No protocol check required.");
 			/* We're connected, no more security checks, so mark approved. */
-			if(game_db_get_status(pc) == DBSTATUS_NOT_CHECKED) {
+			if( (game_db_get_status(pc) == DBSTATUS_NOT_CHECKED) ||
+				(game_db_get_status(pc) == DBSTATUS_NO_ANSWER)
+			) {
 				game_db_update_status(pc,DBSTATUS_APPROVED);
 			}
 			scanner_update_status(pc,DBSTATUS_APPROVED);
@@ -307,7 +309,10 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 		}
 
 		if( (get_game_state(pc) == PRXY_BLOCKING) &&
-			(game_db_get_status(pc) == DBSTATUS_NOT_CHECKED)
+			(
+				(game_db_get_status(pc) == DBSTATUS_NOT_CHECKED) ||
+				(game_db_get_status(pc) == DBSTATUS_NO_ANSWER)
+			)
 		) {
 			/* a security check was in process, but the connection has closed
 			 * without passing.*/

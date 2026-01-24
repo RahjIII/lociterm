@@ -971,13 +971,14 @@ void game_db_list_down(void) {
 		"FROM GAMEDB AS g "
 		"LEFT JOIN SCAN AS s ON g.id = s.game "
 			"WHERE "
-			"(g.status is %d) "
+			"(g.status in (%d,%d)) "
 			"AND "
 			"(s.status is not %d) "
 			"ORDER BY s.since"
 		";",
 		scan_down_after_s,
 		DBSTATUS_APPROVED,
+		DBSTATUS_NO_ANSWER,
 		DBSTATUS_APPROVED
 	);
 
@@ -1080,10 +1081,17 @@ void game_db_list_info(int gameid) {
 			"Status",
 			sqlite3_column_text(stmt,3)
 		);
-		fprintf(stdout,"%15.15s: %d days ago\n",
-			"Last Connection",
-			sqlite3_column_int(stmt,4)
-		);
+		int daysago = sqlite3_column_int(stmt,4);
+		if(daysago > 365*30) {
+			fprintf(stdout,"%15.15s: Never\n",
+				"Last Connection"
+			);
+		} else {
+			fprintf(stdout,"%15.15s: %d days ago\n",
+				"Last Connection",
+				sqlite3_column_int(stmt,4)
+			);
+		}
 		row++;
 	}
 	if(row == 0) {
