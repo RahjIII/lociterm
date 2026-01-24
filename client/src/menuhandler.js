@@ -1594,7 +1594,7 @@ class MenuHandler {
 
 		l = document.createElement('p');
 		cdiv.appendChild(l);
-		l.innerText = "Thank you to the Multi User Dungeon #coding discord group for your help and encouragement, Nicky N. for help with the CRT Filters, Tamarindo of StickMUD for help with MCMP, and to every member of the Last Outpost Honor Guard! "
+		l.innerText = "Thank you to the Multi User Dungeon #coding discord group for your help and encouragement, Nicky N. for help with the CRT Filters, Tamarindo of StickMUD for help with MCMP, Sammer from Petria Mud, and to every member of the Last Outpost Honor Guard! "
 
 		divstack.pop(); //imgcontainer
 		cdiv = divstack[divstack.length-1];

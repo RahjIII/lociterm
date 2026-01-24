@@ -92,6 +92,9 @@
 * Server drop perms after launch?
 
 ------------- DONE! -----------------
++ games with NO_ANSWER status should be scanned, and subject to user re-try, so
+  that administrator doesn't have to handle them.
+
 + BUG - hidden password entry should get removed after linemode blanking is disabled.
 
 + BUG - blur styling isn't reset after linemode blanking is disabled.
