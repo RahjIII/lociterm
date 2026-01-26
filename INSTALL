@@ -16,11 +16,18 @@ from https://libwebsockets.org/repo/libwebsockets and rebuild it.
 
 Note that for the cmake step....
 # -DLWS_IPV6=ON because in deb 11 at least, that wasn't the default.
+	(But, it looks like IPV6 may be the lws default going forward, after commit
+	0fed1e15afe745989f929194c31bb8fb46fa37a8 to lws main)
 # -DLWS_WITHOUT_EXTENSIONS=0 enables permessage deflate, and IS REQUIRED by LociTerm
 # -DLWS_WITH_LIBUV=ON to enable libuv loop timers, and IS REQUIRED by LociTerm
 # -DLWS_WITH_EVENT_LIBS=ON to enable event libraries, and IS REQUIRED by LociTerm
 ### -DLWS_WITH_SYS_ASYNC_DNS=1 because the default is 0, and the scanner needs async
-	(Not recommended in v4.4-stable, due to lws bugs)
+	( Not recommended in v4.4-stable or v4.5-stable, due to lws bugs, HOWEVER
+	after 
+	commit f06bf536c9de123e9ffa99ff8ac2d03ad0717ad2 (HEAD -> main, origin/main, origin/HEAD) 
+	Author: Andy Green <andy@warmcat.com> 
+	Date:   Sun Jan 25 20:24:54 2026 +0000 
+	it looks like the ASYNC_DNS problems may have been fixed!)
 ### -DCMAKE_BUILD_TYPE=DEBUG will make a debug image of libwebsockets. Not normally used.
 
 cd ~/othercode
@@ -35,6 +42,8 @@ sudo make install
 Tue Mar 11 12:48:46 AM EDT 2025
 NOTE, libwebsockets main is working again as of commit
 ef4a85d0e14270e83ce74213a0b4bb53e29a07be.  I mostly use the main branch.  -jsj
+Sun Jan 25 05:40:55 PM EST 2026
+Looks like ASYNC_DNS fixes just hit the main branch too.
 
 
 2. Building LOciTerm

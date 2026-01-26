@@ -56,7 +56,7 @@ char *dbstatus_str[] = {
 };
 
 /* database_version doesn't have to go up by 1, but it must never go down. */
-int database_version = 252000;
+int database_version = 260126;
 
 char database_definition[] = \
 	"CREATE TABLE IF NOT EXISTS DBVERSION ( "
@@ -92,6 +92,10 @@ char database_definition[] = \
 		"MSSP JSONB, "
 		"FOREIGN KEY(GAME) REFERENCES GAMEDB(ID) "
 	");"
+	"CREATE INDEX IF NOT EXISTS MSSP_IDX "
+		"ON MSSP "
+		"(CREATED) "
+	";"
 	"CREATE TABLE IF NOT EXISTS SCAN ( "
 		"GAME INTEGER NOT NULL PRIMARY KEY, "
 		"LASTSCAN DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "
@@ -277,7 +281,6 @@ json_object *game_db_gamelookup(char *host, int port, int ssl) {
 		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
 		return(NULL);
 	}
-
 	sqlstr = sqlite3_mprintf(
 		"SELECT DISTINCT JSON_OBJECT( "
 			"'id',ID, "
@@ -289,12 +292,10 @@ json_object *game_db_gamelookup(char *host, int port, int ssl) {
 			"select "
 				"g.id, "
 				"host,port,ssl, "
-				"MAX(m.created), "
 				"default_game, "
-				"COALESCE( g.ICON, json_extract(m.mssp,'$.ICON')) as ICON, "
+				"g.ICON,"
 				"status "
 			"FROM GAMEDB as g "
-			"LEFT JOIN MSSP AS m on g.ID == m.game "
 			"WHERE "
 				"HOST IS %Q COLLATE NOCASE AND "
 				"PORT IS %d AND "
@@ -525,7 +526,7 @@ int game_db_update_mssp(proxy_conn_t *pc) {
 	int ret;
 	int id = json_object_get_int(json_object_object_get(pc->game_db_entry,"id"));
 
-	if(id == 0) return(-1);
+	//if(id == 0) return(-1);
 
 	/* Check updated status before replacing the db's most recent mssp.  Its
 	 * just easier to get at the most recent one before replacing it. :) */
@@ -573,6 +574,31 @@ int game_db_update_mssp(proxy_conn_t *pc) {
 		ret = game_db_exec(pc,sqlstr);
 		sqlite3_free(sqlstr);
 		if(ret != SQLITE_OK) return(ret);
+	}
+
+	const char *icon = json_object_get_string(
+		json_object_object_get(pc->mssp,"ICON")
+	);
+	const char *website = json_object_get_string(
+		json_object_object_get(pc->mssp,"WEBSITE")
+	);
+	const char *name = json_object_get_string(
+		json_object_object_get(pc->mssp,"NAME")
+	);
+	sqlstr = sqlite3_mprintf(
+		"UPDATE GAMEDB SET "
+			"ICON = %Q, "
+			"WEBSITE = %Q, "
+			"NAME = %Q "
+			"WHERE ID IS %d "
+		";",
+		icon,website,name,
+		id
+	);
+	ret = game_db_exec(pc,sqlstr);
+	sqlite3_free(sqlstr);
+	if(ret != SQLITE_OK) {
+		locid_debug(DEBUG_DB,NULL,"Ooops.");
 	}
 
 	return(ret);
@@ -637,8 +663,7 @@ json_object *game_db_get_server_list(void) {
 				"'updated', UPDATED "
 			") FROM ( "
 				"SELECT "
-					"MAX(m.created), "
-					"COALESCE( g.NAME, json_extract(m.mssp,'$.NAME')) as NAME, "
+					"g.NAME as NAME, "
 					"HOST, "
 					"PORT, "
 					"SSL, "
@@ -646,13 +671,8 @@ json_object *game_db_get_server_list(void) {
 					"IIF( (UNIXEPOCH(CURRENT_TIMESTAMP)-UNIXEPOCH(GAME_UPDATED))/3600 <= %d ,1,0) "
 						"as UPDATED "
 				"FROM GAMEDB AS g "
-				"LEFT JOIN MSSP AS m on g.ID == m.GAME "
 				"WHERE "
 					"(STATUS IS %d) "
-					"AND ( (json_extract(m.mssp,'$.NAME') IS NULL) OR "
-						"json_extract(m.mssp,'$.NAME') collate nocase "
-						"NOT IN ('mygame','none') "
-					") "
 				"GROUP BY g.ID "
 				"ORDER BY "
 					"DEFAULT_GAME DESC, "
@@ -843,7 +863,7 @@ json_object *game_db_mssplookup(char *host, int port, int ssl) {
 				"GAME_UPDATED, "
 				"MSSP "
 			"FROM GAMEDB AS g "
-			"LEFT JOIN MSSP AS m ON g.ID == m.GAME "
+			"INNER JOIN MSSP AS m ON g.ID == m.GAME "
 			"WHERE "
 			"HOST IS %Q COLLATE NOCASE AND "
 			"PORT IS %d AND "
@@ -969,7 +989,7 @@ void game_db_list_down(void) {
 			"(unixepoch(CURRENT_TIMESTAMP) - unixepoch(coalesce(s.since,CURRENT_TIMESTAMP)) >= %d) as down, "
 			"cast ((julianday(CURRENT_TIMESTAMP) - julianday(s.since)) as integer) as fordays "
 		"FROM GAMEDB AS g "
-		"LEFT JOIN SCAN AS s ON g.id = s.game "
+		"INNER JOIN SCAN AS s ON g.id = s.game "
 			"WHERE "
 			"(g.status in (%d,%d)) "
 			"AND "
