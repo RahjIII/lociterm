@@ -272,8 +272,7 @@ int loci_connect_to_game_host(proxy_conn_t *pc, char *hostname, int port, int ss
 		 * doesn't trigger at all.  Simulate a lws error event to trigger the
 		 * close and cleanup flow. */
 		callback_loci_game(NULL,LWS_CALLBACK_USER,pc,NULL,0);
-		/* return -1 means hang up on the ws client, triggering _CLOSE flow */
-		return -1;
+		return(0);
 	}
 
 	loci_client_send_key(pc);
