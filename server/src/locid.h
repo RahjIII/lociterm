@@ -68,6 +68,7 @@ struct locid_conf {
 	gchar **mssp_notable_fields;
 	int scan_enabled;
 	int scan_dry_run;
+	int scan_forced;
 	int scan_check_interval;
 	int scan_expired;
 	int scan_down;
@@ -82,5 +83,6 @@ extern struct locid_conf *config;
 /* exported function declarations */
 char *get_proxy_name(void);
 struct lws_context *locid_get_default_lws_context(void);
+void locid_stop(void);
 
 #endif /* LO_LOCID_H */

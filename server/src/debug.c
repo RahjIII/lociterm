@@ -75,10 +75,11 @@ void locid_log_init(char *pathname) {
 	if(pathname && *pathname) {
 
 		if(! (out=fopen(pathname,"a"))) {
-			locid_log("Can't open log file %s: %s",pathname,strerror(errno));
-			exit(EXIT_FAILURE);
+			locid_log("Can't write log-file '%s': %s",pathname,strerror(errno));
+			// exit(EXIT_FAILURE);
+		} else {
+			locid_logfile = out;
 		}
-		locid_logfile = out;
 	}
 }
 	

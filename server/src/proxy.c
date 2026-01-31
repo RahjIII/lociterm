@@ -506,6 +506,20 @@ int loci_proxy_watchdog(proxy_conn_t *pc) {
 
 }
 
+// return a count of how many scan connections are still running.
+int get_active_scan_count(void) {
+
+	GList *l;
+	proxy_conn_t *pc;
+	int count = 0;
+
+	for(l = proxyconns;l;l=l->next) {
+		pc = (proxy_conn_t *)(l->data);
+		if(pc->scanner) count++;
+	}
+	return(count);
+}
+
 void loci_proxy_log_status(void) {
 
 	GList *l;

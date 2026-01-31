@@ -397,6 +397,7 @@ int main(int argc, char **argv) {
 	char *configfilename = NULL;
 	int debug = 0;
 	int localmode = 0;
+	int scan_forced = 0;
 	int listmode = -1;
 	int listscan = 0;
 	int listinfo = -1;
@@ -404,7 +405,7 @@ int main(int argc, char **argv) {
 	int dbupdate_id = -1;
 	game_db_status_t dbupdate_status = DBSTATUS_NOT_CHECKED;
 	struct lws_context_creation_info info;
-	struct lws_context *context;
+	struct lws_context *context = NULL;
 	struct lws_http_mount *mount;
 	char *s;
 	char buf[1024];
@@ -414,7 +415,7 @@ int main(int argc, char **argv) {
 	/* ...and begin. */
 
 	while(1) {
-		char *short_options = "hbc:dvalsA:B:R:D:i:";
+		char *short_options = "hbc:dvalsfA:B:R:D:i:";
 		static struct option long_options[] = {
 			{"help", no_argument,0,'h'},
 			{"browser", no_argument,0,'b'},
@@ -425,6 +426,7 @@ int main(int argc, char **argv) {
 			{"list-approved", no_argument,0,'a'},
 			{"list-denied", no_argument,0,'l'},
 			{"list-scan", no_argument,0,'s'},
+			{"force-scan", no_argument,0,'f'},
 			{"approve", required_argument,0,'A'},
 			{"ban", required_argument,0,'B'},
 			{"redact", required_argument,0,'R'},
@@ -455,6 +457,9 @@ int main(int argc, char **argv) {
 				break;
 			case 'l':
 				listmode = 0;
+				break;
+			case 'f':
+				scan_forced = 1;
 				break;
 			case 's':
 				listscan = 1;
@@ -490,6 +495,7 @@ int main(int argc, char **argv) {
 				fprintf(stdout,"\t-a / --list-approved list approved games by id\n");
 				fprintf(stdout,"\t-l / --list-denied   list denied games by id\n");
 				fprintf(stdout,"\t-s / --list-scan     list scaned down games by id\n");
+				fprintf(stdout,"\t-f / --force-scan    scan down games and exit\n");
 				fprintf(stdout,"\t-i / --info          show game info for id\n");
 				fprintf(stdout,"\t-A / --approve <id>  Mark game approved\n");
 				fprintf(stdout,"\t-R / --redact <id>   Mark game approved/redacted\n");
@@ -535,7 +541,12 @@ int main(int argc, char **argv) {
 	}
 	lws_set_log_level(lwslogs, (lws_log_emit_t)locid_log_lws);
 
-	locid_log_init(config->log_file);
+	if(scan_forced) {
+		/* log to stderr instead of configured log file. */
+		locid_log_init(NULL);
+	} else {
+		locid_log_init(config->log_file);
+	}
 
 	/* init the database. */
 	if(strcasecmp(config->db_engine,"none")) {
@@ -595,6 +606,7 @@ int main(int argc, char **argv) {
 	}
 
 	config->client_localmode = localmode;
+	config->scan_forced = scan_forced;
 
 	/* init the mountpoint struct for lws's built in http server. */
 	mount = (struct lws_http_mount *)malloc(sizeof(struct lws_http_mount));
@@ -660,10 +672,23 @@ int main(int argc, char **argv) {
 	/* associate the signal handler. */
 	info.signal_cb = signal_callback_lws;
 
+	/* Unless in scan_force mode, bind the listening socket */
+	if(scan_forced) {
+		info.port = 0;
+	}
+
 	locid_default_lws_context = context = lws_create_context(&info);
 	if (!context) {
-		locid_log("LWS init failed!\n");
+		locid_log("LWS init failed! Is something running on port %d?\n",
+			config->listening_port
+		);
 		return 1;
+	}
+
+	if(!scan_forced) {
+		locid_log("LociTerm server listening on port %d.", 
+			config->listening_port
+		);
 	}
 
 	/* add some signal handlers */
@@ -671,11 +696,6 @@ int main(int argc, char **argv) {
 
 	/* add in the timer for the db scanner. */
 	scanner_init(uvloop,config);
-
-	/* end websocket init */
-	locid_log("LociTerm server listening on port %d.", 
-		config->listening_port
-	);
 
 	if(config->client_localmode == 1) {
 		launch_web_browser(config);
@@ -729,4 +749,9 @@ void free_extra_mimetypes(struct lws_protocol_vhost_options *f) {
 
 struct lws_context *locid_get_default_lws_context(void) {
 	return(locid_default_lws_context);
+}
+
+/* Stop the main event loop. */
+void locid_stop(void) {
+	uv_stop(uv_default_loop());
 }

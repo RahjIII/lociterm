@@ -268,10 +268,10 @@ int loci_connect_to_game_host(proxy_conn_t *pc, char *hostname, int port, int ss
 	if (!lws_client_connect_via_info(&info)) {
 		locid_debug(DEBUG_CLIENT,pc,"client connect via info failed.");
 		locid_info(pc,"game connect via info failed.");
-		if(game_db_get_status(pc) == DBSTATUS_NOT_CHECKED) {
-			game_db_update_status(pc,DBSTATUS_NO_ANSWER);
-		}
-		loci_client_invalidate_key(pc);
+		/* if the connect via info fails this early, the lws callback loop
+		 * doesn't trigger at all.  Simulate a lws error event to trigger the
+		 * close and cleanup flow. */
+		callback_loci_game(NULL,LWS_CALLBACK_USER,pc,NULL,0);
 		/* return -1 means hang up on the ws client, triggering _CLOSE flow */
 		return -1;
 	}

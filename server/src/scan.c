@@ -55,6 +55,7 @@ void scanner_main(uv_timer_t *handle);
 struct scan_tbd_entry *new_scan_tbd_entry(void);
 void free_scan_tbd_entry(struct scan_tbd_entry *f);
 GList *scanner_tbd_list(void);
+GList *scanner_forced_list(void);
 void scanner_dispatch(struct scan_tbd_entry *tbde);
 
 /* ---- code starts here. ---- */
@@ -115,12 +116,21 @@ void scanner_main(uv_timer_t *handle) {
 
 	static GList *tbd = NULL;
 	struct scan_tbd_entry *tbde;
+	static int runcount = 0;
 
 	if(tbd == NULL) {
-		tbd = scanner_tbd_list();
+		if(config->scan_forced) {
+			if(runcount == 0) {
+				locid_log("Running in Forced scan mode, will exit upon completion.");
+				tbd = scanner_forced_list();
+			}
+		} else {
+			tbd = scanner_tbd_list();
+		}
 		if(g_list_length(tbd) != 0) {
 			locid_log("Scanner found %d games to refresh.",g_list_length(tbd));
 		}
+		runcount++;
 	}
 
 	/* dispatch some of the hosts on the tbd list. */
@@ -139,7 +149,22 @@ void scanner_main(uv_timer_t *handle) {
 			g_list_length(tbd), scan_batch_delay
 		);
 	} else {
-		locid_debug(DEBUG_SCAN,NULL,"Scanner dispatch complete.");
+		if(config->scan_forced) {
+			int waiting_on = get_active_scan_count();
+			if(waiting_on > 0) {
+				/* give 'em some more time to complete. */
+				uv_timer_start(&scan_batch_timer, scanner_main, scan_batch_delay,0);
+				locid_debug(DEBUG_SCAN,NULL,"Waiting for %d scans to complete.",
+					waiting_on
+				);
+			} else {
+				/* We're done, shut 'er down! */
+				locid_log("Forced scan completed, exiting.");
+				locid_stop();
+			}
+		} else {
+			locid_debug(DEBUG_SCAN,NULL,"Scanner dispatch complete.");
+		}
 	}
 	uv_timer_again(handle);
 
@@ -181,6 +206,64 @@ GList *scanner_tbd_list(void) {
 		DBSTATUS_NOT_CHECKED,
 		DBSTATUS_NO_ANSWER,
 		scan_down_after_s
+	);
+
+	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) == SQLITE_OK) ){
+		while (sqlite3_step(stmt) == SQLITE_ROW) {
+			tbde = new_scan_tbd_entry();
+			tbde->id = sqlite3_column_int(stmt,0);
+			tbde->host = (strdup((char *)sqlite3_column_text(stmt,1)));
+			tbde->port = sqlite3_column_int(stmt,2);
+			tbde->ssl = sqlite3_column_int(stmt,3);
+			tbde->status = sqlite3_column_int(stmt,4);
+			tbde->laststatus = tbde->status;
+			tbd = g_list_append(tbd,tbde);
+		}
+		sqlite3_finalize(stmt);
+	} else {
+		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
+		return(NULL); 
+	}
+
+	/* cleanup: */
+	sqlite3_free(sqlstr);
+	sqlite3_close(db);
+	return(tbd);
+
+}
+
+/* returns a GList of scan failed or not yet scanned games to be re-scanned. */
+GList *scanner_forced_list(void) {
+
+	char *sqlstr;
+	GList *tbd = NULL;
+	sqlite3 *db;
+	sqlite3_stmt *stmt;
+	struct scan_tbd_entry *tbde;
+
+	if(!config->db_inuse) { 
+		return(NULL);
+	}
+
+	if ( (sqlite3_open(config->db_location, &db) != SQLITE_OK) ) {
+		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
+		return(NULL); 
+	}
+
+	sqlstr = sqlite3_mprintf(
+		"SELECT G.ID, G.HOST, G.PORT, G.SSL, S.STATUS "
+			"FROM GAMEDB AS G "
+		"LEFT JOIN SCAN AS S ON S.GAME = G.ID "
+		"WHERE "
+		"(G.STATUS IN (%d,%d)) AND "
+		"(coalesce(S.STATUS,%d) IN (%d,%d)) "
+		"ORDER BY S.LASTSCAN"
+		";",
+		DBSTATUS_APPROVED,
+		DBSTATUS_NO_ANSWER,
+		DBSTATUS_NO_ANSWER,
+		DBSTATUS_NO_ANSWER,
+		DBSTATUS_NOT_CHECKED
 	);
 
 	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) == SQLITE_OK) ){

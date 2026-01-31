@@ -147,9 +147,14 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 	uint8_t *data;
 	int m, a;
 
-	/* pc is stored in the wsi user data area.  fetch it.  (pc may come back
-	 * NULL on the first time this is called, but that's ok.)*/
-	pc = (proxy_conn_t *)lws_get_opaque_user_data(wsi);
+	if(reason == LWS_CALLBACK_USER) {
+		/* pc is passed in via the user pointer */
+		pc = user;
+	} else {
+		/* pc is stored in the wsi user data area.  fetch it.  (pc may come back
+		 * NULL on the first time this is called, but that's ok.)*/
+		pc = (proxy_conn_t *)lws_get_opaque_user_data(wsi);
+	}
 
 	locid_debug(DEBUG_EVENTNO,pc,"event: %d.",reason);
 
@@ -170,6 +175,7 @@ int callback_loci_game(struct lws *wsi, enum lws_callback_reasons reason,
 	}
 
 	switch (reason) {
+	case LWS_CALLBACK_USER:
 	case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
 		locid_debug(DEBUG_LWS,pc,"LWS_CALLBACK_CLIENT_CONNECTION_ERROR.");
 

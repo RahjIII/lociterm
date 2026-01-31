@@ -987,7 +987,8 @@ void game_db_list_down(void) {
 			"id,"
 			"host,port,ssl, "
 			"(unixepoch(CURRENT_TIMESTAMP) - unixepoch(coalesce(s.since,CURRENT_TIMESTAMP)) >= %d) as down, "
-			"cast ((julianday(CURRENT_TIMESTAMP) - julianday(s.since)) as integer) as fordays "
+			"cast ((julianday(CURRENT_TIMESTAMP) - julianday(s.since)) as integer) as fordays, "
+			"(g.last_connection is NOT NULL) as wasup "
 		"FROM GAMEDB AS g "
 		"INNER JOIN SCAN AS s ON g.id = s.game "
 			"WHERE "
@@ -1011,7 +1012,7 @@ void game_db_list_down(void) {
 
 	fprintf(stdout,"%s\t%s %s\t%s %s %s\n",
 		"ID",
-		"Scan",
+		"Status   ",
 		"Days",
 		"Host",
 		"Port",
@@ -1023,9 +1024,11 @@ void game_db_list_down(void) {
 	while (sqlite3_step(stmt) != SQLITE_DONE) {
 		int ssl = sqlite3_column_int(stmt,3);
 		int down = sqlite3_column_int(stmt,4);
-		fprintf(stdout,"%d\t%s %4d\t%s %d %s\n",
+		int wasup = sqlite3_column_int(stmt,6);
+		fprintf(stdout,"%d\t%s %s %4d\t%s %d %s\n",
 			sqlite3_column_int(stmt,0), /* id */
-			(down==1)?"DOWN":"Fail",
+			(wasup==1)?"✔":"✘",
+			(down==1)?"Gaveup":"Retry ",
 			sqlite3_column_int(stmt,5), /* days */
 			sqlite3_column_text(stmt,1),/* host */
 			sqlite3_column_int(stmt,2), /* port */
@@ -1104,11 +1107,11 @@ void game_db_list_info(int gameid) {
 		int daysago = sqlite3_column_int(stmt,4);
 		if(daysago > 365*30) {
 			fprintf(stdout,"%15.15s: Never\n",
-				"Last Connection"
+				"Last Played"
 			);
 		} else {
 			fprintf(stdout,"%15.15s: %d days ago\n",
-				"Last Connection",
+				"Last Played",
 				sqlite3_column_int(stmt,4)
 			);
 		}
@@ -1127,7 +1130,8 @@ void game_db_list_info(int gameid) {
 		"select "
 			"cast ((julianday(CURRENT_TIMESTAMP) - julianday(coalesce(lastscan,0))) as integer), "
 			"(select status from gamedbstatus where GAMEDBSTATUS.id = s.status), "
-			"cast ((julianday(CURRENT_TIMESTAMP) - julianday(coalesce(since,0))) as integer) "
+			"cast ((julianday(CURRENT_TIMESTAMP) - julianday(coalesce(since,0))) as integer), "
+			"datetime(lastscan) "
 		"FROM SCAN as s "
 		"where s.game is %d",
 		gameid
@@ -1145,9 +1149,9 @@ void game_db_list_info(int gameid) {
 		if(sqlite3_column_text(stmt,0) == NULL) {
 			break;
 		}
-		fprintf(stdout,"%15.15s: %d days ago\n",
+		fprintf(stdout,"%15.15s: %s\n",
 			"Last scanned",
-			sqlite3_column_int(stmt,0)
+			sqlite3_column_text(stmt,3)
 		);
 		fprintf(stdout,"%15.15s: %s for %d days\n",
 			"Scan Status",

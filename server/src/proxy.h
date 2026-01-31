@@ -112,9 +112,11 @@ char *get_proxy_state_str(proxy_state_t state);
 int security_checked(proxy_conn_t *pc,int security_flags);
 void security_require(proxy_conn_t *pc,int security_flags,int pulses);
 void security_enforcement(proxy_conn_t *pc);
+int get_active_scan_count(void);
 
 const char *loci_get_client_hostname(proxy_conn_t *pc);
 const char *loci_get_game_uuid(proxy_conn_t *pc);
+
 
 void loci_client_shutdown(proxy_conn_t *pc);
 void loci_client_send_echosga(proxy_conn_t *pc);

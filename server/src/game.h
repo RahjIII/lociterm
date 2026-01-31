@@ -27,6 +27,7 @@
 #include <netinet/tcp.h>
 
 /* global #defines */
+#define USER_CALLBACK_CLIENT_CONNECTION_ERROR 1001
 
 /* structs and typedefs */
 typedef struct game_conn {
