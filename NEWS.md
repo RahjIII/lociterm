@@ -1,6 +1,6 @@
 ## What's New
 
-### Version 2.14.0
+### Version 2.15.0
 
 - Added 'scan-force' option to locid to force a refresh of the DOWN hosts in
   the database without needing to update the [scan] portion of the config file.

@@ -24,7 +24,7 @@
 # major.minor.patch semver.  If you are adding localized changes and want to
 # bump a version number, don't modify LOCITERM_CORE, instead see the META_
 # section below.
-LOCITERM_CORE = 2.14.0
+LOCITERM_CORE = 2.15.0
 
 # Define these meta-data variables after this comment block if you are keeping
 # localized modifications to the code that are not included in the upstream
