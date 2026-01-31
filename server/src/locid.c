@@ -170,7 +170,7 @@ char *get_conf_string(GKeyFile * gkf, gchar * group, gchar * key, gchar * def) {
 	if ((gs = g_key_file_get_string(gkf, group, key, NULL))) {
 		return (gs);
 	} else {
-		return (strdup(def));
+		return (g_strdup(def));
 	}
 }
 
@@ -183,6 +183,7 @@ int get_conf_int(GKeyFile * gkf, gchar * group, gchar * key, int def) {
 	if (error == NULL) {
 		return (gs);
 	} else {
+		g_error_free(error);
 		return (def);
 	}
 }
@@ -196,6 +197,7 @@ int get_conf_boolean(GKeyFile * gkf, gchar * group, gchar * key, int def) {
 	if (error == NULL) {
 		return (gs);
 	} else {
+		g_error_free(error);
 		return (def);
 	}
 
@@ -286,7 +288,7 @@ struct locid_conf *new_config(char *filename) {
 	} else {
 		c->db_suggestions = DBSTATUS_BANNED;
 	}
-	free(tmpstr);
+	g_free(tmpstr);
 
 	/*tmpstr = get_conf_string(gkf, "game-db", "min_protocol", "mud"); */
 	tmpstr = get_conf_string(gkf, "game-db", "min_protocol", "none");
@@ -302,7 +304,7 @@ struct locid_conf *new_config(char *filename) {
 		/* make an unknown value default to CHECK TELNET */
 		c->db_min_protocol = CHECK_TELNET;
 	}
-	free(tmpstr);
+	g_free(tmpstr);
 
 	tmpstr = get_conf_string(gkf, "game-db", "allow_numeric_ip", "no");
 	if (!strcasecmp(tmpstr,"yes")) {
@@ -310,6 +312,7 @@ struct locid_conf *new_config(char *filename) {
 	} else {
 		c->db_allow_numeric_ip = 0;
 	}
+	g_free(tmpstr);
 
 	c->db_banned_ports = NULL;
 	tmpstr = get_conf_string(gkf, "game-db", "banned_ports", 
@@ -323,10 +326,15 @@ struct locid_conf *new_config(char *filename) {
 		c->db_banned_ports = g_list_append(c->db_banned_ports,lport);
 		if( (d=strchr(d,','))) d++;
 	}
-	free(tmpstr);
+	g_free(tmpstr);
 
-	c->mssp_crawl_delay = atoi(get_conf_string(gkf,"mssp","crawl_delay","0"));
-	c->mssp_recently_updated = atoi(get_conf_string(gkf,"mssp","recently_updated","168"));
+	tmpstr = get_conf_string(gkf,"mssp","crawl_delay","0");
+	c->mssp_crawl_delay = atoi(tmpstr);
+	g_free(tmpstr);
+
+	tmpstr = get_conf_string(gkf,"mssp","recently_updated","168");
+	c->mssp_recently_updated = atoi(tmpstr);
+	g_free(tmpstr);
 
 	c->mssp_notable_fields = g_key_file_get_string_list (
 		gkf, "mssp", "notable_fields", NULL, NULL
@@ -358,29 +366,29 @@ void free_config(struct locid_conf *c) {
 
 	if(!c) return;
 
-	if(c->log_file) free(c->log_file);
-	if(c->vhost_name) free(c->vhost_name);
-	if(c->mountpoint) free(c->mountpoint);
-	if(c->origin) free(c->origin);
-	if(c->default_doc) free(c->default_doc);
+	if(c->log_file) g_free(c->log_file);
+	if(c->vhost_name) g_free(c->vhost_name);
+	if(c->mountpoint) g_free(c->mountpoint);
+	if(c->origin) g_free(c->origin);
+	if(c->default_doc) g_free(c->default_doc);
 	if(c->locid_debugflags) {
 		g_strfreev(c->locid_debugflags);
 	}
-	if(c->client_security) free(c->client_security);
-	if(c->client_service) free(c->client_service);
-	if(c->client_launcher) free(c->client_launcher);
-	if(c->game_security) free(c->game_security);
-	if(c->game_host) free(c->game_host);
-	if(c->game_service) free(c->game_service);
-	if(c->game_name) free(c->game_name);
-	if(c->cert_file) free(c->cert_file);
-	if(c->key_file) free(c->key_file);
-	if(c->chain_file) free(c->chain_file);
-	if(c->locid_proxy_name) free(c->locid_proxy_name);
-	if(c->db_engine) free(c->db_engine);
-	if(c->db_location) free(c->db_location);
+	if(c->client_security) g_free(c->client_security);
+	if(c->client_service) g_free(c->client_service);
+	if(c->client_launcher) g_free(c->client_launcher);
+	if(c->game_security) g_free(c->game_security);
+	if(c->game_host) g_free(c->game_host);
+	if(c->game_service) g_free(c->game_service);
+	if(c->game_name) g_free(c->game_name);
+	if(c->cert_file) g_free(c->cert_file);
+	if(c->key_file) g_free(c->key_file);
+	if(c->chain_file) g_free(c->chain_file);
+	if(c->locid_proxy_name) g_free(c->locid_proxy_name);
+	if(c->db_engine) g_free(c->db_engine);
+	if(c->db_location) g_free(c->db_location);
 	if(c->db_banned_ports) {
-		g_list_free_full(c->db_banned_ports,free);
+		g_list_free_full(c->db_banned_ports,g_free);
 	}
 	if(c->mssp_notable_fields) {
 		g_strfreev(c->mssp_notable_fields);
@@ -601,8 +609,6 @@ int main(int argc, char **argv) {
 			
 		locid_log("Banned port list contains %d ports.",g_list_length(config->db_banned_ports));
 
-		game_db_update_telopt_names();
-		
 	}
 
 	config->client_localmode = localmode;
@@ -710,7 +716,12 @@ int main(int argc, char **argv) {
 	lws_context_destroy(context);
 	uv_loop_close(uvloop);
 	free_proxyconns();
-	if(mount) free(mount);
+	if(mount) {
+		if(mount->extra_mimetypes) {
+			free_extra_mimetypes(mount->extra_mimetypes);
+		}
+		free(mount);
+	}
 	free_config(config);
 	locid_log("Shutdown complete.");
 }
@@ -740,8 +751,8 @@ void free_extra_mimetypes(struct lws_protocol_vhost_options *f) {
 	struct lws_protocol_vhost_options *n;
 	while(f) {
 		n = f->next;
-		if(n->name) free(n->name);
-		if(n->value) free(n->value);
+		if(f->name) free(f->name);
+		if(f->value) free(f->value);
 		free(f);
 		f = n;
 	}

@@ -1,5 +1,13 @@
 ## What's New
 
+### Version 2.14.0
+
+- Added 'scan-force' option to locid to force a refresh of the DOWN hosts in
+  the database without needing to update the [scan] portion of the config file.
+
+- Removed the requirement that the configured log-file be writable before locid
+  can do anything.
+
 ### Version 2.11.0
 
 - Added optional "Keep Command Selected" behavior to the nerfbar line editor.

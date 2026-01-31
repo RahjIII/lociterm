@@ -50,9 +50,11 @@ MISSING_HFILES =
 
 # CDEBUG, use -g for gdb symbols.  For gprof, add -pg and -no-pie.
 # For ASAN add -fsanitize=address (uses a much larger memory footprint)
-# use 'break __sanitizer::Die' inside of gdb to stop on a san error
+# use 'break __sanitizer::Die' inside of gdb to stop on a san error.
+# For valgrind performance with kcachegrind run locid with 
+#   `valgrind --tool=callgrind --dump-instr=yes --collect-jumps=yes`
 #CDEBUG = -g -Og
-#CDEBUG = -g  -fsanitize=address
+# CDEBUG = -g  -fsanitize=address
 CDEBUG = -g -Og
 
 # CDEFINES, for passing version number in through makefiles.

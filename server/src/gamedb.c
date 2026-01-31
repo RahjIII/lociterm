@@ -200,6 +200,8 @@ int game_db_init(char *filename) {
 	game_db_exec(NULL,sqlstr);
 	sqlite3_free(sqlstr);
 
+	game_db_update_telopt_names();
+
 	locid_debug(DEBUG_DB,NULL,"db created.",filename);
 
 	return(1);
