@@ -23,6 +23,7 @@
 #ifndef LO_SCAN_H
 #define LO_SCAN_H
 
+#include <glib.h>
 #include "locid.h"
 #include "uv.h"
 
@@ -36,11 +37,13 @@ typedef struct scan_tbd_entry {
 	int ssl;
 	int laststatus;
 	int status;
+	GString *greeting;
 } scan_tbd_entry_t;
 
 /* exported global variable declarations */
 
 /* exported function declarations */
+struct scan_tbd_entry *new_scan_tbd_entry(void);
 void free_scan_tbd_entry(struct scan_tbd_entry *f);
 void scanner_finalize(proxy_conn_t *pc);
 void scanner_init(uv_loop_t *uvloop,struct locid_conf *config);

@@ -714,3 +714,12 @@ void loci_proxy_set_charset(proxy_conn_t *pc, const char *charset) {
 	loci_environment_update(pc,TELNET_ENVIRON_VAR,"CHARSET",charset);
 }
 
+/* append data into the scanner's greeting block */
+void loci_proxy_write_greeting(proxy_conn_t *pc, char *in, size_t len) {
+	if(pc->scanner && pc->scanner->greeting) {
+		pc->scanner->greeting = g_string_append_len(
+			pc->scanner->greeting,in,len 
+		);
+	}
+}
+

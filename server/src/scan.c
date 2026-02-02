@@ -67,6 +67,8 @@ struct scan_tbd_entry *new_scan_tbd_entry(void) {
 	new->host = NULL;
 	new->laststatus = 0;
 	new->status = 0;
+	/* initial size is just a guess, it'll grow as needed */
+	new->greeting = g_string_sized_new(8192);
 	return(new);
 }
 
@@ -74,6 +76,9 @@ void free_scan_tbd_entry(struct scan_tbd_entry *f) {
 	if(!f) return;
 	if(f->host) {
 		free(f->host);
+	}
+	if(f->greeting) {
+		g_string_free(f->greeting,TRUE);
 	}
 	free(f);
 }
@@ -316,14 +321,6 @@ void scanner_dispatch(struct scan_tbd_entry *tbde) {
 		(tbde->ssl)?"SSL":"TCP"
 	);
 
-	if(config->scan_forced && (config->scan_fix_id > -1)) {
-		fprintf(stdout,"---- %s %d %s ----\n",
-			tbde->host,
-			tbde->port,
-			(tbde->ssl)?"SSL":"TCP"
-		);
-	}
-
 	/* dry_run isn't documented in the config file, but if it is set, the
 	 * scanner will do everything except actually connect to the game in
 	 * question.  Useful for testing scan parameters and stuff. */
@@ -393,7 +390,13 @@ void scanner_finalize(proxy_conn_t *pc) {
 
 	/* forced scanner mode, print the updated stats. */
 	if(config->scan_forced) {
-		fprintf(stdout,"\n---- Closed ----\n");
+		fprintf(stdout,"---- %s %d %s ----\n",
+			pc->scanner->host,
+			pc->scanner->port,
+			(pc->scanner->ssl)?"SSL":"TCP"
+		);
+		fprintf(stdout,"%s",pc->scanner->greeting->str);
+		fprintf(stdout,"\n----\n");
 		game_db_list_info(pc->scanner->id);
 	}
 

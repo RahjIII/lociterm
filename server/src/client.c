@@ -237,6 +237,7 @@ void loci_client_send_cmd(proxy_conn_t *pc, char cmd, char *in, size_t len) {
 /* send regular terminal data to the client. */
 void loci_client_write(proxy_conn_t *pc, char *in, size_t len) {
 	loci_client_send_cmd(pc,TERM_DATA,in,len);
+	loci_proxy_write_greeting(pc,in,len);
 }
 
 /* send the reconnection key to the client. */

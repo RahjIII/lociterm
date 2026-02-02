@@ -135,4 +135,5 @@ void loci_proxy_shutdown(proxy_conn_t *pc);
 void loci_proxy_set_charset(proxy_conn_t *pc, const char *charset);
 void free_proxyconns(void);
 void loci_proxy_log_status(void);
+void loci_proxy_write_greeting(proxy_conn_t *pc, char *in, size_t len);
 #endif /* LO_PROXY_H */
