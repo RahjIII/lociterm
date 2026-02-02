@@ -69,6 +69,7 @@ struct locid_conf {
 	int scan_enabled;
 	int scan_dry_run;
 	int scan_forced;
+	int scan_fix_id;	/* used to pass a single id into the forced scanner */
 	int scan_check_interval;
 	int scan_expired;
 	int scan_down;

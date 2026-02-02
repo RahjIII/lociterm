@@ -369,6 +369,14 @@ void loci_telnet_handler(telnet_t *telnet, telnet_event_t *event, void *user_dat
 			loci_client_send_echosga(pc);
 		}
 		loci_client_write(pc,event->data.buffer,event->data.size);
+	
+		/* dump the inbound telnet data to stdout */
+		if( (config->scan_forced == 1) && 
+			(config->scan_fix_id != -1) 
+		) {
+			fwrite(event->data.buffer,event->data.size,1,stdout);
+		}
+		
 		break;
 	case TELNET_EV_IAC: {
 		switch(event->iac.cmd) {

@@ -406,6 +406,7 @@ int main(int argc, char **argv) {
 	int debug = 0;
 	int localmode = 0;
 	int scan_forced = 0;
+	int fix_id = -1;
 	int listmode = -1;
 	int listscan = 0;
 	int listinfo = -1;
@@ -423,7 +424,7 @@ int main(int argc, char **argv) {
 	/* ...and begin. */
 
 	while(1) {
-		char *short_options = "hbc:dvalsfA:B:R:D:i:";
+		char *short_options = "hbc:dvalsfF:A:B:R:D:i:";
 		static struct option long_options[] = {
 			{"help", no_argument,0,'h'},
 			{"browser", no_argument,0,'b'},
@@ -435,6 +436,7 @@ int main(int argc, char **argv) {
 			{"list-denied", no_argument,0,'l'},
 			{"list-scan", no_argument,0,'s'},
 			{"force-scan", no_argument,0,'f'},
+			{"fix-scan", required_argument,0,'F'},
 			{"approve", required_argument,0,'A'},
 			{"ban", required_argument,0,'B'},
 			{"redact", required_argument,0,'R'},
@@ -468,6 +470,10 @@ int main(int argc, char **argv) {
 				break;
 			case 'f':
 				scan_forced = 1;
+				break;
+			case 'F':
+				scan_forced = 1;
+				fix_id = atoi(optarg);
 				break;
 			case 's':
 				listscan = 1;
@@ -505,6 +511,7 @@ int main(int argc, char **argv) {
 				fprintf(stdout,"\t-s / --list-scan     list scaned down games by id\n");
 				fprintf(stdout,"\t-f / --force-scan    scan down games and exit\n");
 				fprintf(stdout,"\t-i / --info          show game info for id\n");
+				fprintf(stdout,"\t-F / --fix-scan <id> Scan a single game\n");
 				fprintf(stdout,"\t-A / --approve <id>  Mark game approved\n");
 				fprintf(stdout,"\t-R / --redact <id>   Mark game approved/redacted\n");
 				fprintf(stdout,"\t-B / --ban <id>      Mark game banned\n");
@@ -550,8 +557,16 @@ int main(int argc, char **argv) {
 	lws_set_log_level(lwslogs, (lws_log_emit_t)locid_log_lws);
 
 	if(scan_forced) {
-		/* log to stderr instead of configured log file. */
+		/* log to stderr instead of the configured log-file. */
 		locid_log_init(NULL);
+		/* and unless in debug mode, don't bother with any logs at all.
+		 * (output should be fprintf'd to stdout. */
+		if(!debug) {
+			global_debug_facility = 0; /* no logging, only printing. */
+		}
+		/* and enable the scanner subsystem, overriding the config file */
+		config->scan_enabled = 1;
+		config->scan_batch_delay = 1;
 	} else {
 		locid_log_init(config->log_file);
 	}
@@ -613,6 +628,8 @@ int main(int argc, char **argv) {
 
 	config->client_localmode = localmode;
 	config->scan_forced = scan_forced;
+	config->scan_fix_id = fix_id;
+
 
 	/* init the mountpoint struct for lws's built in http server. */
 	mount = (struct lws_http_mount *)malloc(sizeof(struct lws_http_mount));
@@ -678,7 +695,7 @@ int main(int argc, char **argv) {
 	/* associate the signal handler. */
 	info.signal_cb = signal_callback_lws;
 
-	/* Unless in scan_force mode, bind the listening socket */
+	/* In scan_force mode, don't bind the listening socket */
 	if(scan_forced) {
 		info.port = 0;
 	}

@@ -264,10 +264,10 @@ int loci_connect_to_game_host(proxy_conn_t *pc, char *hostname, int port, int ss
 	int buflen = sprintf(buf,"Trying %s %d...\n",info.address,info.port);
 	loci_client_write(pc,buf,buflen);
 	*/
+	locid_info(pc,"Trying %s %d ...\n",info.address,info.port);
 
 	if (!lws_client_connect_via_info(&info)) {
-		locid_debug(DEBUG_CLIENT,pc,"client connect via info failed.");
-		locid_info(pc,"game connect via info failed.");
+		locid_info(pc,"game lws Connect via info failed.");
 		/* if the connect via info fails this early, the lws callback loop
 		 * doesn't trigger at all.  Simulate a lws error event to trigger the
 		 * close and cleanup flow. */

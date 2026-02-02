@@ -1030,7 +1030,7 @@ void game_db_list_down(void) {
 		fprintf(stdout,"%d\t%s %s %4d\t%s %d %s\n",
 			sqlite3_column_int(stmt,0), /* id */
 			(wasup==1)?"✔":"✘",
-			(down==1)?"Gaveup":"Retry ",
+			(down==1)?"Manual":"Auto  ",
 			sqlite3_column_int(stmt,5), /* days */
 			sqlite3_column_text(stmt,1),/* host */
 			sqlite3_column_int(stmt,2), /* port */
@@ -1133,7 +1133,8 @@ void game_db_list_info(int gameid) {
 			"cast ((julianday(CURRENT_TIMESTAMP) - julianday(coalesce(lastscan,0))) as integer), "
 			"(select status from gamedbstatus where GAMEDBSTATUS.id = s.status), "
 			"cast ((julianday(CURRENT_TIMESTAMP) - julianday(coalesce(since,0))) as integer), "
-			"datetime(lastscan) "
+			"datetime(lastscan), "
+			"datetime(since) "
 		"FROM SCAN as s "
 		"where s.game is %d",
 		gameid
@@ -1154,6 +1155,10 @@ void game_db_list_info(int gameid) {
 		fprintf(stdout,"%15.15s: %s\n",
 			"Last scanned",
 			sqlite3_column_text(stmt,3)
+		);
+		fprintf(stdout,"%15.15s: %s\n",
+			"Last Changed",
+			sqlite3_column_text(stmt,4)
 		);
 		fprintf(stdout,"%15.15s: %s for %d days\n",
 			"Scan Status",
@@ -1224,6 +1229,7 @@ void game_db_list_info(int gameid) {
 	sqlite3_free(sqlstr);
 	sqlite3_finalize(stmt);
 
+	fprintf(stdout,"\n");
 
 	sqlite3_close(db);
 

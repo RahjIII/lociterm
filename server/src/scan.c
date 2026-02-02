@@ -54,9 +54,11 @@ void scanner_init(uv_loop_t *uvloop,struct locid_conf *config);
 void scanner_main(uv_timer_t *handle);
 struct scan_tbd_entry *new_scan_tbd_entry(void);
 void free_scan_tbd_entry(struct scan_tbd_entry *f);
-GList *scanner_tbd_list(void);
-GList *scanner_forced_list(void);
 void scanner_dispatch(struct scan_tbd_entry *tbde);
+GList *scanner_get_tbd(char *sqlstr);
+GList *scanner_enabled_list(void);
+GList *scanner_forced_list(void);
+GList *scanner_single_game_list(int id);
 
 /* ---- code starts here. ---- */
 struct scan_tbd_entry *new_scan_tbd_entry(void) {
@@ -122,10 +124,14 @@ void scanner_main(uv_timer_t *handle) {
 		if(config->scan_forced) {
 			if(runcount == 0) {
 				locid_log("Running in Forced scan mode, will exit upon completion.");
-				tbd = scanner_forced_list();
+				if(config->scan_fix_id > -1) {
+					tbd = scanner_single_game_list(config->scan_fix_id);
+				} else {
+					tbd = scanner_forced_list();
+				}
 			}
 		} else {
-			tbd = scanner_tbd_list();
+			tbd = scanner_enabled_list();
 		}
 		if(g_list_length(tbd) != 0) {
 			locid_log("Scanner found %d games to refresh.",g_list_length(tbd));
@@ -172,23 +178,10 @@ void scanner_main(uv_timer_t *handle) {
 }
 
 
-/* returns a GList of games to be scanned. */
-GList *scanner_tbd_list(void) {
+/* returns a GList of games to be scanned automatically when scanner is enabled. */
+GList *scanner_enabled_list(void) {
 
 	char *sqlstr;
-	GList *tbd = NULL;
-	sqlite3 *db;
-	sqlite3_stmt *stmt;
-	struct scan_tbd_entry *tbde;
-
-	if(!config->db_inuse) { 
-		return(NULL);
-	}
-
-	if ( (sqlite3_open(config->db_location, &db) != SQLITE_OK) ) {
-		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
-		return(NULL); 
-	}
 
 	sqlstr = sqlite3_mprintf(
 		"SELECT G.ID, G.HOST, G.PORT, G.SSL, S.STATUS "
@@ -208,47 +201,13 @@ GList *scanner_tbd_list(void) {
 		scan_down_after_s
 	);
 
-	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) == SQLITE_OK) ){
-		while (sqlite3_step(stmt) == SQLITE_ROW) {
-			tbde = new_scan_tbd_entry();
-			tbde->id = sqlite3_column_int(stmt,0);
-			tbde->host = (strdup((char *)sqlite3_column_text(stmt,1)));
-			tbde->port = sqlite3_column_int(stmt,2);
-			tbde->ssl = sqlite3_column_int(stmt,3);
-			tbde->status = sqlite3_column_int(stmt,4);
-			tbde->laststatus = tbde->status;
-			tbd = g_list_append(tbd,tbde);
-		}
-		sqlite3_finalize(stmt);
-	} else {
-		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
-		return(NULL); 
-	}
-
-	/* cleanup: */
-	sqlite3_free(sqlstr);
-	sqlite3_close(db);
-	return(tbd);
-
+	return(scanner_get_tbd(sqlstr));
 }
 
-/* returns a GList of scan failed or not yet scanned games to be re-scanned. */
+/* returns a GList of games to be scanned when the force-scan option is enabled. */
 GList *scanner_forced_list(void) {
 
 	char *sqlstr;
-	GList *tbd = NULL;
-	sqlite3 *db;
-	sqlite3_stmt *stmt;
-	struct scan_tbd_entry *tbde;
-
-	if(!config->db_inuse) { 
-		return(NULL);
-	}
-
-	if ( (sqlite3_open(config->db_location, &db) != SQLITE_OK) ) {
-		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
-		return(NULL); 
-	}
 
 	sqlstr = sqlite3_mprintf(
 		"SELECT G.ID, G.HOST, G.PORT, G.SSL, S.STATUS "
@@ -266,6 +225,55 @@ GList *scanner_forced_list(void) {
 		DBSTATUS_NOT_CHECKED
 	);
 
+	return(scanner_get_tbd(sqlstr));
+}
+
+/* returns a GList of a single game to be scanned, given its id. */
+GList *scanner_single_game_list(int id) {
+
+	char *sqlstr;
+	sqlstr = sqlite3_mprintf(
+		"SELECT "
+		" G.ID, G.HOST, G.PORT, G.SSL, S.STATUS "
+		"FROM GAMEDB AS G "
+		"LEFT JOIN SCAN AS S ON S.GAME = G.ID "
+		"WHERE "
+		"(G.ID == %d) "
+		";",
+		id
+	);
+
+	return(scanner_get_tbd(sqlstr));
+}
+
+
+/* generic 'get my scan list from a sql string' function. */
+GList *scanner_get_tbd(char *sqlstr) {
+
+	GList *tbd = NULL;
+	sqlite3 *db;
+	sqlite3_stmt *stmt;
+	struct scan_tbd_entry *tbde;
+
+	if(!config->db_inuse) { 
+		return(NULL);
+	}
+
+	if ( (sqlite3_open(config->db_location, &db) != SQLITE_OK) ) {
+		locid_debug(DEBUG_DB,NULL,"Ooops.  %s",sqlite3_errmsg(db));
+		return(NULL); 
+	}
+
+	/* sqlstr has to look something like this.
+	sqlstr = sqlite3_mprintf(
+		"SELECT "
+		" G.ID, G.HOST, G.PORT, G.SSL, S.STATUS "
+		"FROM GAMEDB AS G "
+		"LEFT JOIN SCAN AS S ON S.GAME = G.ID "
+		";"
+	);
+	*/
+
 	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) == SQLITE_OK) ){
 		while (sqlite3_step(stmt) == SQLITE_ROW) {
 			tbde = new_scan_tbd_entry();
@@ -287,7 +295,6 @@ GList *scanner_forced_list(void) {
 	sqlite3_free(sqlstr);
 	sqlite3_close(db);
 	return(tbd);
-
 }
 
 /* creates a client-less proxy connection to a game. */
@@ -308,6 +315,14 @@ void scanner_dispatch(struct scan_tbd_entry *tbde) {
 		tbde->port,
 		(tbde->ssl)?"SSL":"TCP"
 	);
+
+	if(config->scan_forced && (config->scan_fix_id > -1)) {
+		fprintf(stdout,"---- %s %d %s ----\n",
+			tbde->host,
+			tbde->port,
+			(tbde->ssl)?"SSL":"TCP"
+		);
+	}
 
 	/* dry_run isn't documented in the config file, but if it is set, the
 	 * scanner will do everything except actually connect to the game in
@@ -375,6 +390,12 @@ void scanner_finalize(proxy_conn_t *pc) {
 
 	game_db_exec(pc,sqlstr);
 	sqlite3_free(sqlstr);
+
+	/* forced scanner mode, print the updated stats. */
+	if(config->scan_forced) {
+		fprintf(stdout,"\n---- Closed ----\n");
+		game_db_list_info(pc->scanner->id);
+	}
 
 	free_scan_tbd_entry(pc->scanner);
 	pc->scanner = NULL;
