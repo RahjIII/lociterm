@@ -1,9 +1,9 @@
 /* scan.c - locibot game scanner and crawler */
 /* Created: Sat Jan 25 01:55:54 PM EST 2025 malakai */
-/* Copyright © 2025 Jeffrika Heavy Industries */
+/* Copyright © 2025-2026 Jeffrika Heavy Industries */
 /* $Id: $ */
 
-/* Copyright © 2022-2025 Jeff Jahr <malakai@jeffrika.com>
+/* Copyright © 2022-2026 Jeff Jahr <malakai@jeffrika.com>
  *
  * This file is part of LociTerm - Last Outpost Client Implementation Terminal
  *
@@ -388,15 +388,32 @@ void scanner_finalize(proxy_conn_t *pc) {
 	game_db_exec(pc,sqlstr);
 	sqlite3_free(sqlstr);
 
-	/* forced scanner mode, print the updated stats. */
+	/* update the greeting if the scan was successful. */
+	if(pc->scanner->status == DBSTATUS_APPROVED) {
+		/* change of status */
+		sqlstr = sqlite3_mprintf(
+			"insert into greeting ( game, lastscan, splash ) "
+			"values ( %d, CURRENT_TIMESTAMP, %Q ) "
+			"on CONFLICT (game) do update set "
+			"lastscan = CURRENT_TIMESTAMP, "
+			"splash=excluded.splash"
+			";",
+			pc->scanner->id,
+			pc->scanner->greeting->str
+		);
+		game_db_exec(pc,sqlstr);
+		sqlite3_free(sqlstr);
+	}
+
+	/* in forced scanner mode, print the updated stats immediately. */
 	if(config->scan_forced) {
 		fprintf(stdout,"---- %s %d %s ----\n",
 			pc->scanner->host,
 			pc->scanner->port,
 			(pc->scanner->ssl)?"SSL":"TCP"
 		);
-		fprintf(stdout,"%s",pc->scanner->greeting->str);
-		fprintf(stdout,"\n----\n");
+		//fprintf(stdout,"%s",pc->scanner->greeting->str);
+		//fprintf(stdout,"\n----\n");
 		game_db_list_info(pc->scanner->id);
 	}
 

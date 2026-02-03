@@ -56,7 +56,7 @@ char *dbstatus_str[] = {
 };
 
 /* database_version doesn't have to go up by 1, but it must never go down. */
-int database_version = 260126;
+int database_version = 260202;
 
 char database_definition[] = \
 	"CREATE TABLE IF NOT EXISTS DBVERSION ( "
@@ -114,6 +114,12 @@ char database_definition[] = \
 	"CREATE TABLE IF NOT EXISTS TELOPT_NAMES ( "
 		"TELOPT INTEGER NOT NULL PRIMARY KEY, "
 		"NAME TEXT "
+	");"
+	"CREATE TABLE IF NOT EXISTS GREETING ( "
+		"GAME INTEGER NOT NULL PRIMARY KEY, "
+		"LASTSCAN DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+		"SPLASH BLOB, "
+		"FOREIGN KEY(GAME) REFERENCES GAMEDB(ID)"
 	");"
 	;
 
@@ -1054,6 +1060,8 @@ void game_db_list_info(int gameid) {
 	sqlite3_stmt *stmt;
 	json_object *jobj=NULL;
 	char *sqlstr;
+	int row, splashlen;
+	char *lastsplash,*splash;
 
 	game_db_status_t filter;
 
@@ -1069,6 +1077,37 @@ void game_db_list_info(int gameid) {
 		return;
 	}
 
+	/* get the greeting */
+	sqlstr = sqlite3_mprintf(
+		"SELECT "
+			"lastscan, splash, length(splash) "
+		"FROM GREETING "
+		"WHERE game is %d "
+		";",
+		gameid
+	);
+	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) != SQLITE_OK) ){
+		locid_log("Ooops.  %s",sqlite3_errmsg(db));
+		sqlite3_free(sqlstr);
+		sqlite3_close(db);
+		return;
+	}
+	row=0;
+	while (sqlite3_step(stmt) != SQLITE_DONE) {
+		lastsplash = strdup((const char*)sqlite3_column_text(stmt,0));
+		splash = strdup((const char*)sqlite3_column_text(stmt,1));
+		splashlen = sqlite3_column_int(stmt,2);
+		row++;
+		break; /*only doing this once. */
+	}
+	if(row == 0) {
+		lastsplash = strdup("(Never)");
+		splash = strdup("");
+		splashlen = 0;
+	}
+	sqlite3_free(sqlstr);
+	sqlite3_finalize(stmt);
+
 	sqlstr = sqlite3_mprintf(
 		"SELECT "
 			"host,port,ssl, "
@@ -1083,14 +1122,13 @@ void game_db_list_info(int gameid) {
 
 	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) != SQLITE_OK) ){
 		locid_log("Ooops.  %s",sqlite3_errmsg(db));
-		sqlite3_free(sqlstr);
-		sqlite3_close(db);
-		return;
+		goto cleanup;
 	}
 
+	fprintf(stdout,"%s\n\n",splash);
 	fprintf(stdout,"Game ID: %d\n",gameid);
 
-	int row=0;
+	row=0;
 	while (sqlite3_step(stmt) != SQLITE_DONE) {
 		fprintf(stdout,"%15.15s: %s %d %s\n",
 			"Host",
@@ -1121,7 +1159,7 @@ void game_db_list_info(int gameid) {
 	}
 	if(row == 0) {
 		fprintf(stdout,"Not Found\n");
-		return;
+		goto cleanup;
 	}
 
 	sqlite3_free(sqlstr);
@@ -1142,9 +1180,7 @@ void game_db_list_info(int gameid) {
 
 	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) != SQLITE_OK) ){
 		locid_log("Ooops.  %s",sqlite3_errmsg(db));
-		sqlite3_free(sqlstr);
-		sqlite3_close(db);
-		return;
+		goto cleanup;
 	}
 
 	row=0;
@@ -1153,11 +1189,11 @@ void game_db_list_info(int gameid) {
 			break;
 		}
 		fprintf(stdout,"%15.15s: %s\n",
-			"Last scanned",
+			"Last Scanned",
 			sqlite3_column_text(stmt,3)
 		);
 		fprintf(stdout,"%15.15s: %s\n",
-			"Last Changed",
+			"Scan Changed",
 			sqlite3_column_text(stmt,4)
 		);
 		fprintf(stdout,"%15.15s: %s for %d days\n",
@@ -1167,10 +1203,8 @@ void game_db_list_info(int gameid) {
 		);
 		row++;
 	}
-
 	sqlite3_free(sqlstr);
 	sqlite3_finalize(stmt);
-
 
 	/* print mssp data */
 	sqlstr = sqlite3_mprintf(
@@ -1189,9 +1223,7 @@ void game_db_list_info(int gameid) {
 
 	if ( (sqlite3_prepare(db,sqlstr,-1,&stmt,NULL) != SQLITE_OK) ){
 		locid_log("Ooops.  %s",sqlite3_errmsg(db));
-		sqlite3_free(sqlstr);
-		sqlite3_close(db);
-		return;
+		goto cleanup;
 	}
 
 	row=0;
@@ -1226,6 +1258,10 @@ void game_db_list_info(int gameid) {
 		row++;
 	}
 
+	cleanup:
+
+	if(lastsplash) free(lastsplash);
+	if(splash) free(splash);
 	sqlite3_free(sqlstr);
 	sqlite3_finalize(stmt);
 
