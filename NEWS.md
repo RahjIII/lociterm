@@ -1,5 +1,12 @@
 ## What's New
 
+### Version 2.16.0
+
+- Added a db table for saving the greeting splash screen text, and a command
+  flag to force a rescan of a gameid.  This is currently just to help out with
+  the game suggestion review process, but the splash screen data might be
+  useful for something later too.
+
 ### Version 2.15.0
 
 - Added 'scan-force' option to locid to force a refresh of the DOWN hosts in
