@@ -2,6 +2,7 @@
 	--nerfbar-open-display: flex;
 	--nerfbar-close-display: none;
 	--nerfbar-offsetHeight: none;
+	--nerfbar-extras-display: flex;
 }
 
 #nerfbar {
@@ -28,10 +29,11 @@
 	color: var(--book-text-color);
 	border-color: var(--book-cover-color);
 	border-style: solid;
-	border-radius: calc(var(--finger-size)/2.0);
+	border-radius: var(--book-border-radius-popup);
 	padding: 0.25em;
 	align-items: center;
-	border-width: 1mm;
+	border-width: var(--book-border-width);
+	box-shadow: var(--book-panel-shadow);
 	z-index: +1;
 	overflow: hidden;
 }
@@ -46,11 +48,10 @@
 	border-width: 1px;
 	flex-grow: 1;
 	outline-color: var(--book-cover-color);
-	min-height: var(--finger-size);
-	background: var(--book-paper-color);
 	background: var(--book-altpaper-color);
+	color: var(--book-text-color);
 	resize: none;
-	border-radius: calc(var(--finger-size)/3.0);
+	border-radius: var(--book-border-radius-panel);
 }
 
 textarea.nerfbarblur {
@@ -74,7 +75,7 @@ textarea.nerfbarblur::selection {
 	max-height: var(--finger-size);
 	min-width: var(--finger-size);
 	font-size: calc(var(--finger-size)*.75);
-	border-radius: calc(var(--finger-size)/3.0);
+	border-radius: var(--book-border-radius-panel);
 	color: var(--book-cover-color);
 	border-style: solid;
 	border-width: 1px;
@@ -90,5 +91,11 @@ textarea.nerfbarblur::selection {
 	background: var(--book-altpaper-color);
 	border-color: var(--book-cover-color);
 	border-style: solid;
+}
+
+.nerfbutton.history-nav,
+.nerfbutton.wordstack-btn,
+.nerfbutton.send-btn {
+	display: var(--nerfbar-extras-display);
 }
 
