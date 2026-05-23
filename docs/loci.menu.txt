@@ -85,9 +85,21 @@ Menu Object:
 Notes:
 
 The menu definition will automatically include a button in the upper right
-corner of the menubox to allow opening the client's system menu. This can NOT
-be overridden.  The user is always expected to be able to access a local
-client control menu through that button.
+corner of the menubox to allow opening the client's system menu.  Buttons
+are merged with the system defaults by name (replace-or-append).  To replace
+a system button, include a button with the same "name" value and the desired
+new properties.  To remove a system button entirely, include a button with
+only its "name" and no action content (no send, menubar, direct, text, or img);
+the system button will be omitted from the grid.  For example, to remove the
+default settings gear button:
+
+    { "name": "Client Settings" }
+
+System menubar panels (those whose "id" begins with "sys_") can similarly be
+overridden by including a panel with the matching id in the menubar array.
+This allows a portal or game server to replace the contents of built-in panels
+like sys_client.  Items within a menubar panel may be set to null to omit them
+from the rendered list.
 
 Custom menu names SHOULD all begin with the "menu_" prefix. They MUST NOT begin
 with "sys_", and that prefix will be ignored.
