@@ -29,14 +29,18 @@ import './nerfbar.css';
 import './styles.css';
 
 import lociThemes from './themes.json';
+import lociSkins from './ui_skins.json';
 
 import { LociTerm } from './lociterm.js';
+import { GmcpTestPanel } from './gmcp_testpanel.js';
+import { applyPortalConfig } from './portalconfig.js';
 
 // lociTermBegin();
 
 const terminal = new LociTerm(
 	document.getElementById('terminal'), // the anchor div
-	lociThemes
+	lociThemes,
+	lociSkins
 );
 
 let body = document.getElementsByTagName('body')[0];
@@ -74,3 +78,9 @@ if((document.location.search || '') != '') {
 // Let the games begin.
 // open it up and go.
 terminal.connect(websocket_url);
+
+// Load optional portal config from ?configurl= or ./portal.json.
+// Stored to localStorage so it survives GMCP reset between sessions.
+applyPortalConfig(terminal);
+
+new GmcpTestPanel(terminal);

@@ -1,6 +1,7 @@
 {
 	"ui": {
 		"themename": "LociTerm",
+		"skinname": "lociterm",
 		"fontSize": "16px",
 		"fingerSize": "8mm",
 		"background": "#000000",

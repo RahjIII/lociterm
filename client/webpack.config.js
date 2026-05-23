@@ -57,7 +57,13 @@ module.exports = {
 	},
 	devServer: {
 		port: 5001,
-		open: true
+		open: true,
+		// Serves client/public/ at the root so portal.json can be placed there
+		// during development and fetched by applyPortalConfig().
+		static: {
+			directory: path.join(__dirname, 'public'),
+			watch: true,
+		}
 	},
 	module: {
 		rules: [
