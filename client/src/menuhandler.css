@@ -3,8 +3,14 @@
 	--book-paper-color: #d8d6c6;
 	--book-altpaper-color: #ecebe4;
 	--book-text-color: #443311;
+	--book-button-color: #ecebe4;
 	--book-link-color: #AA2600;
 	--book-visited-color: #CC2600;
+	--book-border-radius-panel: calc(var(--finger-size)/3.0);
+	--book-border-radius-popup: calc(var(--finger-size)/2.0);
+	--book-border-radius-control: calc(var(--finger-size)/4.0);
+	--book-border-width: 1mm;
+	--book-panel-shadow: none;
 	--finger-size: 8mm;
 	--font-size: 16px;
 	--menufade-hidden: 0.20;
@@ -52,9 +58,10 @@
 	z-index: 12;
 	/* background: var(--book-paper-color); */
 	border-color: var(--book-cover-color);
-	border-radius: calc(var(--finger-size)/3.0);
+	border-radius: var(--book-border-radius-panel);
 	border-style: solid;
-	border-width: 1mm;
+	border-width: var(--book-border-width);
+	box-shadow: var(--book-panel-shadow);
 }
 
 #menubox:hover {
@@ -74,6 +81,42 @@
 
 .menugrid *:active{
     background: rgba(128,128,128,0.5);
+}
+
+/* Menubox minimize / expand strip. */
+.menubox-minimize-btn {
+	background: none;
+	border-left: none;
+	border-right: none;
+	color: var(--book-cover-color);
+	cursor: pointer;
+	direction: ltr;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: calc(var(--finger-size) * 0.66);
+	padding: 0;
+	user-select: none;
+	font-size: calc(var(--finger-size) * 0.45);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+#menubox:hover .menubox-minimize-btn {
+	opacity: 0.7;
+}
+
+#menubox[data-minimized] .menubox-minimize-btn {
+	opacity: 1;
+}
+
+#menubox[data-minimized] .menubutton {
+	display: none;
+}
+
+#menubox[data-minimized] {
+	grid-template-columns: 1fr !important;
+	grid-template-rows: auto !important;
 }
 
 
@@ -133,7 +176,7 @@
 */
 
 .menubutton {
-	color: var(--book-altpaper-color);
+	color: var(--book-button-color);
 	font-size: var(--finger-size);
 	text-align: center;
 	align-content: center;
@@ -225,9 +268,10 @@ button.menubutton {
 	align-content: center;
 	background: var(--book-paper-color);
 	border-color: var(--book-cover-color);
-	border-radius: calc(var(--finger-size)/3.0);
+	border-radius: var(--book-border-radius-panel);
 	border-style: solid;
-	border-width: 1mm;
+	border-width: var(--book-border-width);
+	box-shadow: var(--book-panel-shadow);
 	display: flex;
 	flex-wrap: wrap;
 	/* margin: 0.5mm -1mm; */
@@ -304,9 +348,10 @@ button.menubutton {
 	align-items: center;
 	background: var(--book-paper-color);
 	border-color: var(--book-cover-color);
-	border-radius: calc(var(--finger-size)/2.0);
+	border-radius: var(--book-border-radius-popup);
 	border-style: solid;
-	border-width: 1mm;
+	border-width: var(--book-border-width);
+	box-shadow: var(--book-panel-shadow);
 	color: var(--book-text-color);
 	display: grid;
 	grid-template-columns: 1fr;
@@ -437,7 +482,7 @@ div.gameabout {
 	font-size: var(--font-size);
 	background: var(--book-altpaper-color);
 	border-color: var(--book-cover-color);
-	border-radius: calc(var(--finger-size)/4.0);
+	border-radius: var(--book-border-radius-control);
 	border-style: solid;
 	color: var(--book-text-color);
 }
@@ -509,7 +554,7 @@ div.gameabout {
 
 .menupop .gamelist {
 	border-color: var(--book-cover-color);
-	border-radius: calc(var(--finger-size)/4.0);
+	border-radius: var(--book-border-radius-control);
 	border-style: solid;
 	background: var(--book-altpaper-color);
 	max-height: calc(var(--finger-size)*8);
@@ -550,13 +595,13 @@ div.gameabout {
 
 .generic_details {
     align-content: center;
-	
+
 	min-height: calc(var(--finger-size)/1.0);
 	min-width: calc(var(--finger-size)/1.0);
 	font-size: var(--font-size);
 	background: var(--book-altpaper-color);
 	border-color: var(--book-cover-color);
-	border-radius: calc(var(--finger-size)/4.0);
+	border-radius: var(--book-border-radius-control);
 	border-style: solid;
 	color: var(--book-text-color);
 	border-width: 1px;
@@ -572,7 +617,7 @@ div.gameabout {
 	align-content: center;
 	min-height: calc(var(--finger-size)/1.0);
 	min-width: calc(var(--finger-size)/1.0);
-	border-radius: calc(var(--finger-size)/4.0);
+	border-radius: var(--book-border-radius-control);
 	border-width: 0 0 0.5mm 0;
 	background: var(--book-altpaper-color);
 }

@@ -276,14 +276,39 @@ class MenuHandler {
 		if(custom.menubox) {
 			menubox.width = Math.max(custom.menubox.width , menubox.width);
 			menubox.height = Math.max(custom.menubox.height , menubox.height);
-			menubox.buttons = menubox.buttons.concat(custom.menubox.buttons);
+			// Merge custom buttons into system buttons by name (replace-or-push).
+			// A custom button whose name matches a system button replaces it;
+			// if it carries no action content, the system button is removed (null'd).
+			// New names are appended.  Null entries in the custom array are skipped.
+			for(const btn of custom.menubox.buttons) {
+				if(btn == null) continue;
+				const existing = menubox.buttons.findIndex((b) => b && b.name === btn.name);
+				if(existing !== -1) {
+					const hasContent = btn.send || btn.menubar || btn.direct || btn.text || btn.img;
+					menubox.buttons[existing] = hasContent ? btn : null;
+				} else {
+					menubox.buttons.push(btn);
+				}
+			}
 		} else {
 			console.warn(`Custom menu contained no menubox definition. ${custom}`);
 		}
 
 		let menubar = menu.menubar;
 		if(custom.menubar) {
-			menubar = menubar.concat(custom.menubar);
+			// Merge custom panels into the system menubar.
+			// If a custom panel's id matches an existing sys_ panel, it replaces
+			// that panel rather than appending — this allows portal config and
+			// Loci.Menu.Set to override sys_client, sys_client_settings, etc.
+			// New ids are pushed to the end as before.
+			for(const panel of custom.menubar) {
+				const existing = menubar.findIndex((m) => m.id === panel.id);
+				if(existing !== -1) {
+					menubar[existing] = panel;
+				} else {
+					menubar.push(panel);
+				}
+			}
 		} else {
 			console.warn(`Custom menu contained no menubar definition. ${custom}`);
 		}
@@ -314,7 +339,17 @@ class MenuHandler {
 		box.classList.add('menugrid');
 		let width = menubox.width;
 		let height = menubox.height;
-		box.style.gridTemplateRows = `repeat(${height}, 1fr)`;
+
+		// Determine if the menubox is anchored to the top or bottom of the screen.
+		// The minimize strip sits at whichever edge is outermost (closest to screen edge).
+		const gridTop = getComputedStyle(document.documentElement)
+			.getPropertyValue('--bgridAnchor-top').trim();
+		const isTopAnchored = (gridTop !== 'unset' && gridTop !== '');
+
+		// Reserve an auto-height row for the minimize strip at the outer edge.
+		box.style.gridTemplateRows = isTopAnchored
+			? `auto repeat(${height}, 1fr)`
+			: `repeat(${height}, 1fr) auto`;
 		box.style.gridTemplateColumns =`repeat(${width},1fr)`;
 		box.style.direction = 'rtl';
 
@@ -487,8 +522,47 @@ class MenuHandler {
 
 			box.appendChild(container);
 		}
-		box.firstElementChild.setAttribute("tabindex",0);
-		box.firstElementChild.setAttribute("aria-keyshortcuts","control+m ArrowUp ArrowDown");
+		// Minimize / expand strip — sits at the outer (screen-edge) side of the box.
+		const minBtn = document.createElement('button');
+		minBtn.classList.add('menubox-minimize-btn');
+		minBtn.setAttribute('tabindex', '-1');
+		minBtn.setAttribute('aria-hidden', 'true');
+		minBtn.setAttribute('aria-label', 'Toggle menu');
+		minBtn.style.gridColumn = '1 / -1';
+		minBtn.style.borderTop    = isTopAnchored ? 'none'
+			: '1px solid var(--book-cover-color)';
+		minBtn.style.borderBottom = isTopAnchored
+			? '1px solid var(--book-cover-color)' : 'none';
+
+		const savedMinimized = localStorage.getItem('menuboxMinimized') === '1';
+		minBtn.textContent = savedMinimized ? '⊞' : '⊟';
+		if (savedMinimized) { box.dataset.minimized = ''; }
+
+		minBtn.addEventListener('click', (e) => {
+			e.stopPropagation();
+			const nowMinimized = !('minimized' in box.dataset);
+			if (nowMinimized) {
+				box.dataset.minimized = '';
+				minBtn.textContent = '⊞';
+			} else {
+				delete box.dataset.minimized;
+				minBtn.textContent = '⊟';
+			}
+			localStorage.setItem('menuboxMinimized', nowMinimized ? '1' : '0');
+		});
+
+		if (isTopAnchored) {
+			box.insertBefore(minBtn, box.firstChild);
+		} else {
+			box.appendChild(minBtn);
+		}
+
+		// Keyboard focus starts on the first menu button, not the strip.
+		const firstMenuBtn = box.querySelector('.menubutton');
+		if (firstMenuBtn) {
+			firstMenuBtn.setAttribute("tabindex", 0);
+			firstMenuBtn.setAttribute("aria-keyshortcuts", "control+m ArrowUp ArrowDown");
+		}
 		return(box);
 	}
 
@@ -516,6 +590,7 @@ class MenuHandler {
 
 			for(let j=0; j<side.item.length; j++) {
 				let item = side.item[j];
+				if(item == null) continue;
 				let s = document.createElement('button');
 				if(item.id != undefined) {
 					s.id = item.id
@@ -1022,6 +1097,21 @@ class MenuHandler {
 		);
 		box.appendChild(l);
 
+		let skinitem = this.lociterm.lociSkins.findIndex(
+			(x)=>x.name == this.lociterm.pref.get("ui.skinname")
+		);
+		// Interface skin selector combo
+		l = this.create_generic_selector(
+			"skin-select",
+			"Interface",
+			this.lociterm.lociSkins,
+			skinitem,
+			((e)=>{
+				this.lociterm.pref.set("ui.skinname",this.lociterm.lociSkins[e.srcElement.value].name);
+			})
+		);
+		box.appendChild(l);
+
 		menuitem = this.menuThemes.findIndex(
 			(x)=>x.name == this.lociterm.pref.get("menu.themename")
 		);
@@ -1030,7 +1120,7 @@ class MenuHandler {
 			"Menu Style",
 			this.menuThemes,
 			menuitem,
-			((e)=>{ 
+			((e)=>{
 				this.lociterm.pref.set("menu.themename",this.menuThemes[e.srcElement.value].name);
 			})
 		);
