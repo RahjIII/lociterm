@@ -111,9 +111,9 @@ div.xterm-link-popup {
 	align-content: center;
 	background: var(--book-paper-color);
 	border-color: var(--book-cover-color);
-	border-radius: calc(var(--finger-size)/3.0);
+	border-radius: var(--book-border-radius-panel);
 	border-style: solid;
-	border-width: 1mm;
+	border-width: var(--book-border-width);
 	margin: 0.5mm;
 	min-height:	var(--finger-size);
 	padding: 1.0mm;

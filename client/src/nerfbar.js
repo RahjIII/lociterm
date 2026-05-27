@@ -143,7 +143,7 @@ class NerfBar {
 
 		// History up button
 		sendkey = document.createElement('div');
-		sendkey.classList.add('nerfbutton');
+		sendkey.classList.add('nerfbutton','history-nav');
 		sendkey.setAttribute("type","button");
 		sendkey.setAttribute("aria-label","History Up");
 		sendkey.setAttribute("role","button");
@@ -164,7 +164,7 @@ class NerfBar {
 
 		// History down button
 		sendkey = document.createElement('div');
-		sendkey.classList.add('nerfbutton');
+		sendkey.classList.add('nerfbutton','history-nav');
 		sendkey.setAttribute("type","button");
 		sendkey.setAttribute("aria-label","History Down");
 		sendkey.setAttribute("aria-hidden","true");
@@ -201,7 +201,7 @@ class NerfBar {
 
 		// wordstack paste button
 		btn = document.createElement('div');
-		btn.classList.add('nerfbutton');
+		btn.classList.add('nerfbutton','wordstack-btn');
 		btn.setAttribute("type","button");
 		btn.setAttribute("aria-label","Open Wordstack");
 		btn.setAttribute("role","button");
@@ -212,7 +212,7 @@ class NerfBar {
 
 		// Enter key button.
 		sendkey = document.createElement('div');
-		sendkey.classList.add('nerfbutton');
+		sendkey.classList.add('nerfbutton','send-btn');
 		sendkey.setAttribute("aria-label","Send Command");
 		sendkey.setAttribute("role","button");
 		sendkey.setAttribute("aria-hidden","true");
@@ -256,6 +256,9 @@ class NerfBar {
 		this.lociterm.keyboardEnable(true);
 		this.lociterm.fitAddon.fit();
 		this.lociterm.onWindowResize();
+		// Focus the terminal so typing works immediately without requiring a click.
+		// Deferred slightly to avoid collapsing any menu that triggered this close.
+		setTimeout(() => { this.lociterm.terminal.focus(); }, 50);
 	}
 
 	nofade() {

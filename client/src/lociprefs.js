@@ -148,6 +148,22 @@ class LociPreferences {
 				reflow = true;
 			}
 
+			if(delta.ui.skinname != undefined) {
+				let skin = this.lociterm.lociSkins.find(
+					(x) => x.name == delta.ui.skinname
+				);
+				if(skin != undefined) {
+					this.applySkin(skin);
+				}
+			}
+
+			// Full skin object — used by portal config to persist custom skins.
+			// Applied after skinname so it can override individual properties of
+			// a named skin.
+			if(delta.ui.skin != undefined) {
+				this.applySkin(delta.ui.skin);
+			}
+
 		}
 
 		// Apply the nerfbar preferences.
@@ -277,6 +293,39 @@ class LociPreferences {
 
 		if(this.autosave) {
 			this.save();
+		}
+	}
+
+	// Apply a UI skin object directly, setting the --book-* CSS custom properties.
+	// Called from apply() for named skins and directly by the GMCP skin handler
+	// for server-provided skins (which bypass the pref save path).
+	applySkin(skin) {
+		let set = (v,c) => { if(c !== undefined) document.documentElement.style.setProperty(v,c); };
+		set('--book-cover-color',           skin.coverColor);
+		set('--book-paper-color',           skin.paperColor);
+		set('--book-altpaper-color',        skin.altpaperColor);
+		set('--book-text-color',            skin.textColor);
+		set('--book-link-color',            skin.linkColor);
+		set('--book-visited-color',         skin.visitedColor);
+		set('--book-border-radius-panel',   skin.borderRadiusPanel);
+		set('--book-border-radius-popup',   skin.borderRadiusPopup);
+		set('--book-border-radius-control', skin.borderRadiusControl);
+		set('--book-border-width',          skin.borderWidth);
+		set('--book-panel-shadow',          skin.panelShadow);
+		set('--nerfbar-extras-display',     skin.nerfbarExtras);
+
+		// Menubox button text color: light skins use altpaper (bright on dark terminal);
+		// dark skins use textColor (designed to contrast against dark panels).
+		// Determined by relative luminance of the panel background.
+		const paper = skin.paperColor;
+		if(paper && paper[0] === '#' && paper.length >= 7) {
+			const r = parseInt(paper.slice(1,3), 16) / 255;
+			const g = parseInt(paper.slice(3,5), 16) / 255;
+			const b = parseInt(paper.slice(5,7), 16) / 255;
+			const lum = 0.2126*r + 0.7152*g + 0.0722*b;
+			set('--book-button-color', lum < 0.18 ?
+				(skin.textColor     || '#cccccc') :
+				(skin.altpaperColor || '#ecebe4'));
 		}
 	}
 

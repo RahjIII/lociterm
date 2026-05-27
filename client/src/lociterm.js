@@ -106,12 +106,13 @@ document.setElementById = (id,val) => {
 
 class LociTerm {
 
-	constructor(mydiv,lociThemes=[]) {
+	constructor(mydiv,lociThemes=[],lociSkins=[]) {
 
 		// set variables.
 		this.mydiv = mydiv;
 
 		this.lociThemes = lociThemes;
+		this.lociSkins = lociSkins;
 		this.terminal = new Terminal({
 			// Unicode11Addon is a proposed api?? 
 			allowProposedApi: true 

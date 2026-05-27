@@ -35,3 +35,4 @@ server/src/locid.prev
 lociterm
 server/src/build/
 server/src/locid
+locid.db
